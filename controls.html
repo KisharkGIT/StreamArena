@@ -681,6 +681,24 @@
       <div class="file-status" id="generalStatus"></div>
     </div>
     <div class="section">
+      <div class="section-label">SNIP FILE LOCATION</div>
+      <div class="file-row">
+        <input type="text" class="file-input" id="snipFile" placeholder="C:\path\to\Snip.txt" />
+        <button class="browse-btn px-btn" onclick="browseFile('snipFile','.txt')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></button>
+        <button class="save-btn px-btn" onclick="saveFile()">Save</button>
+      </div>
+      <div class="file-status" id="fileStatus"></div>
+    </div>
+    <div class="section">
+      <div class="section-label">SETTINGS FILE LOCATION</div>
+      <div class="file-row">
+        <input type="text" class="file-input" id="settingsPath" placeholder="C:\path\to\settings.json" />
+        <button class="browse-btn px-btn" onclick="browseFile('settingsPath','.json')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></button>
+        <button class="save-btn px-btn" onclick="saveSettingsPath()">Save</button>
+      </div>
+      <div class="file-status" id="settingsPathStatus"></div>
+    </div>
+    <div class="section">
       <div class="section-label">BACKUP</div>
       <button class="save-overrides-btn px-btn" onclick="exportSettings()">⬇ Export Settings Backup</button>
       <div class="ov-status" id="exportStatus"></div>
@@ -752,24 +770,6 @@
         <input type="range" min="100" max="2000" step="50" id="slideMs" oninput="updateVal('slideMs','slideMsVal',v=>v+'ms')" onchange="save()" />
         <span class="val" id="slideMsVal">550ms</span>
       </div>
-    </div>
-    <div class="section">
-      <div class="section-label">SNIP FILE LOCATION</div>
-      <div class="file-row">
-        <input type="text" class="file-input" id="snipFile" placeholder="C:\path\to\Snip.txt" />
-        <button class="browse-btn px-btn" onclick="browseFile('snipFile','.txt')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></button>
-        <button class="save-btn px-btn" onclick="saveFile()">Save</button>
-      </div>
-      <div class="file-status" id="fileStatus"></div>
-    </div>
-    <div class="section">
-      <div class="section-label">SETTINGS FILE LOCATION</div>
-      <div class="file-row">
-        <input type="text" class="file-input" id="settingsPath" placeholder="C:\path\to\settings.json" />
-        <button class="browse-btn px-btn" onclick="browseFile('settingsPath','.json')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></button>
-        <button class="save-btn px-btn" onclick="saveSettingsPath()">Save</button>
-      </div>
-      <div class="file-status" id="settingsPathStatus"></div>
     </div>
     <div class="section">
       <div class="section-label">SONG NAME OVERRIDES</div>
