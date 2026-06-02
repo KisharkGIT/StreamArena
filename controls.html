@@ -199,6 +199,69 @@
   .hl-bluesky  { color:#5c9fff; }
   .hl-url      { color:#94a3b8; font-size:13px; background:#0f1e30; padding:2px 8px; border-radius:0; }
 
+  /* How-to dropdowns */
+  .howto-group-label {
+    width:760px;
+    font-size:13px;
+    color:#ffffff;
+    letter-spacing:0.22em;
+    margin:32px 0 10px;
+    text-shadow: 2px 2px 0 #000, 3px 3px 0 rgba(0,0,0,0.6);
+  }
+  .howto-details {
+    width:760px;
+    margin-bottom:40px;
+  }
+  .howto-details summary {
+    font-size:18px;
+    letter-spacing:0.12em;
+    margin-bottom:18px;
+    border-bottom:1px solid rgba(58,159,200,0.2);
+    padding-bottom:12px;
+    cursor:pointer;
+    list-style:none;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    user-select:none;
+  }
+  .howto-details summary::-webkit-details-marker { display:none; }
+  .howto-details:not([open]) summary {
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.03);
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+    margin-bottom: 0;
+  }
+  .howto-details:not([open]) summary:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.22);
+  }
+  .howto-details:not([open]) { margin-bottom: 8px; }
+  .howto-details[open] { margin-bottom: 40px; }
+  .howto-details summary::after {
+    content:'▸';
+    font-size:13px;
+    color:rgba(255,255,255,0.18);
+    flex-shrink:0;
+  }
+  .howto-details[open] summary::after { content:'▾'; }
+  .howto-details[open] {
+    border: 1px solid rgba(255,255,255,0.15);
+    background: transparent;
+  }
+  .howto-details[open] summary {
+    padding: 10px 14px;
+    margin-bottom: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .howto-details-body {
+    padding: 16px 14px 18px;
+  }
+  .howto-details-body p { font-size:15px; color:rgba(255,255,255,0.6); line-height:2; letter-spacing:0.04em; margin-bottom:12px; }
+  .howto-details-body ul { padding-left:22px; margin-bottom:12px; }
+  .howto-details-body li { font-size:15px; color:rgba(255,255,255,0.6); line-height:2.1; letter-spacing:0.04em; }
+
   /* How-to links */
   /* Only actual external <a> links get underline + hover */
   .howto-section a {
@@ -209,9 +272,18 @@
     padding: 1px 3px;
     border-radius: 0;
   }
-  .howto-section a:hover {
+  .howto-section a:hover,
+  .howto-details-body a:hover {
     background: rgba(255,255,255,0.08);
     text-shadow: 0 0 8px currentColor;
+  }
+  .howto-details-body a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+    transition: background 0.12s, text-shadow 0.12s;
+    padding: 1px 3px;
+    border-radius: 0;
   }
 
   
@@ -1134,175 +1206,285 @@
 
   <div class="howto-section">
     <h2>GETTING STARTED</h2>
+    <p>Download StreamArena from <a href="https://github.com/KisharkGIT/StreamArena" target="_blank" style="color:#60d0ff;">github.com/KisharkGIT/StreamArena</a>. Click the green <span class="hl-general">Code</span> button and select <span class="hl-general">Download ZIP</span>. Extract it anywhere on your PC.</p>
     <p>Open <span class="hl-general">StreamArena.exe</span> to launch the server. The server is a small local program running in the background that powers all your overlays — it reads your Snip file, serves every overlay to Streamlabs, and handles all the settings. Keep it open the entire stream or everything will stop working.</p>
-    <p>Then open <span class="hl-url">OPEN CONTROLS.html</span> to access this panel. All your settings are loaded automatically when the panel opens — you do not need to do anything manually.</p>
     <p>Each overlay is a browser source URL you add in Streamlabs. You can copy any URL directly from the <span class="hl-widget">STREAMLABS URL</span> copy button inside each widget — click it and it copies to your clipboard.</p>
   </div>
 
-  <div class="howto-section">
-    <h2>WHAT YOU'LL NEED</h2>
-    <p><span class="hl-general">Node.js</span> — required to run the server. If you don't have it, download and install it from <a href="https://nodejs.org" target="_blank" style="color:#60d0ff;text-decoration:none;">nodejs.org</a>. Just install the LTS version and you're good.</p>
-    <p><span class="hl-music">Snip</span> — a small app that watches what's playing on Spotify and writes the song info to a text file on your PC. The server reads that file every 2 seconds to power the music overlay.</p>
-    <ul>
-      <li>Download and run Snip, then set it to output to a <span class="hl-url">.txt</span> file somewhere on your PC.</li>
-      <li>Point <span class="hl-music">Snip File Location</span> in Music Settings to that file.</li>
-      <li>The server also writes a second file called <span class="hl-url">current_spotify_song.txt</span> in the same folder — this is the cleaned-up version after overrides have been applied. You can point a Streamlabs text source at this file if you want the song name to appear as a scrolling ticker on stream.</li>
-    </ul>
-  </div>
+  <details class="howto-details">
+    <summary style="color:#5bc8f5;">WHAT YOU'LL NEED</summary>
+    <div class="howto-details-body">
+      <p><span class="hl-general">Node.js</span> — required to run the server. If you don't have it, download and install it from <a href="https://nodejs.org" target="_blank" style="color:#60d0ff;text-decoration:none;">nodejs.org</a>. Just install the LTS version and you're good.</p>
+      <p><span class="hl-music">Snip</span> — a small app that watches what's playing on Spotify and writes the song info to a text file on your PC. The server reads that file every 2 seconds to power the music overlay.</p>
+      <ul>
+        <li>Download and run Snip, then set it to output to a <span class="hl-url">.txt</span> file somewhere on your PC.</li>
+        <li>Point <span class="hl-general">Snip File Location</span> in General Settings to that file.</li>
+        <li>The server also writes a second file called <span class="hl-url">current_spotify_song.txt</span> in the same folder — this is the cleaned-up version after overrides have been applied. You can point a Streamlabs text source at this file if you want the song name to appear as a scrolling ticker on stream.</li>
+      </ul>
+    </div>
+  </details>
 
-  <div class="howto-section">
-    <h2>MUSIC SETTINGS</h2>
-    <p><span class="hl-music">Music Settings</span> controls the now-playing song overlay that pops up when a song changes.</p>
-    <ul>
-      <li><span class="hl-music">Corner Position</span> — choose which corner of the screen the card appears in.</li>
-      <li><span class="hl-music">BG Opacity</span> — how opaque the card background is. 0 = invisible, 1 = solid black.</li>
-      <li><span class="hl-music">Show Duration</span> — how many seconds the card stays visible before hiding.</li>
-      <li><span class="hl-music">Slide In / Out</span> — toggle animated slide transitions on or off.</li>
-      <li><span class="hl-music">Snip File Location</span> — path to the Snip.txt file that Snip writes the current song to. Snip must be running.</li>
-      <li><span class="hl-music">Song Name Overrides</span> — if you want to fix incorrect Spotify metadata, go to <span class="hl-music">Music Settings</span> and add an Override. Copy the raw text from your Snip file, paste it as the raw value, then provide the correct title and artist.</li>
-      <li><span class="hl-music">Test Popup</span> — triggers the card to appear so you can preview it without changing songs.</li>
-    </ul>
-    <p>Add this to Streamlabs as a browser source: <span class="hl-url">http://localhost:7777/overlay</span></p>
-  </div>
+  <details class="howto-details">
+    <summary style="color:#e879f9;">GENERAL SETTINGS</summary>
+    <div class="howto-details-body">
+      <p>All stream overlay widgets live under <span class="hl-widget">Widget Settings</span>. There are three tabs at the top: <span class="hl-widget">General</span>, <span class="hl-widget">Widgets</span>, and <span class="hl-widget">Preview</span>.</p>
+      <ul>
+        <li><span class="hl-general">Global Font</span> — sets the font used across every overlay at once. Drop <span class="hl-url">.ttf</span> or <span class="hl-url">.otf</span> files into the <span class="hl-url">fonts/</span> subfolder and they appear here automatically. Hit <span class="hl-general">Update Fonts</span> to refresh the list after adding files.</li>
+        <li><span class="hl-general">Export Settings Backup</span> — downloads your full settings as a dated JSON file. Use this before making major changes.</li>
+        <li><span class="hl-general">Widget Visibility</span> — toggle switches that show or hide individual widgets from the layout. Turning a widget off hides it from the Widgets tab but does not delete its settings. Turn it back on to restore it.</li>
+        <li><span class="hl-general">Snip File Location</span> — path to the snip.txt file written by the Snip app. The server reads this every 2 seconds to power the music overlay. Set this before the music overlay will work.</li>
+        <li><span class="hl-general">Settings File Location</span> — optional. If you want to load and save settings from a custom path instead of the default settings.json in the StreamArena folder, point this here. Leave it blank to use the default.</li>
+        <li><span class="hl-general">Stream Notes</span> — a private notepad only visible in this panel. Use it for shoutout lists, match schedules, or anything you need to reference mid-stream. Never shows on screen.</li>
+        <li><span class="hl-general">Load Settings Button</span> — at the top of Widget Settings there is a <span class="hl-general">LOAD SAVE DATA</span> button. Clicking it re-fetches all saved settings from the server and fills every field. Your settings load automatically when the panel opens, but if something looks wrong or you edited settings.json directly, use this button to re-sync.</li>
+      </ul>
+    </div>
+  </details>
 
-  <div class="howto-section">
-    <h2>WIDGET SETTINGS</h2>
-    <p>All stream overlay widgets live under <span class="hl-widget">Widget Settings</span>. There are three tabs at the top: <span class="hl-widget">General</span>, <span class="hl-widget">Widgets</span>, and <span class="hl-widget">Preview</span>.</p>
+  <!-- ── WIDGETS ── -->
+  <div class="howto-group-label">WIDGETS</div>
 
-    <p><span class="hl-general">General Tab</span></p>
-    <ul>
-      <li><span class="hl-general">Global Font</span> — sets the font used across every overlay at once. Drop <span class="hl-url">.ttf</span> or <span class="hl-url">.otf</span> files into the <span class="hl-url">fonts/</span> subfolder and they appear here automatically. Hit <span class="hl-general">Update Fonts</span> to refresh the list after adding files.</li>
-      <li><span class="hl-general">Export Settings Backup</span> — downloads your full settings as a dated JSON file. Use this before making major changes.</li>
-      <li><span class="hl-general">Widget Visibility</span> — toggle switches that show or hide individual widgets from the layout. Turning a widget off hides it from the Widgets tab but does not delete its settings. Turn it back on to restore it.</li>
-      <li><span class="hl-general">Stream Notes</span> — a private notepad only visible in this panel. Use it for shoutout lists, match schedules, or anything you need to reference mid-stream. Never shows on screen.</li>
-      <li><span class="hl-general">Load Settings Button</span> — at the top of Widget Settings there is a <span class="hl-general">LOAD SAVE DATA</span> button. Clicking it re-fetches all saved settings from the server and fills every field. Your settings load automatically when the panel opens, but if something looks wrong or you edited settings.json directly, use this button to re-sync.</li>
-    </ul>
+  <details class="howto-details">
+    <summary style="color:#60d0ff;">MUSIC SETTINGS</summary>
+    <div class="howto-details-body">
+      <p><span class="hl-music">Music Settings</span> controls the now-playing song overlay that pops up when a song changes.</p>
+      <ul>
+        <li><span class="hl-music">Corner Position</span> — choose which corner of the screen the card appears in.</li>
+        <li><span class="hl-music">BG Opacity</span> — how opaque the card background is. 0 = invisible, 1 = solid black.</li>
+        <li><span class="hl-music">Show Duration</span> — how many seconds the card stays visible before hiding.</li>
+        <li><span class="hl-music">Slide In / Out</span> — toggle animated slide transitions on or off.</li>
+        <li><span class="hl-music">Song Name Overrides</span> — if you want to fix incorrect Spotify metadata, go to <span class="hl-music">Music Settings</span> and add an Override. Copy the raw text from your Snip file, paste it as the raw value, then provide the correct title and artist.</li>
+        <li><span class="hl-music">Test Popup</span> — triggers the card to appear so you can preview it without changing songs.</li>
+      </ul>
+      <p>Add this to Streamlabs as a browser source: <span class="hl-url">http://localhost:7777/overlay</span></p>
+    </div>
+  </details>
 
-    <p><span class="hl-brb">BRB Slideshow</span> — a cycling display shown during your break.</p>
-    <ul>
-      <li><span class="hl-brb">Folder Location</span> — point this to a folder and every image, GIF, and video inside gets added to the cycle automatically.</li>
-      <li><span class="hl-brb">Manual File Links</span> — add individual files from anywhere on your PC that aren't in the folder.</li>
-      <li><span class="hl-brb">Timing</span> — set how long images, videos, and GIFs stay on screen. Videos can play their full length or be capped.</li>
-      <li><span class="hl-brb">Randomize</span> — shuffle slide order on each reload.</li>
-      <li><span class="hl-brb">Transition</span> — choose between Fade, Slide, Zoom, or Wipe between slides.</li>
-    </ul>
-    <p>Add this to Streamlabs as a browser source: <span class="hl-url">http://localhost:7777/brb</span></p>
+  <details class="howto-details">
+    <summary style="color:#fc5c7c;">BRB SLIDESHOW</summary>
+    <div class="howto-details-body">
+      <p><span class="hl-brb">BRB Slideshow</span> — a cycling display shown during your break.</p>
+      <ul>
+        <li><span class="hl-brb">Folder Location</span> — point this to a folder and every image, GIF, and video inside gets added to the cycle automatically.</li>
+        <li><span class="hl-brb">Manual File Links</span> — add individual files from anywhere on your PC that aren't in the folder.</li>
+        <li><span class="hl-brb">Timing</span> — set how long images, videos, and GIFs stay on screen. Videos can play their full length or be capped.</li>
+        <li><span class="hl-brb">Randomize</span> — shuffle slide order on each reload.</li>
+        <li><span class="hl-brb">Transition</span> — choose between Fade, Slide, Zoom, or Wipe between slides.</li>
+      </ul>
+      <p>Add this to Streamlabs as a browser source: <span class="hl-url">http://localhost:7777/brb</span></p>
+    </div>
+  </details>
 
-    <p><span class="hl-countdown">Countdown</span> — a standalone countdown timer overlay.</p>
-    <ul>
-      <li>Set the time using the slider or type it directly as <span class="hl-url">mm:ss</span>.</li>
-      <li>Use <span class="hl-countdown">Start</span>, <span class="hl-countdown">Stop</span>, and <span class="hl-countdown">Reset</span> to control it mid-stream from this panel.</li>
-      <li>The timer turns red in the final minute.</li>
-      <li>Enable <span class="hl-countdown">Include in BRB slideshow</span> to have it appear as a slide in the BRB rotation.</li>
-    </ul>
-    <p>Add this to Streamlabs as a browser source: <span class="hl-url">http://localhost:7777/countdown</span></p>
+  <details class="howto-details">
+    <summary style="color:#4ade80;">COUNTDOWN</summary>
+    <div class="howto-details-body">
+      <p><span class="hl-countdown">Countdown</span> — a standalone countdown timer overlay.</p>
+      <ul>
+        <li>Set the time using the slider or type it directly as <span class="hl-url">mm:ss</span>.</li>
+        <li>Use <span class="hl-countdown">Start</span>, <span class="hl-countdown">Stop</span>, and <span class="hl-countdown">Reset</span> to control it mid-stream from this panel.</li>
+        <li>The timer turns red in the final minute.</li>
+        <li>Enable <span class="hl-countdown">Include in BRB slideshow</span> to have it appear as a slide in the BRB rotation.</li>
+      </ul>
+      <p>Add this to Streamlabs as a browser source: <span class="hl-url">http://localhost:7777/countdown</span></p>
+    </div>
+  </details>
 
-    <p><span class="hl-clock">Clock</span> — a live clock overlay.</p>
-    <ul>
-      <li>Set a label like "Be Right Back" that appears above the time.</li>
-      <li>Choose 12-hour or 24-hour format.</li>
-      <li>Enable <span class="hl-clock">Include in BRB slideshow</span> to add it to the BRB rotation.</li>
-    </ul>
-    <p>Add this to Streamlabs as a browser source: <span class="hl-url">http://localhost:7777/clock</span></p>
+  <details class="howto-details">
+    <summary style="color:#fcd34d;">CLOCK</summary>
+    <div class="howto-details-body">
+      <p><span class="hl-clock">Clock</span> — a live clock overlay.</p>
+      <ul>
+        <li>Set a label like "Be Right Back" that appears above the time.</li>
+        <li>Choose 12-hour or 24-hour format.</li>
+        <li>Enable <span class="hl-clock">Include in BRB slideshow</span> to add it to the BRB rotation.</li>
+      </ul>
+      <p>Add this to Streamlabs as a browser source: <span class="hl-url">http://localhost:7777/clock</span></p>
+    </div>
+  </details>
 
-    <p><span class="hl-social">Social Media</span> — a card showing your Twitch, Twitter, and Discord handles.</p>
-    <ul>
-      <li>Set a custom message and your handles. Leave any field blank to hide it.</li>
-      <li>Enable <span class="hl-social">Include in BRB slideshow</span> to add it to the BRB rotation.</li>
-    </ul>
-    <p>Add this to Streamlabs as a browser source: <span class="hl-url">http://localhost:7777/social</span></p>
+  <details class="howto-details">
+    <summary style="color:#fb923c;">SOCIAL MEDIA</summary>
+    <div class="howto-details-body">
+      <p><span class="hl-social">Social Media</span> — a card showing your Twitch, Twitter, and Discord handles.</p>
+      <ul>
+        <li>Set a custom message and your handles. Leave any field blank to hide it.</li>
+        <li>Enable <span class="hl-social">Include in BRB slideshow</span> to add it to the BRB rotation.</li>
+      </ul>
+      <p>Add this to Streamlabs as a browser source: <span class="hl-url">http://localhost:7777/social</span></p>
+    </div>
+  </details>
 
-    <p><span class="hl-widget">Next Match</span> — shows the upcoming match on screen so viewers know who is up next.</p>
-    <ul>
-      <li>Fill in <span class="hl-widget">Player 1</span>, <span class="hl-widget">Player 2</span>, and <span class="hl-widget">Round</span>. The overlay updates live as you type — no save button needed.</li>
-      <li><span class="hl-widget">Sublabel</span> is an optional second line below the round name (e.g. "Best of 3").</li>
-      <li>You can also push this data automatically from the <span class="hl-startgg">Start.gg</span> widget — select a set and click <span class="hl-startgg">Send to Next Match</span>.</li>
-    </ul>
-    <p>Add this to Streamlabs as a browser source: <span class="hl-url">http://localhost:7777/nextmatch</span></p>
-  </div>
+  <details class="howto-details">
+    <summary style="color:#5bc8f5;">NEXT MATCH</summary>
+    <div class="howto-details-body">
+      <p><span class="hl-widget">Next Match</span> — shows the upcoming match on screen so viewers know who is up next.</p>
+      <ul>
+        <li>Fill in <span class="hl-widget">Player 1</span>, <span class="hl-widget">Player 2</span>, and <span class="hl-widget">Round</span>. The overlay updates live as you type — no save button needed.</li>
+        <li><span class="hl-widget">Sublabel</span> is an optional second line below the round name (e.g. "Best of 3").</li>
+        <li>You can also push this data automatically from the <span class="hl-startgg">Start.gg</span> widget — select a set and click <span class="hl-startgg">Send to Next Match</span>.</li>
+      </ul>
+      <p>Add this to Streamlabs as a browser source: <span class="hl-url">http://localhost:7777/nextmatch</span></p>
+    </div>
+  </details>
 
-  <div class="howto-section">
-    <h2>START.GG WIDGET</h2>
-    <p>The <span class="hl-startgg">Start.gg</span> widget connects to your tournament bracket on start.gg and pulls live set data so you can see match results and push upcoming sets to the Next Match overlay — all without leaving the control panel.</p>
+  <!-- ── INTEGRATED APPLICATIONS ── -->
+  <div class="howto-group-label">INTEGRATED APPLICATIONS</div>
 
-    <p><span class="hl-startgg">Step 1 — Get your API token</span></p>
-    <ul>
-      <li>Go to <span class="hl-url">start.gg</span> and log in to your account.</li>
-      <li>Click your profile icon in the top right, then go to <span class="hl-startgg">Settings</span>.</li>
-      <li>Scroll down to <span class="hl-startgg">Developer Settings</span> and click it.</li>
-      <li>Click <span class="hl-startgg">Create new token</span>, give it a name, and copy the token it generates.</li>
-      <li>Paste it into the <span class="hl-startgg">API Token</span> field in the Start.gg widget and click <span class="hl-startgg">Save Token</span>.</li>
-    </ul>
+  <details class="howto-details">
+    <summary style="color:#ff6694;">START.GG</summary>
+    <div class="howto-details-body">
+      <p>The <span class="hl-startgg">Start.gg</span> widget connects to your tournament bracket on start.gg and pulls live set data so you can see match results and push upcoming sets to the Next Match overlay — all without leaving the control panel.</p>
 
-    <p><span class="hl-startgg">Step 2 — Enter your tournament URL</span></p>
-    <ul>
-      <li>Go to your tournament on start.gg and copy the URL from your browser. It will look like <span class="hl-url">https://www.start.gg/tournament/your-tournament-name</span>.</li>
-      <li>Paste it into the <span class="hl-startgg">Tournament URL</span> field.</li>
-      <li>Click <span class="hl-startgg">Fetch</span>. The widget will load your events and phases automatically.</li>
-    </ul>
+      <p><span class="hl-startgg">Step 1 — Get your API token</span></p>
+      <ul>
+        <li>Go to <span class="hl-url">start.gg</span> and log in to your account.</li>
+        <li>Click your profile icon in the top right, then go to <span class="hl-startgg">Settings</span>.</li>
+        <li>Scroll down to <span class="hl-startgg">Developer Settings</span> and click it.</li>
+        <li>Click <span class="hl-startgg">Create new token</span>, give it a name, and copy the token it generates.</li>
+        <li>Paste it into the <span class="hl-startgg">API Token</span> field in the Start.gg widget and click <span class="hl-startgg">Save Token</span>.</li>
+      </ul>
 
-    <p><span class="hl-startgg">Step 3 — Browse and use set data</span></p>
-    <ul>
-      <li>Select an <span class="hl-startgg">Event</span> and <span class="hl-startgg">Phase</span> from the dropdowns that appear after fetching.</li>
-      <li>The set list shows all matches in that phase with player names, round names, and scores.</li>
-      <li>Use <span class="hl-startgg">Show Completed</span> to toggle finished sets on or off.</li>
-      <li>Click any set to select it, then click <span class="hl-startgg">Send to Next Match</span> to push those player names and round info directly to the Next Match overlay.</li>
-      <li>Sets refresh automatically every 10 seconds once a tournament is loaded. You can also click <span class="hl-startgg">Fetch</span> at any time to refresh manually. Use the <span class="hl-startgg">Auto-refresh sets every 10s</span> checkbox to pause automatic updates if needed.</li>
-    </ul>
-  </div>
+      <p><span class="hl-startgg">Step 2 — Enter your tournament URL</span></p>
+      <ul>
+        <li>Go to your tournament on start.gg and copy the URL from your browser. It will look like <span class="hl-url">https://www.start.gg/tournament/your-tournament-name</span>.</li>
+        <li>Paste it into the <span class="hl-startgg">Tournament URL</span> field.</li>
+        <li>Click <span class="hl-startgg">Fetch</span>. The widget will load your events and phases automatically.</li>
+      </ul>
 
-  <div class="howto-section">
-    <h2>BLUESKY WIDGET</h2>
-    <p>The <span class="hl-bluesky">Bluesky</span> widget lets you post replay MP4 videos directly to your Bluesky account from the control panel. Select a file, fill in the post title, preview it, and post — the upload runs in the background so you can keep streaming.</p>
+      <p><span class="hl-startgg">Step 3 — Browse and use set data</span></p>
+      <ul>
+        <li>Select an <span class="hl-startgg">Event</span> and <span class="hl-startgg">Phase</span> from the dropdowns that appear after fetching.</li>
+        <li>The set list shows all matches in that phase with player names, round names, and scores.</li>
+        <li>Use <span class="hl-startgg">Show Completed</span> to toggle finished sets on or off.</li>
+        <li>Click any set to select it, then click <span class="hl-startgg">Send to Next Match</span> to push those player names and round info directly to the Next Match overlay.</li>
+        <li>Sets refresh automatically every 10 seconds once a tournament is loaded. You can also click <span class="hl-startgg">Fetch</span> at any time to refresh manually. Use the <span class="hl-startgg">Auto-refresh sets every 10s</span> checkbox to pause automatic updates if needed.</li>
+      </ul>
+    </div>
+  </details>
 
-    <p><span class="hl-bluesky">Step 1 — Create an App Password</span></p>
-    <p>You must use an App Password, not your main Bluesky password. App Passwords are separate login keys that can only be used for posting — they cannot change your account settings or password.</p>
-    <ul>
-      <li>Log in to Bluesky on the web or in the app.</li>
-      <li>Go to <span class="hl-bluesky">Settings</span> → <span class="hl-bluesky">Privacy and Security</span> → <span class="hl-bluesky">App Passwords</span>.</li>
-      <li>Click <span class="hl-bluesky">Add App Password</span>, give it a name like "StreamArena", and click <span class="hl-bluesky">Create App Password</span>.</li>
-      <li>Copy the password shown — it looks like <span class="hl-url">xxxx-xxxx-xxxx-xxxx</span>. You will not be able to see it again after closing that screen.</li>
-    </ul>
+  <details class="howto-details">
+    <summary style="color:#5c9fff;">BLUESKY</summary>
+    <div class="howto-details-body">
+      <p>The <span class="hl-bluesky">Bluesky</span> widget lets you post replay MP4 videos directly to your Bluesky account from the control panel. Select a file, fill in the post title, preview it, and post — the upload runs in the background so you can keep streaming.</p>
 
-    <p><span class="hl-bluesky">Step 2 — Log in from the widget</span></p>
-    <ul>
-      <li>In the <span class="hl-bluesky">Account</span> section, enter your <span class="hl-bluesky">Handle</span> — this is your Bluesky username, like <span class="hl-url">you.bsky.social</span>.</li>
-      <li>Enter the App Password you just created in the <span class="hl-bluesky">App PW</span> field.</li>
-      <li>Click <span class="hl-bluesky">Login to Bluesky</span>. If it succeeds, your handle will appear as confirmed. Your login is saved automatically and persists between sessions — you only need to log in once.</li>
-    </ul>
+      <p><span class="hl-bluesky">Step 1 — Create an App Password</span></p>
+      <p>You must use an App Password, not your main Bluesky password. App Passwords are separate login keys that can only be used for posting — they cannot change your account settings or password.</p>
+      <ul>
+        <li>Log in to Bluesky on the web or in the app.</li>
+        <li>Go to <span class="hl-bluesky">Settings</span> → <span class="hl-bluesky">Privacy and Security</span> → <span class="hl-bluesky">App Passwords</span>.</li>
+        <li>Click <span class="hl-bluesky">Add App Password</span>, give it a name like "StreamArena", and click <span class="hl-bluesky">Create App Password</span>.</li>
+        <li>Copy the password shown — it looks like <span class="hl-url">xxxx-xxxx-xxxx-xxxx</span>. You will not be able to see it again after closing that screen.</li>
+      </ul>
 
-    <p><span class="hl-bluesky">Step 3 — Set up your replays folder</span></p>
-    <ul>
-      <li>Put the MP4 replay files you want to post in a folder on your PC.</li>
-      <li>Name each file starting with <span class="hl-url">REPLAY</span> — only files with names starting with REPLAY will appear in the list. This keeps other MP4s in the same folder out of the way.</li>
-      <li>Enter the folder path in <span class="hl-bluesky">Replays Folder</span> and click <span class="hl-bluesky">Scan</span>. The list will show all matching files sorted newest first.</li>
-    </ul>
+      <p><span class="hl-bluesky">Step 2 — Log in from the widget</span></p>
+      <ul>
+        <li>In the <span class="hl-bluesky">Account</span> section, enter your <span class="hl-bluesky">Handle</span> — this is your Bluesky username, like <span class="hl-url">you.bsky.social</span>.</li>
+        <li>Enter the App Password you just created in the <span class="hl-bluesky">App PW</span> field.</li>
+        <li>Click <span class="hl-bluesky">Login to Bluesky</span>. If it succeeds, your handle will appear as confirmed. Your login is saved automatically and persists between sessions — you only need to log in once.</li>
+      </ul>
 
-    <p><span class="hl-bluesky">Step 4 — Post a replay</span></p>
-    <ul>
-      <li>Click a file in the list to select it.</li>
-      <li>Fill in the <span class="hl-bluesky">Post Title</span>. You can use these variables and they will be replaced automatically with data from the Next Match widget:
-        <ul>
-          <li><span class="hl-url">P1</span> — Player 1 name</li>
-          <li><span class="hl-url">P2</span> — Player 2 name</li>
-          <li><span class="hl-url">MATCH</span> — Round label</li>
-        </ul>
-        Example: <span class="hl-url">P1 vs P2 | MATCH | MMA Tournament</span>
-      </li>
-      <li>Click <span class="hl-bluesky">Preview and Post</span>. A preview modal will show how your post will look on Bluesky, including your profile picture, the resolved title, and a video preview.</li>
-      <li>Click <span class="hl-bluesky">Post to Bluesky</span> in the modal to start the upload. A progress bar tracks the upload — video processing on Bluesky's end takes about 30–60 seconds. The upload runs in the background and will complete even if you close the preview window.</li>
-    </ul>
-  </div>
+      <p><span class="hl-bluesky">Step 3 — Set up your replays folder</span></p>
+      <ul>
+        <li>Put the MP4 replay files you want to post in a folder on your PC.</li>
+        <li>By default, only files whose names contain <span class="hl-url">Replay</span> appear in the list — this keeps unrelated MP4s out of the way. You can change this keyword or disable the filter entirely using the <span class="hl-bluesky">Filter by keyword</span> toggle below the folder path.</li>
+        <li>Enter the folder path in <span class="hl-bluesky">Replays Folder</span> and click <span class="hl-bluesky">Scan</span>. The list will show all matching files sorted newest first.</li>
+      </ul>
 
-  <div class="howto-section">
-    <h2>FONTS</h2>
-    <p>Drop any <span class="hl-general">.ttf</span>, <span class="hl-general">.otf</span>, or <span class="hl-general">.woff2</span> font file into the <span class="hl-url">fonts/</span> folder next to <span class="hl-url">server.js</span>. Open the <span class="hl-general">General</span> tab in Widget Settings, hit <span class="hl-general">Update Fonts</span>, and it appears in the list. Select it and all overlays switch within 10 seconds.</p>
-  </div>
+      <p><span class="hl-bluesky">Step 4 — Post a replay</span></p>
+      <ul>
+        <li>Click a file in the list to select it.</li>
+        <li>Fill in the <span class="hl-bluesky">Post Title</span>. You can use these variables and they will be replaced automatically with data from the Next Match widget:
+          <ul>
+            <li><span class="hl-url">P1</span> — Player 1 name</li>
+            <li><span class="hl-url">P2</span> — Player 2 name</li>
+            <li><span class="hl-url">MATCH</span> — Round label</li>
+          </ul>
+          Example: <span class="hl-url">P1 vs P2 | MATCH | MMA Tournament</span>
+        </li>
+        <li>Click <span class="hl-bluesky">Preview and Post</span>. A preview modal will show how your post will look on Bluesky, including your profile picture, the resolved title, and a video preview.</li>
+        <li>Click <span class="hl-bluesky">Post to Bluesky</span> in the modal to start the upload. A progress bar tracks the upload — video processing on Bluesky's end takes about 30–60 seconds. The upload runs in the background and will complete even if you close the preview window.</li>
+      </ul>
+    </div>
+  </details>
 
-  <div class="howto-section">
-    <h2>SHARING / PORTABILITY</h2>
-    <p>To share this with someone, zip the entire server folder. They'll need <span class="hl-general">Node.js</span> installed. Make sure to update the <span class="hl-music">Snip.txt</span> path in <span class="hl-music">Music Settings</span> and that they have font files in the <span class="hl-url">fonts/</span> folder. Everything else is self-contained.</p>
-  </div>
+  <details class="howto-details">
+    <summary style="color:#7289da;">DISCORD OVERLAY</summary>
+    <div class="howto-details-body">
+      <p>The <span class="hl-widget">Discord</span> widget shows who is in a voice channel on stream, with profile pictures, names, and speaking indicators. There are three modes: <span class="hl-widget">Group 1</span>, <span class="hl-widget">Group 2</span>, and <span class="hl-widget">Solo</span>. Group 1 and Group 2 are independent overlays that each track their own channel — useful if you want two separate voice groups visible at once. Solo gives you two individual slots (S1 and S2) where you pin specific members by name.</p>
+
+      <p><span class="hl-widget">Step 1 — Create a Discord Application</span></p>
+      <p>The overlay connects through a Discord application you register yourself. This is free and only takes a few minutes.</p>
+      <ul>
+        <li>Go to <a href="https://discord.com/developers/applications" target="_blank" style="color:#7289da;">discord.com/developers/applications</a> and click <span class="hl-widget">New Application</span>.</li>
+        <li>Give it any name, then open the <span class="hl-widget">OAuth2</span> tab from the left sidebar.</li>
+        <li>Copy the <span class="hl-widget">Client ID</span> and <span class="hl-widget">Client Secret</span> — you'll need both.</li>
+        <li>Under <span class="hl-widget">Redirects</span>, add exactly: <span class="hl-url">http://127.0.0.1:7777/discord-auth</span></li>
+        <li>Save changes.</li>
+      </ul>
+
+      <p><span class="hl-widget">Step 2 — Connect from the widget</span></p>
+      <ul>
+        <li>Open the Discord widget and expand the <span class="hl-widget">Account</span> section.</li>
+        <li>Paste your <span class="hl-widget">Client ID</span> and <span class="hl-widget">Client Secret</span> into the fields.</li>
+        <li>Click <span class="hl-widget">Connect to Discord</span>. A browser window will open asking you to authorize the app — approve it. Your credentials are saved and you won't need to do this again unless you change the app.</li>
+      </ul>
+
+      <p><span class="hl-widget">Step 3 — Select your channel</span></p>
+      <ul>
+        <li>After connecting, a channel dropdown appears. Select the voice channel you want to display. The overlay will update in real time as members join, leave, or speak.</li>
+        <li>Group 1 and Group 2 each have their own channel selector — set them independently.</li>
+        <li>For Solo mode, select the channel first, then assign a member to Slot 1 and Slot 2 from the dropdowns that appear.</li>
+      </ul>
+
+      <p><span class="hl-widget">Style Settings</span></p>
+      <ul>
+        <li><span class="hl-widget">Design</span> — choose between Square (boxed cards) or Modern (rounded pill style).</li>
+        <li><span class="hl-widget">Colors</span> — set the background, text, and highlight (speaking indicator) colors.</li>
+        <li><span class="hl-widget">Name Size</span> — slider to control how large the name text appears.</li>
+        <li><span class="hl-widget">Custom Card Width</span> — constrain how wide each member card gets. Useful for keeping things compact when names are long.</li>
+        <li><span class="hl-widget">Name Alignment</span> — align the name text left, center, or right within its card.</li>
+        <li><span class="hl-widget">Server Username</span> — when on, shows the member's server nickname. When off, falls back to their account username with the first letter capitalized.</li>
+        <li><span class="hl-widget">Server PFP</span> — when on, shows the member's server-specific avatar if they have one. When off, uses their main account avatar.</li>
+      </ul>
+
+      <p>Add these to Streamlabs as browser sources:</p>
+      <ul>
+        <li>Group 1: <span class="hl-url">http://127.0.0.1:7777/discord-overlay</span></li>
+        <li>Group 2: <span class="hl-url">http://127.0.0.1:7777/discord-overlay-2</span></li>
+        <li>Solo Slot 1: <span class="hl-url">http://127.0.0.1:7777/discord-overlay-solo?slot=s1</span></li>
+        <li>Solo Slot 2: <span class="hl-url">http://127.0.0.1:7777/discord-overlay-solo?slot=s2</span></li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- ── OTHER ── -->
+  <div class="howto-group-label">OTHER</div>
+
+  <details class="howto-details">
+    <summary style="color:#5bc8f5;">THE REPLAY POSTING WORKFLOW</summary>
+    <div class="howto-details-body">
+      <p>Start.gg, Next Match, and Bluesky are built to work together as a pipeline so your tournament data flows from the bracket into your overlays and posts without retyping anything between them.</p>
+      <ul>
+        <li><span class="hl-startgg">Start.gg</span> pulls your live bracket. When a match is up, find it in the set list and click <span class="hl-startgg">Send to Next Match</span>.</li>
+        <li><span class="hl-widget">Next Match</span> receives those player names and round info and displays them on screen for viewers. It also stores <span class="hl-url">P1</span>, <span class="hl-url">P2</span>, and <span class="hl-url">MATCH</span> as live variables that other widgets can read.</li>
+        <li><span class="hl-bluesky">Bluesky</span> reads those same variables when you build a post title. Put <span class="hl-url">P1</span>, <span class="hl-url">P2</span>, and <span class="hl-url">MATCH</span> in your title template once — after every match, open the Bluesky widget, select the replay, and the title is already filled in correctly with the right player names and round.</li>
+      </ul>
+      <p>The typical flow per set: select the match in Start.gg → send to Next Match → play the set → go to the Bluesky widget → select the replay file → post. No copy-pasting names between windows.</p>
+    </div>
+  </details>
+
+  <details class="howto-details">
+    <summary style="color:#e879f9;">FONTS</summary>
+    <div class="howto-details-body">
+      <p>Drop any <span class="hl-general">.ttf</span>, <span class="hl-general">.otf</span>, or <span class="hl-general">.woff2</span> font file into the <span class="hl-url">fonts/</span> folder next to <span class="hl-url">server.js</span>. Open the <span class="hl-general">General</span> tab in Widget Settings, hit <span class="hl-general">Update Fonts</span>, and it appears in the list. Select it and all overlays switch within 10 seconds.</p>
+    </div>
+  </details>
+
+  <details class="howto-details">
+    <summary style="color:#5bc8f5;">SHARING / PORTABILITY</summary>
+    <div class="howto-details-body">
+      <p>To share StreamArena, send them the GitHub link: <a href="https://github.com/KisharkGIT/StreamArena" target="_blank" style="color:#60d0ff;">github.com/KisharkGIT/StreamArena</a>. Downloading from there means they always get the latest version. They'll need <span class="hl-general">Node.js</span> installed. Once set up, they'll need to set their own <span class="hl-general">Snip File Location</span> in General Settings and drop any font files they want into the <span class="hl-url">fonts/</span> folder. Everything else is self-contained and starts fresh on first run.</p>
+    </div>
+  </details>
 
 </div><!-- /howto-page -->
 
