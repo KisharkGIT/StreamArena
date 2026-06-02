@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Next Match</title>
+<style>
+  :root { --widget-font: 'MMRock9'; }
+  @font-face { font-family:'MMRock9'; src:url('/font/MMRock9.ttf') format('truetype'), url('/font/MMRock9.otf') format('opentype'); }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:transparent; width:100vw; height:100vh; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; font-family:var(--widget-font,'MMRock9'),monospace; }
+  #nm-round    { font-size:28px; color:#aaa; letter-spacing:0.15em; text-transform:uppercase; text-shadow:6px 6px 0 #000; }
+  #nm-sublabel { font-size:18px; color:rgba(255,255,255,0.35); letter-spacing:0.12em; text-shadow:4px 4px 0 #000; margin-top:-8px; }
+  #nm-vs    { display:flex; align-items:center; justify-content:center; gap:40px; width:100%; padding:0 40px; box-sizing:border-box; }
+  #nm-p1, #nm-p2 { color:#fff; text-shadow:6px 6px 0 #000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:38vw; }
+  #nm-vslabel { font-size:36px; color:rgba(255,255,255,0.35); text-shadow:4px 4px 0 #000; flex-shrink:0; }
+</style>
+</head>
+<body>
+  <div id="nm-round">NEXT MATCH</div>
+  <div id="nm-sublabel">Up next...</div>
+  <div id="nm-vs">
+    <div id="nm-p1">P1</div>
+    <div id="nm-vslabel">VS</div>
+    <div id="nm-p2">P2</div>
+  </div>
+
+  <script>
+    async function loadGlobalFont() {
+      try {
+        const r = await fetch('/settings');
+        const d = await r.json();
+        const font = (d.brb && d.brb.globalFont) || 'MMRock9';
+        if (font !== 'monospace' && font !== 'sans-serif') {
+          if (!document.querySelector('style[data-font="' + font + '"]')) {
+            const style = document.createElement('style');
+            style.setAttribute('data-font', font);
+            style.textContent = "@font-face { font-family:'" + font + "'; src:url('/font/" + font + ".ttf') format('truetype'),url('/font/" + font + ".otf') format('opentype'); }";
+            document.head.appendChild(style);
+          }
+        }
+        document.documentElement.style.setProperty('--widget-font', "'" + font + "'");
+      } catch(e) {}
+    }
+
+    async function poll() {
+      try {
+        const r = await fetch('/settings');
+        const d = await r.json();
+        const nm = (d.brb && d.brb.widgets && d.brb.widgets.nextMatch) || {};
+        document.getElementById('nm-round').textContent    = nm.round    || 'NEXT MATCH';
+        document.getElementById('nm-sublabel').textContent = nm.sublabel || 'Up next...';
+        const p1 = nm.p1 || 'P1';
+        const p2 = nm.p2 || 'P2';
+        document.getElementById('nm-p1').textContent = p1;
+        document.getElementById('nm-p2').textContent = p2;
+
+        // Scale font size based on longest name
+        const longest = Math.max(p1.length, p2.length);
+        const size = longest <= 8  ? 72
+                   : longest <= 12 ? 56
+                   : longest <= 16 ? 44
+                   : longest <= 20 ? 36
+                   : longest <= 26 ? 28
+                   : 22;
+        document.getElementById('nm-p1').style.fontSize = size + 'px';
+        document.getElementById('nm-p2').style.fontSize = size + 'px';
+      } catch(e) {}
+    }
+
+    loadGlobalFont();
+    poll();
+    setInterval(loadGlobalFont, 10000);
+    setInterval(poll, 2000);
+  </script>
+</body>
+</html>

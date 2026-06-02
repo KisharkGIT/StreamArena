@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root { --widget-font: 'MMRock9'; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:transparent; width:100vw; height:100vh; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; }
+  #social-message  { font-family:var(--widget-font,'MMRock9'),monospace; font-size:32px; color:#fff; letter-spacing:0.08em; text-transform:uppercase; text-shadow:6px 6px 0 #000; }
+  .social-links    { display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .social-row      { font-family:var(--widget-font,'MMRock9'),monospace; font-size:22px; color:rgba(255,255,255,0.85); display:flex; align-items:center; gap:16px; text-shadow:6px 6px 0 #000; }
+  .social-platform { color:rgba(255,255,255,0.4); font-size:16px; min-width:110px; text-align:right; letter-spacing:0.1em; }
+</style>
+</head>
+<body>
+<div id="social-message">Follow for more!</div>
+<div class="social-links" id="social-links"></div>
+<script>
+  async function load() {
+    try {
+      const r = await fetch('/settings'); const d = await r.json();
+      const w = d.brb && d.brb.widgets && d.brb.widgets.social || {};
+      const font = (d.brb && d.brb.globalFont) || 'MMRock9';
+      
+      document.getElementById('social-message').textContent = w.message || 'Follow for more!';
+      const links = document.getElementById('social-links');
+      links.innerHTML = '';
+      [['Twitch', w.twitch], ['Twitter', w.twitter], ['Discord', w.discord]].forEach(([platform, handle]) => {
+        if (!handle) return;
+        const row = document.createElement('div'); row.className = 'social-row';
+        row.innerHTML = '<span class="social-platform">' + platform + '</span><span>' + handle + '</span>';
+        links.appendChild(row);
+      });
+    } catch(e) {}
+  }
+  load();
+  setInterval(load, 5000);
+
+  async function loadGlobalFont() {
+    try {
+      const r = await fetch('/settings');
+      const d = await r.json();
+      const font = (d.brb && d.brb.globalFont) || 'MMRock9';
+      if (font !== 'monospace' && font !== 'sans-serif') {
+        if (!document.querySelector('style[data-font="' + font + '"]')) {
+          const style = document.createElement('style');
+          style.setAttribute('data-font', font);
+          style.textContent = "@font-face { font-family:'" + font + "'; src:url('/font/" + font + ".ttf') format('truetype'),url('/font/" + font + ".otf') format('opentype'),url('/font/" + font + ".woff2') format('woff2'); }";
+          document.head.appendChild(style);
+        }
+      }
+      document.documentElement.style.setProperty('--widget-font', "'" + font + "'");
+    } catch(e) {}
+  }
+  loadGlobalFont();
+  setInterval(loadGlobalFont, 10000);
+
+</script>
+</body>
+</html>

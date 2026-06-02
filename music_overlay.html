@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Now Playing</title>
+<style>
+  :root { --widget-font: 'MMRock9'; }
+  @font-face { font-family:'MMRock9'; src:url('/font/MMRock9.ttf') format('truetype'), url('/font/MMRock9.otf') format('opentype'); }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:transparent; width:1920px; height:1080px; overflow:hidden; }
+  #overlay { position:absolute; opacity:0; }
+  .card { border-left:4px solid #fff; padding:18px 28px 18px 22px; min-width:320px; max-width:460px; }
+  .np-label { font-family:var(--widget-font,'MMRock9'),monospace; font-size:11px; color:rgba(255,255,255,0.5); letter-spacing:0.12em; margin-bottom:10px; }
+  #songTitle { font-family:var(--widget-font,'MMRock9'),monospace; font-size:22px; color:#fff; line-height:1.3; word-break:break-word; margin-bottom:8px; }
+  #songArtist { font-family:var(--widget-font,'MMRock9'),monospace; font-size:15px; color:rgba(255,255,255,0.75); line-height:1.3; word-break:break-word; }
+</style>
+</head>
+<body>
+<div id="overlay">
+  <div class="card">
+    <div class="np-label">Now Playing</div>
+    <div id="songTitle">—</div>
+    <div id="songArtist">—</div>
+  </div>
+</div>
+<script>
+  const POLL_MS = 2000;
+  const OFFSET  = 60;
+  let lastSong    = '';
+  let lastTrigger = 0;
+  let hideTimer   = null;
+  let s = { position:'bottom-right', bgOpacity:1, showMs:8000, slideIn:true, slideOut:true, slideMs:550 };
+  const el   = document.getElementById('overlay');
+  const card = el.querySelector('.card');
+
+  function applySettings() {
+    const isBottom = s.position.includes('bottom');
+    const isRight  = s.position.includes('right');
+    el.style.top    = isBottom ? 'auto'        : OFFSET+'px';
+    el.style.bottom = isBottom ? OFFSET+'px'   : 'auto';
+    el.style.left   = isRight  ? 'auto'        : '0px';
+    el.style.right  = isRight  ? '0px'         : 'auto';
+    card.style.background = 'rgba(0,0,0,'+s.bgOpacity+')';
+  }
+
+  function offscreen() {
+    return s.position.includes('right') ? 'translateX(500px)' : 'translateX(-500px)';
+  }
+
+  function showCard() {
+    if (hideTimer) clearTimeout(hideTimer);
+    if (s.slideIn) {
+      el.style.transition = 'transform '+s.slideMs+'ms cubic-bezier(0.34,1.15,0.64,1), opacity '+s.slideMs+'ms ease';
+      el.style.transform  = offscreen();
+      void el.offsetWidth;
+      el.style.transform  = 'translateX(0)';
+    } else {
+      el.style.transition = 'opacity '+s.slideMs+'ms ease';
+      el.style.transform  = 'translateX(0)';
+    }
+    el.style.opacity = '1';
+    hideTimer = setTimeout(hideCard, s.showMs);
+  }
+
+  function hideCard() {
+    if (s.slideOut) {
+      el.style.transition = 'transform '+s.slideMs+'ms cubic-bezier(0.4,0,0.6,1), opacity '+s.slideMs+'ms ease';
+      el.style.transform  = offscreen();
+    } else {
+      el.style.transition = 'opacity '+s.slideMs+'ms ease';
+    }
+    el.style.opacity = '0';
+  }
+
+  async function pollSettings() {
+    try { const r=await fetch('/settings'); s=await r.json(); applySettings(); } catch(e) {}
+  }
+
+  async function pollSong() {
+    try {
+      const r=await fetch('/song'); const data=await r.json();
+      if (!data.title||data.raw===lastSong) return;
+      lastSong=data.raw;
+      document.getElementById('songTitle').textContent  = data.title;
+      document.getElementById('songArtist').textContent = data.artist || '';
+      showCard();
+    } catch(e) {}
+  }
+
+  async function pollTrigger() {
+    try {
+      const r=await fetch('/gettrigger'); const d=await r.json();
+      if (d.trigger && d.trigger!==lastTrigger) {
+        lastTrigger=d.trigger;
+        if (document.getElementById('songTitle').textContent==='—') {
+          document.getElementById('songTitle').textContent='Test Song';
+          document.getElementById('songArtist').textContent='Test Artist';
+        }
+        showCard();
+      }
+    } catch(e) {}
+  }
+
+  applySettings();
+  pollSettings(); pollSong(); pollTrigger();
+  setInterval(pollSettings, 2000);
+  setInterval(pollSong,     POLL_MS);
+  setInterval(pollTrigger,  1000);
+
+  async function loadGlobalFont() {
+    try {
+      const r = await fetch('/settings');
+      const d = await r.json();
+      const font = (d.brb && d.brb.globalFont) || 'MMRock9';
+      if (font !== 'monospace' && font !== 'sans-serif') {
+        if (!document.querySelector('style[data-font="' + font + '"]')) {
+          const style = document.createElement('style');
+          style.setAttribute('data-font', font);
+          style.textContent = "@font-face { font-family:'" + font + "'; src:url('/font/" + font + ".ttf') format('truetype'),url('/font/" + font + ".otf') format('opentype'),url('/font/" + font + ".woff2') format('woff2'); }";
+          document.head.appendChild(style);
+        }
+      }
+      document.documentElement.style.setProperty('--widget-font', "'" + font + "'");
+      // Apply to all styled elements
+      document.querySelectorAll('.card, .np-label, #songTitle, #songArtist').forEach(el => {
+        el.style.fontFamily = "var(--widget-font,'MMRock9'),monospace";
+      });
+    } catch(e) {}
+  }
+  loadGlobalFont();
+  setInterval(loadGlobalFont, 10000);
+
+</script>
+</body>
+</html>

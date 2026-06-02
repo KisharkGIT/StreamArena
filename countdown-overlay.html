@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root { --widget-font: 'MMRock9'; --cd-label-color: #aaa; --cd-time-color: #fff; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:transparent; width:100vw; height:100vh; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; }
+  #cd-label { font-family:var(--widget-font,'MMRock9'),monospace; font-size:28px; color:var(--cd-label-color); letter-spacing:0.15em; text-transform:uppercase; text-shadow:6px 6px 0 #000; }
+  #cd-time  { font-family:var(--widget-font,'MMRock9'),monospace; font-size:96px; color:var(--cd-time-color); letter-spacing:0.05em; text-shadow:6px 6px 0 #000; }
+  #cd-time.urgent { color:#f87171; }
+  #cd-time.blink { animation: slowblink 1.2s ease-in-out infinite; color:#f87171; }
+  @keyframes slowblink {
+    0%, 100% { opacity:1; }
+    50% { opacity:0; }
+  }
+</style>
+</head>
+<body>
+<div id="cd-label">Back in...</div>
+<div id="cd-time">5:00</div>
+<script>
+  var hitZeroAt = null;
+
+  async function poll() {
+    try {
+      const r = await fetch('/countdown-state'); const d = await r.json();
+      const font = d.globalFont || 'MMRock9';
+      
+      document.getElementById('cd-label').textContent = d.label || 'Back in...';
+      document.documentElement.style.setProperty('--cd-label-color', d.labelColor || '#aaa');
+      document.documentElement.style.setProperty('--cd-time-color', d.timeColor || '#fff');
+
+      const rem = Math.max(0, d.remaining);
+      const mins = Math.floor(rem / 60000);
+      const secs = Math.floor((rem % 60000) / 1000);
+      document.getElementById('cd-time').textContent = mins + ':' + secs.toString().padStart(2,'0');
+
+      const el = document.getElementById('cd-time');
+      if (rem === 0 && d.running === false) {
+        // Hit zero — start tracking blink time
+        if (!hitZeroAt) hitZeroAt = Date.now();
+        const elapsed = Date.now() - hitZeroAt;
+        if (elapsed < 60000) {
+          el.className = 'blink';
+        } else {
+          el.className = '';
+          el.style.opacity = '1';
+        }
+      } else {
+        hitZeroAt = null;
+        el.className = rem < 60000 && rem > 0 ? 'urgent' : '';
+      }
+    } catch(e) {}
+  }
+
+  poll();
+  setInterval(poll, 500);
+
+  async function loadGlobalFont() {
+    try {
+      const r = await fetch('/settings');
+      const d = await r.json();
+      const font = (d.brb && d.brb.globalFont) || 'MMRock9';
+      if (font !== 'monospace' && font !== 'sans-serif') {
+        if (!document.querySelector('style[data-font="' + font + '"]')) {
+          const style = document.createElement('style');
+          style.setAttribute('data-font', font);
+          style.textContent = "@font-face { font-family:'" + font + "'; src:url('/font/" + font + ".ttf') format('truetype'),url('/font/" + font + ".otf') format('opentype'),url('/font/" + font + ".woff2') format('woff2'); }";
+          document.head.appendChild(style);
+        }
+      }
+      document.documentElement.style.setProperty('--widget-font', "'" + font + "'");
+    } catch(e) {}
+  }
+  loadGlobalFont();
+  setInterval(loadGlobalFont, 10000);
+
+</script>
+</body>
+</html>

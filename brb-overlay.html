@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root { --widget-font: 'MMRock9'; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:transparent; width:100vw; height:100vh; overflow:hidden; font-family:sans-serif; }
+
+  .slide {
+    position:absolute; width:100%; height:100%;
+    opacity:0; pointer-events:none;
+    will-change:opacity,transform;
+  }
+  .slide.active { opacity:1; }
+
+  .slide img   { width:100%; height:100%; object-fit:contain; }
+  .slide video { width:100%; height:100%; object-fit:contain; }
+
+  /* Clock widget */
+  .clock-wrap {
+    width:100%; height:100%; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:16px;
+  }
+  .clock-label { font-size:28px; color:rgba(255,255,255,0.7); letter-spacing:0.15em; text-transform:uppercase; }
+  .clock-time  { font-size:96px; color:#fff; font-weight:700; letter-spacing:0.05em; }
+
+  /* Countdown widget */
+  .countdown-wrap {
+    width:100%; height:100%; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:16px;
+  }
+  .countdown-label { font-size:28px; color:rgba(255,255,255,0.7); letter-spacing:0.15em; text-transform:uppercase; }
+  .countdown-time  { font-size:96px; color:#fff; font-weight:700; letter-spacing:0.05em; }
+
+  /* Social widget */
+  .social-wrap {
+    width:100%; height:100%; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:20px;
+  }
+  .social-message { font-size:32px; color:#fff; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:8px; }
+  .social-links { display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .social-row { font-size:24px; color:rgba(255,255,255,0.85); display:flex; align-items:center; gap:12px; }
+  .social-platform { color:rgba(255,255,255,0.45); font-size:18px; min-width:100px; text-align:right; }
+
+  #status {
+    position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+    color:rgba(255,255,255,0.4); font-size:1em;
+  }
+</style>
+</head>
+<body>
+<div id="status">Loading BRB...</div>
+<div id="container"></div>
+<script>
+  var slides=[], current=0, timer=null, config=null;
+  var fadeDuration=1000, imageDuration=10000, htmlDuration=20000, videoDuration=0;
+  var transition='fade';
+  var countdownEnd = null;
+
+  async function init() {
+    try { const r=await fetch('/brb-config'); config=await r.json(); }
+    catch(e) { document.getElementById('status').textContent='Could not load BRB config'; return; }
+
+    fadeDuration   = (config.fadeTime      || 1)  * 1000;
+    imageDuration  = (config.imageDuration || 10) * 1000;
+    htmlDuration   = (config.htmlDuration  || 20) * 1000;
+    videoDuration  = (config.videoDuration || 0)  * 1000;
+    transition     = config.transition || 'fade';
+
+    document.getElementById('status').remove();
+    const container = document.getElementById('container');
+
+    if (!config.slides || config.slides.length === 0) {
+      const el=document.createElement('div'); el.id='status';
+      el.textContent='No files found in BRB folder.'; document.body.appendChild(el); return;
+    }
+
+    config.slides.forEach(function(s) {
+      const div = document.createElement('div');
+      div.className = 'slide';
+
+      if (s.type === 'image') {
+        div.dataset.duration = s.duration ? s.duration*1000 : imageDuration;
+        const img = document.createElement('img');
+        img.src = '/brb-file?path=' + encodeURIComponent(s.src);
+        div.appendChild(img);
+
+      } else if (s.type === 'video') {
+        div.dataset.type = 'video';
+        const vid = document.createElement('video');
+        vid.src = '/brb-file?path=' + encodeURIComponent(s.src);
+        vid.muted = true; vid.autoplay = false; vid.loop = false; vid.playsInline = true;
+        div.appendChild(vid);
+
+      } else if (s.type === 'iframe') {
+        div.dataset.duration = s.duration ? s.duration*1000 : htmlDuration;
+        const frame = document.createElement('iframe');
+        frame.src = '/brb-file?path=' + encodeURIComponent(s.src);
+        frame.setAttribute('allowtransparency','true');
+        frame.style.cssText = 'width:100%;height:100%;border:none;';
+        div.appendChild(frame);
+
+      } else if (s.type === 'clock') {
+        div.dataset.duration = imageDuration;
+        div.dataset.type = 'clock';
+        div.dataset.format = (s.config && s.config.format) || '12h';
+        const wrap = document.createElement('div'); wrap.className='clock-wrap';
+        const label = document.createElement('div'); label.className='clock-label';
+        label.textContent = (s.config && s.config.label) || 'Be Right Back';
+        const time = document.createElement('div'); time.className='clock-time'; time.id='clock-display';
+        wrap.appendChild(label); wrap.appendChild(time); div.appendChild(wrap);
+
+      } else if (s.type === 'countdown') {
+        div.dataset.type = 'countdown';
+        div.dataset.minutes = (s.config && s.config.minutes) || 5;
+        div.dataset.duration = ((s.config && s.config.minutes) || 5) * 60 * 1000;
+        const wrap = document.createElement('div'); wrap.className='countdown-wrap';
+        const label = document.createElement('div'); label.className='countdown-label';
+        label.textContent = (s.config && s.config.label) || 'Back in...';
+        const time = document.createElement('div'); time.className='countdown-time'; time.id='countdown-display';
+        wrap.appendChild(label); wrap.appendChild(time); div.appendChild(wrap);
+
+      } else if (s.type === 'social') {
+        div.dataset.duration = imageDuration;
+        const c = s.config || {};
+        const wrap = document.createElement('div'); wrap.className='social-wrap';
+        const msg = document.createElement('div'); msg.className='social-message';
+        msg.textContent = c.message || 'Follow for more!';
+        wrap.appendChild(msg);
+        const links = document.createElement('div'); links.className='social-links';
+        if (c.twitch)  links.appendChild(makeRow('Twitch',  c.twitch));
+        if (c.twitter) links.appendChild(makeRow('Twitter', c.twitter));
+        if (c.discord) links.appendChild(makeRow('Discord', c.discord));
+        wrap.appendChild(links); div.appendChild(wrap);
+      }
+
+      container.appendChild(div);
+      slides.push(div);
+    });
+
+    setInterval(tickClock, 1000);
+    showSlide(0);
+  }
+
+  function makeRow(platform, handle) {
+    const row = document.createElement('div'); row.className='social-row';
+    const pl  = document.createElement('span'); pl.className='social-platform'; pl.textContent=platform;
+    const h   = document.createElement('span'); h.textContent=handle;
+    row.appendChild(pl); row.appendChild(h); return row;
+  }
+
+  function tickClock() {
+    const el = document.getElementById('clock-display');
+    if (!el) return;
+    const now = new Date();
+    const slide = slides[current];
+    const fmt = slide && slide.dataset.format === '24h' ? '24h' : '12h';
+    if (fmt === '24h') {
+      el.textContent = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+    } else {
+      let h = now.getHours() % 12 || 12;
+      const m = now.getMinutes().toString().padStart(2,'0');
+      el.textContent = h + ':' + m + (now.getHours() >= 12 ? ' PM' : ' AM');
+    }
+
+    // Countdown
+    const cd = document.getElementById('countdown-display');
+    if (cd && countdownEnd) {
+      const rem = Math.max(0, countdownEnd - Date.now());
+      const mins = Math.floor(rem / 60000);
+      const secs = Math.floor((rem % 60000) / 1000);
+      cd.textContent = mins + ':' + secs.toString().padStart(2,'0');
+    }
+  }
+
+  // ── Transitions ────────────────────────────────────────────────────────────
+  function applyOut(el) {
+    el.style.transition = 'opacity '+(fadeDuration/1000)+'s ease-in-out, transform '+(fadeDuration/1000)+'s ease-in-out';
+    if (transition === 'slide')      { el.style.transform='translateX(-100%)'; el.style.opacity='0'; }
+    else if (transition === 'zoom')  { el.style.transform='scale(1.08)'; el.style.opacity='0'; }
+    else if (transition === 'wipe')  { el.style.transform='translateY(100%)'; el.style.opacity='0'; }
+    else                             { el.style.opacity='0'; }
+  }
+
+  function applyIn(el) {
+    if (transition === 'slide')      { el.style.transform='translateX(100%)'; el.style.opacity='0'; }
+    else if (transition === 'zoom')  { el.style.transform='scale(0.93)'; el.style.opacity='0'; }
+    else if (transition === 'wipe')  { el.style.transform='translateY(-100%)'; el.style.opacity='0'; }
+    else                             { el.style.opacity='0'; }
+
+    el.classList.add('active');
+    setTimeout(function() {
+      el.style.transition = 'opacity '+(fadeDuration/1000)+'s ease-in-out, transform '+(fadeDuration/1000)+'s ease-in-out';
+      el.style.transform = 'none';
+      el.style.opacity = '1';
+    }, 30);
+  }
+
+  function showSlide(index) {
+    if (timer) clearTimeout(timer);
+
+    // Out
+    if (slides[current]) applyOut(slides[current]);
+
+    current = index;
+    const next = slides[current];
+
+    setTimeout(function() {
+      applyIn(next);
+
+      // Video: play and advance when done
+      if (next.dataset.type === 'video') {
+        const vid = next.querySelector('video');
+        if (vid) {
+          vid.currentTime = 0;
+          vid.play();
+          if (videoDuration > 0) {
+            timer = setTimeout(function() { showSlide((current+1)%slides.length); }, videoDuration);
+          } else {
+            vid.onended = function() { showSlide((current+1)%slides.length); };
+          }
+          return;
+        }
+      }
+
+      // Countdown: start timer from now
+      if (next.dataset.type === 'countdown') {
+        const mins = parseFloat(next.dataset.minutes) || 5;
+        countdownEnd = Date.now() + mins * 60 * 1000;
+        tickClock();
+      }
+
+      const duration = parseInt(next.dataset.duration) || imageDuration;
+      timer = setTimeout(function() { showSlide((current+1)%slides.length); }, duration + fadeDuration);
+    }, fadeDuration * 0.5);
+  }
+
+  init();
+
+  async function loadGlobalFont() {
+    try {
+      const r = await fetch('/settings');
+      const d = await r.json();
+      const font = (d.brb && d.brb.globalFont) || 'MMRock9';
+      if (font !== 'monospace' && font !== 'sans-serif') {
+        if (!document.querySelector('style[data-font="' + font + '"]')) {
+          const style = document.createElement('style');
+          style.setAttribute('data-font', font);
+          style.textContent = "@font-face { font-family:'" + font + "'; src:url('/font/" + font + ".ttf') format('truetype'),url('/font/" + font + ".otf') format('opentype'),url('/font/" + font + ".woff2') format('woff2'); }";
+          document.head.appendChild(style);
+        }
+      }
+      document.documentElement.style.setProperty('--widget-font', "'" + font + "'");
+    } catch(e) {}
+  }
+  loadGlobalFont();
+  setInterval(loadGlobalFont, 10000);
+
+</script>
+</body>
+</html>
