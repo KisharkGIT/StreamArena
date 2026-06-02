@@ -2,7 +2,7 @@
 
 StreamArena... what is it? It allows you to stream with a live Music Heads Up, Countdown Timer, Slideshow, Discord Call Overlay, automatically upload the most recent Replays froms stream to Bluesky, access tournament information, and more. Follow this tutorial (A guide by Kishark. www.youtube.com/@kishark for the channel www.youtube.com/@megamanarena) that covers how to setup everything you'll need. 
 
-***StreamArena REQUIRES Node.js to function. Follow this guide to see how to set everything else. StreamArena runs almost 100% independent, however, some features rely on other applications (such as the Music Overlay). StreamArena is built independent and is a great streaming tool. It was designed to work well with Tournament Streamer Helper. It does not reference or require anything from TSH, it doesn't have anything to do with it. With that said, this guide explains how to go about using TSH with Mega Man Arena and how to use StreamArena and TSH to run a pretty robust MMA Tourney Stream.
+***StreamArena REQUIRES Node.js to function. Follow this guide to see how to set everything else. StreamArena runs almost 100% independent, however, some features rely on other applications (such as the Music Overlay). StreamArena is built independent and is a great streaming tool. It was designed to work well with Tournament Streamer Helper. It does not reference or require anything from TSH, and it doesn't have anything to do with it. With that said, this guide explains how to go about using TSH with Mega Man Arena and how to use StreamArena and TSH to run a pretty robust MMA Tourney Stream.
 
 You'll need to have the following installed for the application to run:
 
