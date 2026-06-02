@@ -2,7 +2,7 @@
 
 To stream with tournament graphics, a Music Heads Up, Countdown Timer, Slideshow, and more. Follow this tutorial. (A guide by Kishark. www.youtube.com/@kishark for the channel www.youtube.com/@megamanarena). 
 
-***StreamArena is built independent and is a great streameing tool. It was designed to work well with Tournament Streamer Helper. It does not reference or require it or have anything to do with it. With that said, this guide explains how to go about using TSH with Mega Man Arena and how to use StreamArena and TSH to run MMA Tourney Streams.
+***StreamArena is built independent and is a great streaming tool. It was designed to work well with Tournament Streamer Helper. It does not reference or require it or have anything to do with it. With that said, this guide explains how to go about using TSH with Mega Man Arena and how to use StreamArena and TSH to run MMA Tourney Streams.
 
 You'll need to have the following installed:
 
