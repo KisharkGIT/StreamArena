@@ -1237,7 +1237,7 @@ const server = http.createServer(async (req, res) => {
     } catch(e) { res.writeHead(400); res.end('Bad request'); return; }
   }
   if (pathname === '/export-profile' && req.method === 'GET') {
-    const id = parsedUrl.query.id || activeProfileId;
+    const id = parsed.query.id || activeProfileId;
     const profilePath = _profilePath(id);
     if (!profileIndex.profiles || !profileIndex.profiles[id] || !fs.existsSync(profilePath)) {
       res.writeHead(404); res.end('Not found'); return;

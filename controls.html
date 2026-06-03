@@ -755,20 +755,18 @@
   <div id="wtab-general" style="width:480px;">
     <div class="section" id="profile-section">
       <div class="section-label">PROFILES</div>
-      <div style="display:flex;gap:4px;margin-bottom:2px;">
-        <button onclick="toggleProfileDropdown()" class="px-btn" style="flex:1;display:flex;align-items:center;justify-content:space-between;padding:8px 10px;">
-          <span style="font-family:'MMRock9',monospace;font-size:8px;letter-spacing:0.1em;color:#5bc8f5;">PROFILE</span>
-          <span style="display:flex;align-items:center;gap:8px;">
-            <span id="profile-active-indicator" style="font-size:7px;letter-spacing:0.06em;color:#4ade80;">● Default</span>
-            <span id="profile-dropdown-arrow" style="font-size:10px;color:rgba(255,255,255,0.5);">▸</span>
-          </span>
-        </button>
-      </div>
-      <div id="profile-dropdown-body" style="display:none;flex-direction:column;border:1px solid rgba(91,200,245,0.12);background:rgba(0,0,0,0.2);">
+      <button onclick="toggleProfileDropdown()" class="px-btn" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:8px 10px;">
+        <span style="font-family:'MMRock9',monospace;font-size:8px;letter-spacing:0.1em;color:#5bc8f5;">PROFILE</span>
+        <span style="display:flex;align-items:center;gap:8px;">
+          <span id="profile-active-indicator" style="font-size:7px;letter-spacing:0.06em;color:#4ade80;">● Default</span>
+          <span id="profile-dropdown-arrow" style="font-size:10px;color:rgba(255,255,255,0.5);">▸</span>
+        </span>
+      </button>
+      <div id="profile-dropdown-body" style="display:none;flex-direction:column;border:1px solid rgba(91,200,245,0.25);border-top:none;background:rgba(4,12,26,0.97);box-shadow:0 6px 18px rgba(0,0,0,0.5);">
         <div id="profile-list-rows"></div>
-        <div style="border-top:1px solid rgba(255,255,255,0.06);display:flex;">
-          <button onclick="openNewProfileModal()" class="px-btn" style="flex:1;padding:9px 12px;text-align:left;font-size:8px;letter-spacing:0.1em;color:#5bc8f5;">+ NEW PROFILE</button>
-          <button onclick="importProfile()" class="px-btn" title="Import profile from file" style="padding:9px 12px;font-size:8px;letter-spacing:0.1em;color:#a78bfa;border-left:1px solid rgba(255,255,255,0.06);">&#8593; IMPORT</button>
+        <div style="border-top:1px solid rgba(255,255,255,0.07);display:flex;">
+          <button onclick="openNewProfileModal()" class="px-btn" style="flex:1;padding:6px 10px;text-align:left;font-size:7px;letter-spacing:0.08em;color:#5bc8f5;">+ NEW</button>
+          <button onclick="importProfile()" class="px-btn" title="Import profile from file" style="padding:6px 10px;font-size:7px;letter-spacing:0.08em;color:#a78bfa;border-left:1px solid rgba(255,255,255,0.07);">&#8593; IMPORT</button>
         </div>
       </div>
       <div id="newProfileForm" style="display:none;margin-top:6px;padding:10px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.08);">
