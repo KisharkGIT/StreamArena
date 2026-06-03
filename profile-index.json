@@ -1,0 +1,8 @@
+{
+  "active": "mma_regular_stream",
+  "profiles": {
+    "mma_regular_stream": {
+      "name": "MMA Regular Stream"
+    }
+  }
+}

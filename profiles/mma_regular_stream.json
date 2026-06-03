@@ -1,0 +1,274 @@
+{
+  "position": "top-right",
+  "bgOpacity": 1,
+  "slideIn": true,
+  "slideOut": true,
+  "slideMs": 550,
+  "showMs": 8000,
+  "snipFile": "C:/Users/kisha/Desktop/MMA_Casting/MMA_Resources/StreamResources/SpotifyDisplay/Snip/Snip.txt",
+  "settingsPath": "",
+  "songOutputPath": "",
+  "overrides": [
+    {
+      "raw": "“(Take a Look) It’s In a Book” ― $$a",
+      "title": "(Take a Look) It's In a Book",
+      "artist": "Chips n' Cellos"
+    },
+    {
+      "raw": "“MMA - Bubble Man (Stage Mode Remix)” ― Melody Man",
+      "title": "MMA - Bubble Man (Stage Mode Remix)",
+      "artist": "Melody Man"
+    },
+    {
+      "raw": "“MMA - Bomb Man (Stage Mode Remix)” ― Melody Man",
+      "title": "MMA - Bomb Man (Stage Mode Remix)",
+      "artist": "Melody Man"
+    },
+    {
+      "raw": "“MMA - MM1 Boss (Stage Mode Remix)” ― Melody Man",
+      "title": "MMA - MM1 Boss (Stage Mode Remix)",
+      "artist": "Melody Man"
+    },
+    {
+      "raw": "“MMA - Dust Man (Stage Mode Remix) (1)” ― $$a",
+      "title": "MMA - Dust Man (Stage Mode Remix)",
+      "artist": "Melody Man"
+    },
+    {
+      "raw": "“MMA - Gemini Man (Stage Mode Remix)” ― Melody Man",
+      "title": "Gemini Man (Stage Mode Remix)",
+      "artist": "Melody Man"
+    },
+    {
+      "raw": "“MMA - MM10 Boss (Stage Mode Remix)” ― $$a",
+      "title": "MMA - MM10 Boss (Stage Mode Remix)",
+      "artist": "Melody Man"
+    },
+    {
+      "raw": "“MMA - MM2 Boss (Stage Mode Remix)” ― Melody Man",
+      "title": "MMA - MM2 Boss (Stage Mode Remix)",
+      "artist": "Melody Man"
+    },
+    {
+      "raw": "“MMA - MM3 Boss (Stage Mode Remix)” ― Melody Man",
+      "title": "MMA - MM3 Boss (Stage Mode Remix)",
+      "artist": "Melody Man"
+    },
+    {
+      "raw": "“MMA - MM4 Boss (Stage Mode Remix)” ― $$a",
+      "title": "MMA - MM4 Boss (Stage Mode Remix)",
+      "artist": "Melody Man"
+    },
+    {
+      "raw": "“MMA - NES Title Screen Medley (Looped)” ― $$a",
+      "title": "MMA - NES Title Screen Medley (Looped)",
+      "artist": "Melody Man"
+    },
+    {
+      "raw": "“MMA_-_Kaze_Yo_Tsutaete_Full_ver.” ― $$a",
+      "title": "MMA - Kaze Yo Tsutaete",
+      "artist": "Melody Man"
+    }
+  ],
+  "streamNotes": "don't forget to flush",
+  "startggToken": "ef91e69d93c17cad2ef379fb9ee7fa46",
+  "startggTourneyUrl": "https://www.start.gg/tournament/mega-man-arena-summit-iv/event/mma-summit/brackets",
+  "discordClientId": "",
+  "discordClientSecret": "",
+  "discordOverlay": {
+    "design": "modern",
+    "position": "mid-center",
+    "align": "left",
+    "cols": 4,
+    "rows": 0,
+    "scale": 3.6,
+    "bgOpacity": 0.65,
+    "nameBgOpacity": 0.45,
+    "nameBgRadius": 8,
+    "bgRadius": 7,
+    "heightOffset": 0,
+    "showChannelLabel": false,
+    "showStatusIcons": true,
+    "showMemberName": true,
+    "speakColor": "#23a55a",
+    "speakNameColor": "#ffffff",
+    "nameColor": "#e0e0e0",
+    "hiddenMembers": [
+      "772103659419861003"
+    ],
+    "stackedLayout": true,
+    "s1Member": "237019954837323776",
+    "s2Member": "225095177474146305",
+    "nameSize": 10,
+    "nameLengthEnabled": false,
+    "nameLength": 120,
+    "nameAlign": "left",
+    "useServerNick": true,
+    "useServerAvatar": true
+  },
+  "discordOverlay2": {
+    "design": "modern",
+    "position": "top-left",
+    "align": "left",
+    "cols": 1,
+    "rows": 6,
+    "scale": 1.8,
+    "bgOpacity": 0.5,
+    "nameBgOpacity": 0.7,
+    "nameBgRadius": 6,
+    "bgRadius": 10,
+    "heightOffset": 0,
+    "showChannelLabel": false,
+    "showStatusIcons": true,
+    "showMemberName": true,
+    "speakColor": "#23a55a",
+    "speakNameColor": "#ffffff",
+    "nameColor": "#e0e0e0",
+    "hiddenMembers": [
+      "772103659419861003"
+    ],
+    "stackedLayout": false,
+    "s1Member": null,
+    "s2Member": null,
+    "nameSize": 13,
+    "nameLengthEnabled": true,
+    "nameLength": 198,
+    "nameAlign": "left",
+    "useServerNick": true,
+    "useServerAvatar": true
+  },
+  "discordOverlaySolo": {
+    "design": "modern",
+    "position": "mid-center",
+    "align": "center",
+    "cols": 1,
+    "rows": 0,
+    "scale": 4,
+    "bgOpacity": 1,
+    "nameBgOpacity": 0,
+    "nameBgRadius": 0,
+    "bgRadius": 16,
+    "heightOffset": 0,
+    "showChannelLabel": false,
+    "showStatusIcons": true,
+    "showMemberName": false,
+    "speakColor": "#30d93b",
+    "speakNameColor": "#ffffff",
+    "nameColor": "#e0e0e0",
+    "stackedLayout": null,
+    "nameSize": 12,
+    "nameLengthEnabled": false,
+    "nameLength": 120,
+    "nameAlign": "left",
+    "useServerNick": true,
+    "useServerAvatar": true
+  },
+  "widgetEnabled": {
+    "brb": true,
+    "countdown": true,
+    "clock": false,
+    "social": false,
+    "nextmatch": false,
+    "startgg": false,
+    "bluesky": true
+  },
+  "widgetLayout": [
+    [
+      "brb"
+    ],
+    [
+      "countdown"
+    ],
+    [
+      "clock",
+      "startgg"
+    ],
+    [
+      "social"
+    ],
+    [
+      "nextmatch"
+    ],
+    [
+      "bluesky"
+    ]
+  ],
+  "widgetOpen": {
+    "brb": true,
+    "countdown": true,
+    "clock": true,
+    "social": true,
+    "nextmatch": true,
+    "startgg": true,
+    "bluesky": true
+  },
+  "bskyHandle": "megamanarena.bsky.social",
+  "bskyHandleSaved": "megamanarena.bsky.social",
+  "bskyAppPassword": "y6xc-mqeq-6hor-6q4i",
+  "bskyReplaysFolder": "C:\\Users\\kisha\\Videos",
+  "bskyTitleTemplate": "Devs had some fun live with viewers!",
+  "bskyDescription": "#MegaManArena #MegaMan",
+  "bskyFilterEnabled": false,
+  "bskyFilterKeyword": "Replay",
+  "brb": {
+    "folder": "C:/Users/kisha/Desktop/MMA_Casting/MMA_Resources/StreamResources/SpotifyDisplay/StreamArena/brb_display",
+    "imageDuration": 10,
+    "htmlDuration": 20,
+    "videoDuration": 0,
+    "fadeTime": 1,
+    "randomize": true,
+    "transition": "fade",
+    "links": [],
+    "tshRoot": "C:/Users/kisha/Desktop/MMA_Casting/TSH/TournamentStreamHelper-5.970",
+    "widgets": {
+      "clock": {
+        "enabled": false,
+        "format": "12h",
+        "label": "Local Time",
+        "inSlideshow": false
+      },
+      "countdown": {
+        "enabled": false,
+        "minutes": 3,
+        "label": "Cya soon!",
+        "inSlideshow": false,
+        "labelColor": "#7bff57",
+        "timeColor": "#ffffff",
+        "shadow": {
+          "angle": 135,
+          "distance": 8,
+          "hardness": 0,
+          "spread": 0,
+          "color": "#000000",
+          "opacity": 1
+        }
+      },
+      "social": {
+        "enabled": false,
+        "twitch": "",
+        "twitter": "",
+        "discord": "",
+        "message": "",
+        "inSlideshow": false
+      },
+      "nextMatch": {
+        "inSlideshow": false,
+        "p1": "WarpStar | AydinSuperStar",
+        "p2": "Hermit_The_Shark",
+        "round": "Losers Round 1",
+        "duration": 33,
+        "sublabel": ""
+      }
+    },
+    "globalFont": "MMRock9",
+    "useInterfaceFont": false
+  },
+  "discordAccessToken": "MTUxMDc2MTYxNTE0MDg1MTczMg.l0Mwl3paxduAbWOeVIYlp0weRaqLUO",
+  "discordRefreshToken": "ahT1rjozmq8nzoUBVkAc6lPl7pA9CH",
+  "discordTokenExpiry": 1780868943906,
+  "bskyDid": "did:plc:s6dc6xrak4hubgq5pbbehaaw",
+  "bskyAccessJwt": "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJFUzI1NksifQ.eyJzY29wZSI6ImNvbS5hdHByb3RvLmFwcFBhc3MiLCJzdWIiOiJkaWQ6cGxjOnM2ZGM2eHJhazRodWJncTVwYmJlaGFhdyIsImlhdCI6MTc4MDQ0ODY3OCwiZXhwIjoxNzgwNDU1ODc4LCJhdWQiOiJkaWQ6d2ViOmNvcnRpbmFyaXVzLnVzLXdlc3QuaG9zdC5ic2t5Lm5ldHdvcmsifQ.oX9s_gefNJ07MTu-YvTpUGliBrqLb0LHD6ENWL3sKz9GyXJGsj4Ybh2gcC0tpqFgeYi5VuSHrtU54ANZGNF09Q",
+  "bskyRefreshJwt": "eyJ0eXAiOiJyZWZyZXNoK2p3dCIsImFsZyI6IkVTMjU2SyJ9.eyJzY29wZSI6ImNvbS5hdHByb3RvLnJlZnJlc2giLCJzdWIiOiJkaWQ6cGxjOnM2ZGM2eHJhazRodWJncTVwYmJlaGFhdyIsImF1ZCI6ImRpZDp3ZWI6YnNreS5zb2NpYWwiLCJqdGkiOiJpaW01TzlDZ2YxcGcyL1hyQkxndWRMZ3o1Nk9rcHVXMnhWL3U1UXlleEo0IiwiaWF0IjoxNzgwNDQ4Njc4LCJleHAiOjE3ODgyMjQ2Nzh9.J7fAqbov8a5GCMAAiTeXWKPxSgd0Rp1o-n7VZVnTT2ANweR1GFdzhCYbLUwWAgxAs3ZLVyBo9uBDA5OR9Nvvxg",
+  "bskyPdsDid": "did:web:cortinarius.us-west.host.bsky.network",
+  "bskyPdsHost": "cortinarius.us-west.host.bsky.network"
+}

@@ -7,7 +7,7 @@
 
   @font-face {
     font-family: 'MMRock9';
-    src: url('/fonts/MMRock9.ttf');
+    src: url('/font/mmrock9/MMRock9.ttf');
   }
 
   :root {
@@ -207,6 +207,7 @@
       const r = await fetch('/discord-overlay-solo-data?slot=' + slot);
       const d = await r.json();
       if (d.overlaySettings) applySettings(d.overlaySettings);
+      if (d.globalFont) applyFont(d.globalFont, d.globalFontPath);
       render(d);
     } catch(e) {}
   }
@@ -248,8 +249,27 @@
     overlay.classList.toggle('hide-name', cfg.showMemberName === false);
   }
 
+  function applyFont(fontName, fontPath) {
+    if (!fontName || fontName === 'MMRock9') {
+      document.body.style.fontFamily = "'MMRock9', monospace";
+      return;
+    }
+    if (fontName === 'monospace' || fontName === 'sans-serif') {
+      document.body.style.fontFamily = fontName;
+      return;
+    }
+    if (fontPath && !document.querySelector('style[data-font="' + fontName + '"]')) {
+      const st = document.createElement('style');
+      st.setAttribute('data-font', fontName);
+      st.textContent = "@font-face { font-family:'" + fontName + "'; src:url('/font/" + fontPath + "'); }";
+      document.head.appendChild(st);
+    }
+    document.body.style.fontFamily = "'" + fontName + "', monospace";
+  }
+
   window.addEventListener('message', e => {
     if (e.data && e.data.type === 'discordSettings') applySettings(e.data.cfg);
+    if (e.data && e.data.type === 'discordFont') applyFont(e.data.font, e.data.fontPath);
   });
 
   function render(d) {

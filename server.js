@@ -12,6 +12,27 @@ const LOCAL_FONT_DIR    = path.join(APP_DIR, 'fonts');
 const FONT_DIR_FALLBACK = 'C:/Users/kisha/Documents/mmrock9';
 const SETTINGS_FILE     = path.join(APP_DIR, 'settings.json');
 
+const _FONT_EXTS = new Set(['.ttf','.otf','.woff','.woff2']);
+function findFontPath(name) {
+  if (!name || name === 'monospace' || name === 'sans-serif') return null;
+  let found = null;
+  (function walk(dir, rel) {
+    if (found) return;
+    try {
+      fs.readdirSync(dir, { withFileTypes: true }).forEach(e => {
+        if (found) return;
+        if (e.isDirectory()) { walk(path.join(dir, e.name), rel ? rel+'/'+e.name : e.name); }
+        else {
+          const ext = path.extname(e.name).toLowerCase();
+          if (_FONT_EXTS.has(ext) && path.basename(e.name, ext) === name)
+            found = (rel ? rel+'/' : '') + e.name;
+        }
+      });
+    } catch(e2) {}
+  })(LOCAL_FONT_DIR, '');
+  return found;
+}
+
 // ── Trigger counter for test button ──────────────────────────────────────────
 let triggerCount = 0;
 
@@ -27,6 +48,7 @@ function tickCountdown() {
 setInterval(tickCountdown, 200);
 
 // ── Default settings ─────────────────────────────────────────────────────────
+// ── Default settings (template for fresh profiles) ───────────────────────────
 const DEFAULTS = {
   position:    'bottom-right',
   bgOpacity:   0.85,
@@ -36,8 +58,27 @@ const DEFAULTS = {
   showMs:      8000,
   snipFile:    'C:/Users/kisha/Desktop/MMA_Casting/MMA_Resources/StreamResources/Snip/Snip.txt',
   settingsPath: '',
+  songOutputPath: '',
   overrides:   [],
   streamNotes: '',
+  startggToken: '',
+  startggTourneyUrl: '',
+  discordClientId: '',
+  discordClientSecret: '',
+  discordOverlay: null,
+  discordOverlay2: null,
+  discordOverlaySolo: null,
+  widgetEnabled: null,
+  widgetLayout: null,
+  widgetOpen: null,
+  bskyHandle: '',
+  bskyHandleSaved: '',
+  bskyAppPassword: '',
+  bskyReplaysFolder: '',
+  bskyTitleTemplate: '',
+  bskyDescription: '',
+  bskyFilterEnabled: false,
+  bskyFilterKeyword: 'Replay',
   brb: {
     folder:   'C:/Users/kisha/Desktop/MMA_Casting/MMA_Resources/StreamResources/SpotifyDisplay/Server/brb_display',
     imageDuration: 10,
@@ -57,22 +98,111 @@ const DEFAULTS = {
   }
 };
 
+// ── Profile system (Option A: each profile = its own JSON file) ───────────────
+// profiles/{id}.json  — complete settings for that profile
+// profile-index.json  — { active: id, profiles: { id: {name} } }
+const PROFILES_DIR       = path.join(APP_DIR, 'profiles');
+const PROFILE_INDEX_FILE = path.join(APP_DIR, 'profile-index.json');
+
+try { fs.mkdirSync(PROFILES_DIR, { recursive: true }); } catch(e) {}
+
+let activeProfileId = 'default';
+let profileIndex    = { active: 'default', profiles: { default: { name: 'Default' } } };
+
+function _profilePath(id) { return path.join(PROFILES_DIR, id + '.json'); }
+
+function _slugify(name) {
+  const s = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  return s || 'profile';
+}
+
+function _uniqueId(name) {
+  let base = _slugify(name);
+  if (!profileIndex.profiles[base]) return base;
+  let n = 2;
+  while (profileIndex.profiles[base + '_' + n]) n++;
+  return base + '_' + n;
+}
+
+function _profileListArr() {
+  return Object.entries(profileIndex.profiles || {}).map(([id, p]) => ({ id, name: p.name || id }));
+}
+
+function _saveIndex() {
+  profileIndex.active = activeProfileId;
+  fs.writeFileSync(PROFILE_INDEX_FILE, JSON.stringify(profileIndex, null, 2), 'utf8');
+}
+
+function _brbMerge(saved) {
+  const b = saved.brb || {};
+  const db = DEFAULTS.brb;
+  return Object.assign({}, db, b, {
+    links: b.links || [],
+    imageDuration: b.imageDuration || db.imageDuration,
+    htmlDuration:  b.htmlDuration  || db.htmlDuration,
+    widgets: Object.assign({}, db.widgets, b.widgets || {}, {
+      clock:     Object.assign({}, db.widgets.clock,     (b.widgets||{}).clock     || {}),
+      countdown: Object.assign({}, db.widgets.countdown, (b.widgets||{}).countdown || {}),
+      social:    Object.assign({}, db.widgets.social,    (b.widgets||{}).social    || {})
+    })
+  });
+}
+
+function _loadProfileRaw(id) {
+  try { return JSON.parse(fs.readFileSync(_profilePath(id), 'utf8')); } catch(e) { return {}; }
+}
+
+function _applyRawToS(s, raw) {
+  if (raw.bskyHandle && !raw.bskyHandleSaved) raw.bskyHandleSaved = raw.bskyHandle;
+  Object.keys(s).forEach(k => delete s[k]);
+  Object.assign(s, DEFAULTS, raw);
+  s.brb = _brbMerge(s);
+}
+
 function loadSettings() {
+  // Load profile index
   try {
-    const raw = fs.readFileSync(SETTINGS_FILE, 'utf8');
-    const s   = JSON.parse(raw);
-    // Migrate legacy bskyHandle key → bskyHandleSaved
-    if (s.bskyHandle && !s.bskyHandleSaved) s.bskyHandleSaved = s.bskyHandle;
-    return Object.assign({}, DEFAULTS, s, {
-      brb: Object.assign({}, DEFAULTS.brb, s.brb || {}, { links: (s.brb && s.brb.links) || [], imageDuration: (s.brb && s.brb.imageDuration) || DEFAULTS.brb.imageDuration, htmlDuration: (s.brb && s.brb.htmlDuration) || DEFAULTS.brb.htmlDuration, widgets: Object.assign({}, DEFAULTS.brb.widgets, (s.brb && s.brb.widgets) || {}, { clock: Object.assign({}, DEFAULTS.brb.widgets.clock, s.brb && s.brb.widgets && s.brb.widgets.clock || {}), countdown: Object.assign({}, DEFAULTS.brb.widgets.countdown, s.brb && s.brb.widgets && s.brb.widgets.countdown || {}), social: Object.assign({}, DEFAULTS.brb.widgets.social, s.brb && s.brb.widgets && s.brb.widgets.social || {}) }) })
-    });
+    const idx = JSON.parse(fs.readFileSync(PROFILE_INDEX_FILE, 'utf8'));
+    profileIndex    = idx;
+    activeProfileId = idx.active || Object.keys(idx.profiles || {})[0] || 'default';
   } catch(e) {
-    return JSON.parse(JSON.stringify(DEFAULTS));
+    // First run — migrate existing settings.json into Default profile
+    let existing = {};
+    try {
+      existing = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
+      delete existing.profiles; delete existing.activeProfile;
+      // Rename settings.json → settings.json.bak so it's clear it's no longer active
+      try { fs.renameSync(SETTINGS_FILE, SETTINGS_FILE + '.bak'); } catch(e3) {}
+    } catch(e2) {}
+    const seed = Object.assign({}, DEFAULTS, existing);
+    fs.writeFileSync(_profilePath('default'), JSON.stringify(seed, null, 2), 'utf8');
+    profileIndex    = { active: 'default', profiles: { default: { name: 'Default' } } };
+    activeProfileId = 'default';
+    _saveIndex();
   }
+  const raw = _loadProfileRaw(activeProfileId);
+  const s = Object.assign({}, DEFAULTS, raw);
+  if (s.bskyHandle && !s.bskyHandleSaved) s.bskyHandleSaved = s.bskyHandle;
+  s.brb = _brbMerge(s);
+  // Ensure the active profile file exists on disk (recreate if manually deleted)
+  if (!fs.existsSync(_profilePath(activeProfileId))) {
+    try { fs.writeFileSync(_profilePath(activeProfileId), JSON.stringify(s, null, 2), 'utf8'); } catch(e) {}
+  }
+  return s;
 }
 
 function saveSettings(s) {
-  fs.writeFileSync(SETTINGS_FILE, JSON.stringify(s, null, 2), 'utf8');
+  // Write the active profile file — everything in s except internal metadata
+  fs.writeFileSync(_profilePath(activeProfileId), JSON.stringify(s, null, 2), 'utf8');
+}
+
+// Switch active profile, mutating s in-place so all route handlers keep working
+function _switchProfile(s, newId) {
+  saveSettings(s);                       // flush current profile first
+  activeProfileId = newId;
+  profileIndex.active = newId;
+  _saveIndex();
+  _applyRawToS(s, _loadProfileRaw(newId));
 }
 
 // ── MIME ─────────────────────────────────────────────────────────────────────
@@ -170,7 +300,6 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/clock')     { serveHtml('clock-overlay.html',  res); return; }
   if (pathname === '/countdown') { serveHtml('countdown-overlay.html', res); return; }
   if (pathname === '/social')     { serveHtml('social-overlay.html',    res); return; }
-  if (pathname === '/howto')      { serveHtml('howto.html',            res); return; }
   if (pathname === '/nextmatch')      { serveHtml('nextmatch-overlay.html',  res); return; }
   if (pathname === '/discord-overlay')      { serveHtml('discord-overlay.html',      res); return; }
   if (pathname === '/discord-overlay-2')    { serveHtml('discord-overlay.html',      res); return; }
@@ -210,7 +339,8 @@ const server = http.createServer(async (req, res) => {
       label:      w.label      || 'Back in...',
       labelColor: w.labelColor || '#aaaaaa',
       timeColor:  w.timeColor  || '#ffffff',
-      globalFont: (s2.brb && s2.brb.globalFont) || 'MMRock9'
+      globalFont: (s2.brb && s2.brb.globalFont) || 'MMRock9',
+      shadow:     w.shadow     || {}
     }); return;
   }
 
@@ -234,9 +364,9 @@ const server = http.createServer(async (req, res) => {
     let raw = '';
     try { raw = fs.readFileSync(s.snipFile, 'utf8').trim(); } catch(e) {}
     const parsed = parseSong(raw, s.overrides);
-    // Write override-filtered result to current_spotify_song.txt next to Snip.txt
+    // Write override-filtered result to configured output path (or auto-place next to Snip.txt)
     try {
-      const exportPath = path.join(path.dirname(s.snipFile), 'current_spotify_song.txt');
+      const exportPath = s.songOutputPath || path.join(path.dirname(s.snipFile), 'current_spotify_song.txt');
       const exportText = (parsed.artist ? parsed.title + '  —  ' + parsed.artist : parsed.title) + '     ';
       fs.writeFileSync(exportPath, exportText, 'utf8');
     } catch(e) {}
@@ -941,16 +1071,18 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (pathname === '/discord-overlay-data' && req.method === 'GET') {
+    const _gf = (s.brb && s.brb.globalFont) || 'MMRock9';
     json200(res, { status: ds.status, user: ds.user,
       channel: ds.channel, guildName: ds.guildName, speaking: ds.speaking,
-      overlaySettings: s.discordOverlay || {} });
+      overlaySettings: s.discordOverlay || {}, globalFont: _gf, globalFontPath: findFontPath(_gf) });
     return;
   }
 
   if (pathname === '/discord-overlay-2-data' && req.method === 'GET') {
+    const _gf = (s.brb && s.brb.globalFont) || 'MMRock9';
     json200(res, { status: ds.status, user: ds.user,
       channel: ds.channel, guildName: ds.guildName, speaking: ds.speaking,
-      overlaySettings: s.discordOverlay2 || {} });
+      overlaySettings: s.discordOverlay2 || {}, globalFont: _gf, globalFontPath: findFontPath(_gf) });
     return;
   }
 
@@ -964,9 +1096,10 @@ const server = http.createServer(async (req, res) => {
     const filteredChannel = ds.channel
       ? Object.assign({}, ds.channel, { members: filteredMembers })
       : null;
+    const _gf = (s.brb && s.brb.globalFont) || 'MMRock9';
     json200(res, { status: ds.status, user: ds.user,
       channel: filteredChannel, guildName: ds.guildName, speaking: ds.speaking,
-      overlaySettings: overlayCfg });
+      overlaySettings: overlayCfg, globalFont: _gf, globalFontPath: findFontPath(_gf) });
     return;
   }
 
@@ -988,27 +1121,122 @@ const server = http.createServer(async (req, res) => {
   }
 
   // ── Settings ─────────────────────────────────────────────────────────────
-  if (pathname === '/settings') { json200(res, s); return; }
+  if (pathname === '/settings') {
+    json200(res, Object.assign({}, s, {
+      _activeProfile: activeProfileId,
+      _profileList:   _profileListArr()
+    }));
+    return;
+  }
 
-  // List available fonts from local fonts/ folder
+  // List available fonts from local fonts/ folder (recursive scan)
   if (pathname === '/fonts-list') {
-    const FONT_EXTS = new Set(['.ttf','.otf','.woff','.woff2']);
-    let fonts = [{ name: 'MMRock9', label: 'MMRock9 (pixel)' }]; // default always first
+    let fonts = [];
     try {
-      const files = fs.readdirSync(LOCAL_FONT_DIR);
-      files.forEach(f => {
-        const ext  = path.extname(f).toLowerCase();
-        const base = path.basename(f, ext);
-        if (FONT_EXTS.has(ext) && base !== 'MMRock9') {
-          fonts.push({ name: base, label: base });
-        }
-      });
+      (function walk(dir, rel) {
+        fs.readdirSync(dir, { withFileTypes: true }).forEach(e => {
+          if (e.isDirectory()) { walk(path.join(dir, e.name), rel ? rel+'/'+e.name : e.name); }
+          else {
+            const ext = path.extname(e.name).toLowerCase();
+            if (_FONT_EXTS.has(ext)) {
+              const base = path.basename(e.name, ext);
+              const fontPath = rel ? rel+'/'+e.name : e.name;
+              fonts.push({ name: base, label: base === 'MMRock9' ? 'MMRock9 (pixel)' : base, path: fontPath });
+            }
+          }
+        });
+      })(LOCAL_FONT_DIR, '');
     } catch(e) {}
-    // Always include system fallbacks
-    fonts.push({ name: 'monospace',  label: 'Monospace'  });
-    fonts.push({ name: 'sans-serif', label: 'Sans-serif' });
+    fonts.sort((a, b) => a.name === 'MMRock9' ? -1 : b.name === 'MMRock9' ? 1 : a.name.localeCompare(b.name));
+    fonts.push({ name: 'monospace',  label: 'Monospace',  path: null });
+    fonts.push({ name: 'sans-serif', label: 'Sans-serif', path: null });
     json200(res, { fonts }); return;
   }
+
+  // Returns current global font name + its resolved file path (for overlays)
+  if (pathname === '/font-info') {
+    const gf = (s.brb && s.brb.globalFont) || 'MMRock9';
+    json200(res, { name: gf, path: findFontPath(gf) }); return;
+  }
+
+  // ── Profile management ────────────────────────────────────────────────────
+  if (pathname === '/profiles') {
+    json200(res, { activeProfile: activeProfileId, list: _profileListArr() }); return;
+  }
+
+  if (pathname === '/switch-profile' && req.method === 'POST') {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const newId = body.id;
+      if (!profileIndex.profiles || !profileIndex.profiles[newId]) { res.writeHead(404); res.end('Profile not found'); return; }
+      _switchProfile(s, newId);
+      json200(res, Object.assign({}, s, { ok: true, _activeProfile: activeProfileId, _profileList: _profileListArr() })); return;
+    } catch(e) { res.writeHead(400); res.end('Bad request'); return; }
+  }
+
+  if (pathname === '/create-profile' && req.method === 'POST') {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const name = (body.name || 'New Profile').trim();
+      const newId = _uniqueId(name);
+      // Build new profile file from source or clean defaults
+      let source;
+      if (body.duplicateFrom && profileIndex.profiles && profileIndex.profiles[body.duplicateFrom]) {
+        source = _loadProfileRaw(body.duplicateFrom);
+      } else {
+        source = JSON.parse(JSON.stringify(DEFAULTS));
+      }
+      fs.writeFileSync(_profilePath(newId), JSON.stringify(source, null, 2), 'utf8');
+      profileIndex.profiles[newId] = { name };
+      _saveIndex();
+      json200(res, { ok: true, id: newId, list: _profileListArr() }); return;
+    } catch(e) { res.writeHead(400); res.end('Bad request'); return; }
+  }
+
+  if (pathname === '/rename-profile' && req.method === 'POST') {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const oldId = body.id;
+      if (!profileIndex.profiles || !profileIndex.profiles[oldId]) { res.writeHead(404); res.end('Not found'); return; }
+      const newName = (body.name || '').trim() || profileIndex.profiles[oldId].name;
+      let newId = _slugify(newName);
+      if (newId !== oldId) {
+        // Resolve collisions (skip oldId since we're replacing it)
+        let base = newId, n = 2;
+        while (profileIndex.profiles[newId] && newId !== oldId) { newId = base + '_' + n++; }
+        // Rename the file on disk
+        try { fs.renameSync(_profilePath(oldId), _profilePath(newId)); } catch(e) {}
+        profileIndex.profiles[newId] = { name: newName };
+        delete profileIndex.profiles[oldId];
+        if (activeProfileId === oldId) { activeProfileId = newId; profileIndex.active = newId; }
+      } else {
+        profileIndex.profiles[oldId].name = newName;
+      }
+      _saveIndex();
+      json200(res, { ok: true, newId, list: _profileListArr() }); return;
+    } catch(e) { res.writeHead(400); res.end('Bad request'); return; }
+  }
+
+  if (pathname === '/delete-profile' && req.method === 'POST') {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const delId = body.id;
+      if (!profileIndex.profiles || !profileIndex.profiles[delId]) { res.writeHead(404); res.end('Not found'); return; }
+      const ids = Object.keys(profileIndex.profiles);
+      if (ids.length <= 1) { res.writeHead(400); res.end('Cannot delete last profile'); return; }
+      delete profileIndex.profiles[delId];
+      try { fs.unlinkSync(_profilePath(delId)); } catch(e) {}
+      if (activeProfileId === delId) {
+        const nextId = Object.keys(profileIndex.profiles)[0];
+        activeProfileId = nextId;
+        profileIndex.active = nextId;
+        _applyRawToS(s, _loadProfileRaw(nextId));
+      }
+      _saveIndex();
+      json200(res, { ok: true, activeProfile: activeProfileId, list: _profileListArr() }); return;
+    } catch(e) { res.writeHead(400); res.end('Bad request'); return; }
+  }
+  // ── End profile management ────────────────────────────────────────────────
 
   if (pathname === '/position') { json200(res, { position: s.position }); return; }
 
@@ -1032,8 +1260,9 @@ const server = http.createServer(async (req, res) => {
 
   if (pathname === '/savefile' && req.method === 'POST') {
     const body = JSON.parse(await readBody(req));
-    if (body.snipFile) { s.snipFile = body.snipFile; saveSettings(s); }
-    json200(res, { ok: true, snipFile: s.snipFile }); return;
+    if (body.snipFile !== undefined) { s.snipFile = body.snipFile; saveSettings(s); }
+    if (body.songOutputPath !== undefined) { s.songOutputPath = body.songOutputPath; saveSettings(s); }
+    json200(res, { ok: true, snipFile: s.snipFile, songOutputPath: s.songOutputPath }); return;
   }
 
   if (pathname === '/savesettingspath' && req.method === 'POST') {
@@ -1116,6 +1345,8 @@ const server = http.createServer(async (req, res) => {
       if (body.bskyAppPassword !== undefined) s.bskyAppPassword = body.bskyAppPassword;
       if (body.bskyTitleTemplate !== undefined) s.bskyTitleTemplate = body.bskyTitleTemplate;
       if (body.bskyDescription !== undefined) s.bskyDescription = body.bskyDescription;
+      if (body.bskyFilterEnabled !== undefined) s.bskyFilterEnabled = body.bskyFilterEnabled;
+      if (body.bskyFilterKeyword !== undefined) s.bskyFilterKeyword = body.bskyFilterKeyword;
       if (body.discordClientId     !== undefined) s.discordClientId     = body.discordClientId;
       if (body.discordClientSecret !== undefined) s.discordClientSecret = body.discordClientSecret;
       if (body.discordOverlay      !== undefined) s.discordOverlay      = Object.assign({}, s.discordOverlay || {}, body.discordOverlay);

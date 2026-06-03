@@ -89,6 +89,20 @@
   .row label { font-size:9px; color:rgba(255,255,255,0.5); min-width:130px; }
   input[type=range] { flex:1; accent-color:#5bc8f5; }
   .val { font-size:9px; color:#5bc8f5; min-width:60px; text-align:right; }
+  .knob-angle-input {
+    font-family:inherit; font-size:9px; color:#5bc8f5;
+    width:36px; text-align:right;
+    background:transparent; border:none; outline:none;
+    padding:0; margin:0; cursor:default;
+    -webkit-appearance:none; -moz-appearance:textfield; appearance:none;
+  }
+  .knob-angle-input:focus {
+    cursor:text; background:#0d1b2e;
+    border:1px solid rgba(91,200,245,0.35);
+    padding:1px 4px; outline:none;
+  }
+  .knob-angle-input::-webkit-inner-spin-button,
+  .knob-angle-input::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
   .check-row { display:flex; align-items:center; gap:12px; margin-bottom:10px; cursor:pointer; }
   .check-row input[type=checkbox] { accent-color:#5bc8f5; width:14px; height:14px; cursor:pointer; }
   .check-row label { font-size:9px; color:rgba(255,255,255,0.6); cursor:pointer; }
@@ -725,7 +739,7 @@
   <div style="display:flex;align-items:center;justify-content:space-between;width:100%;max-width:960px;padding:0 20px;box-sizing:border-box;">
     <button class="back-btn" style="margin:0;" onclick="showHome()">← Back</button>
     <h1 style="margin:0;">WIDGET SETTINGS</h1>
-    <button class="px-btn" style="font-size:8px;padding:6px 14px;font-family:'MMRock9',monospace;letter-spacing:0.08em;color:#5bc8f5;" onclick="loadSaveData()">↓ LOAD SAVE DATA</button>
+    <button class="px-btn" style="font-size:8px;padding:6px 14px;font-family:'MMRock9',monospace;letter-spacing:0.08em;color:#5bc8f5;" onclick="loadSaveData(this)">↓ LOAD SAVE DATA</button>
   </div>
 
   <!-- Tab bar -->
@@ -739,6 +753,38 @@
 
   <!-- ── GENERAL TAB ── -->
   <div id="wtab-general" style="width:480px;">
+    <div class="section" id="profile-section">
+      <div class="section-label">PROFILES</div>
+      <div style="display:flex;gap:4px;margin-bottom:2px;">
+        <button onclick="toggleProfileDropdown()" class="px-btn" style="flex:1;display:flex;align-items:center;justify-content:space-between;padding:8px 10px;">
+          <span style="font-family:'MMRock9',monospace;font-size:8px;letter-spacing:0.1em;color:#5bc8f5;">PROFILE</span>
+          <span style="display:flex;align-items:center;gap:8px;">
+            <span id="profile-active-indicator" style="font-size:7px;letter-spacing:0.06em;color:#4ade80;">● Default</span>
+            <span id="profile-dropdown-arrow" style="font-size:10px;color:rgba(255,255,255,0.5);">▸</span>
+          </span>
+        </button>
+      </div>
+      <div id="profile-dropdown-body" style="display:none;flex-direction:column;border:1px solid rgba(91,200,245,0.12);background:rgba(0,0,0,0.2);">
+        <div id="profile-list-rows"></div>
+        <div style="border-top:1px solid rgba(255,255,255,0.06);">
+          <button onclick="openNewProfileModal()" class="px-btn" style="width:100%;padding:9px 12px;text-align:left;font-size:8px;letter-spacing:0.1em;color:#5bc8f5;">+ NEW PROFILE</button>
+        </div>
+      </div>
+      <div id="newProfileForm" style="display:none;margin-top:6px;padding:10px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.08);">
+        <div style="font-size:8px;color:rgba(255,255,255,0.4);margin-bottom:4px;letter-spacing:0.1em;">PROFILE NAME</div>
+        <input type="text" class="file-input" id="newProfileName" placeholder="My Profile" style="width:100%;margin-bottom:8px;" onkeydown="if(event.key==='Enter')createProfile();if(event.key==='Escape')document.getElementById('newProfileForm').style.display='none'">
+        <div style="font-size:8px;color:rgba(255,255,255,0.4);margin-bottom:4px;letter-spacing:0.1em;">BASED ON</div>
+        <select class="file-input" id="newProfileBase" style="width:100%;margin-bottom:10px;">
+          <option value="">From scratch</option>
+        </select>
+        <div class="file-row" style="gap:6px;">
+          <button class="save-btn px-btn" onclick="createProfile()">Create</button>
+          <button class="save-btn px-btn" onclick="document.getElementById('newProfileForm').style.display='none'">Cancel</button>
+        </div>
+      </div>
+      <div class="file-status" id="profileStatus"></div>
+    </div>
+
     <div class="section">
       <div class="section-label">GLOBAL FONT</div>
       <div class="file-row">
@@ -747,7 +793,12 @@
           <option value="monospace">Monospace</option>
           <option value="sans-serif">Sans-serif</option>
         </select>
+        <button class="save-btn px-btn" onclick="refreshFontList()">Refresh</button>
         <button class="save-btn px-btn" onclick="refreshFontList(); saveGeneral()">Update Fonts</button>
+      </div>
+      <div class="check-row" style="margin-top:8px;">
+        <label class="toggle-wrap"><input type="checkbox" id="useInterfaceFont" onchange="saveGeneral()"><span class="toggle-track"></span><span class="toggle-thumb"></span></label>
+        <label for="useInterfaceFont" style="font-size:8px;color:rgba(255,255,255,0.5);">USE AS INTERFACE FONT</label>
       </div>
       <div style="font-size:7px;color:rgba(255,255,255,0.25);margin-top:6px;">Drop font files into the fonts/ folder to add more options.</div>
       <div class="file-status" id="generalStatus"></div>
@@ -780,6 +831,16 @@
       <div class="section-label">WIDGET VISIBILITY</div>
       <div style="font-size:7px;color:rgba(255,255,255,0.25);margin-bottom:10px;">Toggle widgets on/off. Disabled widgets are hidden from the layout.</div>
       <div id="widget-enable-toggles"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">PREVIEW BACKGROUND</div>
+      <div style="font-size:7px;color:rgba(255,255,255,0.25);margin-bottom:8px;">Interface only — overlays stay transparent for Streamlabs.</div>
+      <div class="file-row" style="align-items:center;gap:8px;">
+        <input type="color" id="previewBgColor" value="#000000" oninput="applyPreviewBg(this.value)" style="width:36px;height:26px;border:1px solid rgba(255,255,255,0.2);background:none;cursor:pointer;padding:1px;">
+        <button class="save-btn px-btn" onclick="applyPreviewBg(document.getElementById('previewBgColor').value)">Set</button>
+        <button class="save-btn px-btn" onclick="resetPreviewBg()">Reset</button>
+      </div>
     </div>
 
     <div class="section">
@@ -818,12 +879,12 @@
       <div class="section-label">BACKGROUND &amp; TIMING</div>
       <div class="row">
         <label>BG Opacity</label>
-        <input type="range" min="0" max="1" step="0.05" id="bgOpacity" oninput="updateVal('bgOpacity','bgOpacityVal',v=>Math.round(v*100)+'%')" onchange="save()" />
+        <input type="range" min="0" max="1" step="0.05" id="bgOpacity" data-display-factor="100" oninput="updateVal('bgOpacity','bgOpacityVal',v=>Math.round(v*100)+'%')" onchange="save()" />
         <span class="val" id="bgOpacityVal">100%</span>
       </div>
       <div class="row">
         <label>Show duration</label>
-        <input type="range" min="1000" max="30000" step="500" id="showMs" oninput="updateVal('showMs','showMsVal',v=>(v/1000).toFixed(1)+'s')" onchange="save()" />
+        <input type="range" min="1000" max="30000" step="500" id="showMs" data-display-factor="0.001" oninput="updateVal('showMs','showMsVal',v=>(v/1000).toFixed(1)+'s')" onchange="save()" />
         <span class="val" id="showMsVal">8.0s</span>
       </div>
     </div>
@@ -849,6 +910,16 @@
       <button class="add-btn px-btn" onclick="addOverride()">+ Add Override</button>
       <button class="save-overrides-btn px-btn" onclick="saveOverrides()">Save Overrides</button>
       <div class="ov-status" id="ovStatus"></div>
+    </div>
+    <div class="section">
+      <div class="section-label">SONG OVERRIDE OUTPUT FILE</div>
+      <div style="font-size:7px;color:rgba(255,255,255,0.25);margin-bottom:6px;">Written each song update (post-overrides). Point a Streamlabs text source at this for a ticker. Leave blank to auto-place next to Snip.txt as current_spotify_song.txt.</div>
+      <div class="file-row">
+        <input type="text" class="file-input" id="songOutputPath" placeholder="C:\path\to\current_spotify_song.txt" />
+        <button class="browse-btn px-btn" onclick="browseFile('songOutputPath','.txt')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></button>
+        <button class="save-btn px-btn" onclick="saveSongOutput()">Save</button>
+      </div>
+      <div class="file-status" id="songOutputStatus"></div>
     </div>
     <div class="section">
       <div class="section-label">TEST</div>
@@ -961,7 +1032,7 @@
         <div style="display:flex;gap:6px;margin-bottom:8px;">
           <div style="flex:1;display:flex;flex-direction:column;gap:3px;min-width:0;">
             <div class="section-label">SPEAKER 1</div>
-            <div style="background:#0a0a14;border:1px solid rgba(88,101,242,0.2);height:200px;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+            <div class="preview-solo-wrap" style="background:#0a0a14;border:1px solid rgba(88,101,242,0.2);height:200px;overflow:hidden;display:flex;align-items:center;justify-content:center;">
               <iframe id="discord-s1-frame" src="about:blank" style="width:100%;height:100%;border:none;" scrolling="no"></iframe>
             </div>
             <div class="preview-url" onclick="copyUrl('http://127.0.0.1:7777/discord-overlay-solo?slot=s1','copy-discord-s1')">
@@ -972,7 +1043,7 @@
           </div>
           <div style="flex:1;display:flex;flex-direction:column;gap:3px;min-width:0;">
             <div class="section-label">SPEAKER 2</div>
-            <div style="background:#0a0a14;border:1px solid rgba(88,101,242,0.2);height:200px;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+            <div class="preview-solo-wrap" style="background:#0a0a14;border:1px solid rgba(88,101,242,0.2);height:200px;overflow:hidden;display:flex;align-items:center;justify-content:center;">
               <iframe id="discord-s2-frame" src="about:blank" style="width:100%;height:100%;border:none;" scrolling="no"></iframe>
             </div>
             <div class="preview-url" onclick="copyUrl('http://127.0.0.1:7777/discord-overlay-solo?slot=s2','copy-discord-s2')">
@@ -1545,6 +1616,18 @@
           <div class="preview-box" style="width:100%;"><iframe id="countdown-preview" src="http://localhost:7777/countdown" scrolling="no"></iframe></div>
           <a class="preview-open" href="http://localhost:7777/countdown" target="_blank">↗ Open fullscreen</a></div>
         <div class="check-row"><input type="checkbox" id="countdownInSlideshow" onchange="saveCountdown()" /><label for="countdownInSlideshow">Include in BRB</label></div>
+        <div style="margin-bottom:8px;">
+          <div class="section-label" style="cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center;" onclick="var _p=document.getElementById('cdShadowPanel'),_open=_p.style.display!=='block';_p.style.display=_open?'block':'none';if(_open){initShadowKnob('cdShadowKnob','cdShadowAngleVal',saveCountdown);drawShadowKnob('cdShadowKnob','cdShadowAngleVal');}">DROP SHADOW <span style="font-size:8px;opacity:0.4;">▶</span></div>
+          <div id="cdShadowPanel" style="display:none;padding-top:4px;">
+            <div class="row" style="align-items:center;gap:6px;"><label>Angle</label><canvas id="cdShadowKnob" width="54" height="54" data-angle="135" style="cursor:crosshair;flex-shrink:0;display:block;touch-action:none;"></canvas><input type="text" inputmode="numeric" class="knob-angle-input" id="cdShadowAngleVal" value="135" onchange="(function(i){var v=((parseFloat(i.value)||0)+360)%360;var c=document.getElementById('cdShadowKnob');if(c)c.dataset.angle=v;i.value=Math.round(v);drawShadowKnob('cdShadowKnob','cdShadowAngleVal');saveCountdown();})(this)"><span style="font-size:9px;color:rgba(255,255,255,0.4);">°</span></div>
+            <div class="row"><label>Distance</label><input type="range" min="0" max="40" value="8" id="cdShadowDist" oninput="document.getElementById('cdShadowDistVal').textContent=this.value+'px';saveCountdown()" /><span class="val" id="cdShadowDistVal">8px</span></div>
+            <div class="row"><label>Opacity</label><input type="range" min="0" max="100" value="100" id="cdShadowOpacity" oninput="document.getElementById('cdShadowOpacityVal').textContent=this.value+'%';saveCountdown()" /><span class="val" id="cdShadowOpacityVal">100%</span></div>
+            <div class="row"><label>Hardness</label><input type="range" min="0" max="30" value="0" id="cdShadowBlur" oninput="document.getElementById('cdShadowBlurVal').textContent=this.value==0?'HARD':this.value+'px';saveCountdown()" /><span class="val" id="cdShadowBlurVal">HARD</span></div>
+            <div class="row"><label>Spread</label><input type="range" min="0" max="20" value="0" id="cdShadowSpread" oninput="document.getElementById('cdShadowSpreadVal').textContent=this.value+'px';saveCountdown()" /><span class="val" id="cdShadowSpreadVal">0px</span></div>
+            <div class="row"><label>Color</label><input type="color" id="cdShadowColor" value="#000000" oninput="saveCountdown()" style="width:36px;height:26px;padding:1px;border:1px solid rgba(255,255,255,0.2);background:#0d1b2e;cursor:pointer;" /></div>
+            <div class="row" style="justify-content:flex-end;"><button class="save-btn px-btn" onclick="resetShadow('cd',saveCountdown)" style="font-size:7px;">Reset to Default</button></div>
+          </div>
+        </div>
         <div><div class="section-label">TIMER</div>
           <div class="row"><label>Minutes</label><input type="range" min="0" max="60" step="1" id="countdownMinutes" oninput="syncCountdownSlider()" /><span class="val" id="countdownMinutesVal">5m</span></div>
           <div class="row"><label>mm:ss</label><input type="text" class="file-input" id="countdownTimeInput" placeholder="5:00" style="max-width:80px;text-align:center;" onchange="syncCountdownInput()" /></div>
@@ -1568,6 +1651,18 @@
           <div class="preview-box" style="width:100%;"><iframe id="clock-preview" src="http://localhost:7777/clock" scrolling="no"></iframe></div>
           <a class="preview-open" href="http://localhost:7777/clock" target="_blank">↗ Open fullscreen</a></div>
         <div class="check-row"><input type="checkbox" id="clockInSlideshow" onchange="saveClock()" /><label for="clockInSlideshow">Include in BRB</label></div>
+        <div style="margin-bottom:8px;">
+          <div class="section-label" style="cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center;" onclick="var _p=document.getElementById('clockShadowPanel'),_open=_p.style.display!=='block';_p.style.display=_open?'block':'none';if(_open){initShadowKnob('clockShadowKnob','clockShadowAngleVal',saveClock);drawShadowKnob('clockShadowKnob','clockShadowAngleVal');}">DROP SHADOW <span style="font-size:8px;opacity:0.4;">▶</span></div>
+          <div id="clockShadowPanel" style="display:none;padding-top:4px;">
+            <div class="row" style="align-items:center;gap:6px;"><label>Angle</label><canvas id="clockShadowKnob" width="54" height="54" data-angle="135" style="cursor:crosshair;flex-shrink:0;display:block;touch-action:none;"></canvas><input type="text" inputmode="numeric" class="knob-angle-input" id="clockShadowAngleVal" value="135" onchange="(function(i){var v=((parseFloat(i.value)||0)+360)%360;var c=document.getElementById('clockShadowKnob');if(c)c.dataset.angle=v;i.value=Math.round(v);drawShadowKnob('clockShadowKnob','clockShadowAngleVal');saveClock();})(this)"><span style="font-size:9px;color:rgba(255,255,255,0.4);">°</span></div>
+            <div class="row"><label>Distance</label><input type="range" min="0" max="40" value="8" id="clockShadowDist" oninput="document.getElementById('clockShadowDistVal').textContent=this.value+'px';saveClock()" /><span class="val" id="clockShadowDistVal">8px</span></div>
+            <div class="row"><label>Opacity</label><input type="range" min="0" max="100" value="100" id="clockShadowOpacity" oninput="document.getElementById('clockShadowOpacityVal').textContent=this.value+'%';saveClock()" /><span class="val" id="clockShadowOpacityVal">100%</span></div>
+            <div class="row"><label>Hardness</label><input type="range" min="0" max="30" value="0" id="clockShadowBlur" oninput="document.getElementById('clockShadowBlurVal').textContent=this.value==0?'HARD':this.value+'px';saveClock()" /><span class="val" id="clockShadowBlurVal">HARD</span></div>
+            <div class="row"><label>Spread</label><input type="range" min="0" max="20" value="0" id="clockShadowSpread" oninput="document.getElementById('clockShadowSpreadVal').textContent=this.value+'px';saveClock()" /><span class="val" id="clockShadowSpreadVal">0px</span></div>
+            <div class="row"><label>Color</label><input type="color" id="clockShadowColor" value="#000000" oninput="saveClock()" style="width:36px;height:26px;padding:1px;border:1px solid rgba(255,255,255,0.2);background:#0d1b2e;cursor:pointer;" /></div>
+            <div class="row" style="justify-content:flex-end;"><button class="save-btn px-btn" onclick="resetShadow('clock',saveClock)" style="font-size:7px;">Reset to Default</button></div>
+          </div>
+        </div>
         <div><div class="section-label">LABEL</div>
           <div class="file-row"><input type="text" class="file-input" id="clockLabel" placeholder="Be Right Back" /><button class="save-btn px-btn" onclick="saveClock()">Update</button></div></div>
         <div><div class="section-label">FORMAT</div>
@@ -1785,6 +1880,18 @@
           <div class="preview-box" style="width:100%;"><iframe id="nextmatch-preview" src="http://localhost:7777/nextmatch" scrolling="no"></iframe></div>
           <a class="preview-open" href="http://localhost:7777/nextmatch" target="_blank">↗ Open fullscreen</a></div>
         <div class="check-row"><input type="checkbox" id="nextMatchInSlideshow" onchange="saveNextMatch()" /><label for="nextMatchInSlideshow">Include in BRB</label></div>
+        <div style="margin-bottom:8px;">
+          <div class="section-label" style="cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center;" onclick="var _p=document.getElementById('nmShadowPanel'),_open=_p.style.display!=='block';_p.style.display=_open?'block':'none';if(_open){initShadowKnob('nmShadowKnob','nmShadowAngleVal',saveNextMatch);drawShadowKnob('nmShadowKnob','nmShadowAngleVal');}">DROP SHADOW <span style="font-size:8px;opacity:0.4;">▶</span></div>
+          <div id="nmShadowPanel" style="display:none;padding-top:4px;">
+            <div class="row" style="align-items:center;gap:6px;"><label>Angle</label><canvas id="nmShadowKnob" width="54" height="54" data-angle="135" style="cursor:crosshair;flex-shrink:0;display:block;touch-action:none;"></canvas><input type="text" inputmode="numeric" class="knob-angle-input" id="nmShadowAngleVal" value="135" onchange="(function(i){var v=((parseFloat(i.value)||0)+360)%360;var c=document.getElementById('nmShadowKnob');if(c)c.dataset.angle=v;i.value=Math.round(v);drawShadowKnob('nmShadowKnob','nmShadowAngleVal');saveNextMatch();})(this)"><span style="font-size:9px;color:rgba(255,255,255,0.4);">°</span></div>
+            <div class="row"><label>Distance</label><input type="range" min="0" max="40" value="8" id="nmShadowDist" oninput="document.getElementById('nmShadowDistVal').textContent=this.value+'px';saveNextMatch()" /><span class="val" id="nmShadowDistVal">8px</span></div>
+            <div class="row"><label>Opacity</label><input type="range" min="0" max="100" value="100" id="nmShadowOpacity" oninput="document.getElementById('nmShadowOpacityVal').textContent=this.value+'%';saveNextMatch()" /><span class="val" id="nmShadowOpacityVal">100%</span></div>
+            <div class="row"><label>Hardness</label><input type="range" min="0" max="30" value="0" id="nmShadowBlur" oninput="document.getElementById('nmShadowBlurVal').textContent=this.value==0?'HARD':this.value+'px';saveNextMatch()" /><span class="val" id="nmShadowBlurVal">HARD</span></div>
+            <div class="row"><label>Spread</label><input type="range" min="0" max="20" value="0" id="nmShadowSpread" oninput="document.getElementById('nmShadowSpreadVal').textContent=this.value+'px';saveNextMatch()" /><span class="val" id="nmShadowSpreadVal">0px</span></div>
+            <div class="row"><label>Color</label><input type="color" id="nmShadowColor" value="#000000" oninput="saveNextMatch()" style="width:36px;height:26px;padding:1px;border:1px solid rgba(255,255,255,0.2);background:#0d1b2e;cursor:pointer;" /></div>
+            <div class="row" style="justify-content:flex-end;"><button class="save-btn px-btn" onclick="resetShadow('nm',saveNextMatch)" style="font-size:7px;">Reset to Default</button></div>
+          </div>
+        </div>
         <div class="row"><label>Player 1</label><input type="text" class="file-input" id="nextMatchP1" placeholder="Player 1" oninput="saveNextMatch()" /></div>
         <div class="row"><label>Player 2</label><input type="text" class="file-input" id="nextMatchP2" placeholder="Player 2" oninput="saveNextMatch()" /></div>
         <div class="row"><label>Round</label><input type="text" class="file-input" id="nextMatchRound" placeholder="Winners Finals" oninput="saveNextMatch()" /></div>
@@ -1899,7 +2006,7 @@
           <div style="display:flex;gap:6px;margin-bottom:8px;">
             <div style="flex:1;display:flex;flex-direction:column;gap:3px;min-width:0;">
               <div class="section-label">SPEAKER 1</div>
-              <div style="background:#0a0a14;border:1px solid rgba(88,101,242,0.2);height:200px;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+              <div class="preview-solo-wrap" style="background:#0a0a14;border:1px solid rgba(88,101,242,0.2);height:200px;overflow:hidden;display:flex;align-items:center;justify-content:center;">
                 <iframe id="discord-s1-frame" src="about:blank" style="width:100%;height:100%;border:none;" scrolling="no"></iframe>
               </div>
               <div class="preview-url" onclick="copyUrl('http://127.0.0.1:7777/discord-overlay-solo?slot=s1','copy-discord-s1')">
@@ -1910,7 +2017,7 @@
             </div>
             <div style="flex:1;display:flex;flex-direction:column;gap:3px;min-width:0;">
               <div class="section-label">SPEAKER 2</div>
-              <div style="background:#0a0a14;border:1px solid rgba(88,101,242,0.2);height:200px;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+              <div class="preview-solo-wrap" style="background:#0a0a14;border:1px solid rgba(88,101,242,0.2);height:200px;overflow:hidden;display:flex;align-items:center;justify-content:center;">
                 <iframe id="discord-s2-frame" src="about:blank" style="width:100%;height:100%;border:none;" scrolling="no"></iframe>
               </div>
               <div class="preview-url" onclick="copyUrl('http://127.0.0.1:7777/discord-overlay-solo?slot=s2','copy-discord-s2')">
@@ -2356,8 +2463,16 @@
   // ── Shared helpers ──────────────────────────────────────────────────────────
   let currentPos='bottom-right', overrides=[], brbLinks=[];
 
-  function updateVal(inputId,valId,fmt) {
-    document.getElementById(valId).textContent = fmt(document.getElementById(inputId).value);
+  function updateVal(inputId, valId, fmt) {
+    var el = document.getElementById(valId);
+    if (!el) return;
+    var formatted = fmt(document.getElementById(inputId).value);
+    if (el.tagName === 'INPUT') {
+      var m = String(formatted).match(/^-?(\d+\.?\d*)/);
+      if (m) el.value = m[0];
+    } else {
+      el.textContent = formatted;
+    }
   }
   function flashEl(id,msg,cls) {
     const el=document.getElementById(id); if(!el) return; el.textContent=msg; el.className=cls;
@@ -2375,6 +2490,7 @@
     try {
       const r = await fetch('/fonts-list');
       const d = await r.json();
+      window._fontList = d.fonts;
       const sel = document.getElementById('globalFont');
       const current = selectedFont || sel.value;
       sel.innerHTML = '';
@@ -2384,22 +2500,242 @@
         opt.textContent = f.label;
         if (f.name === current) opt.selected = true;
         sel.appendChild(opt);
-        if (f.name !== 'monospace' && f.name !== 'sans-serif') {
-          if (!document.querySelector('style[data-font="' + f.name + '"]')) {
-            const style = document.createElement('style');
-            style.setAttribute('data-font', f.name);
-            style.textContent = "@font-face { font-family:'" + f.name + "'; src:url('/font/" + f.name + ".ttf') format('truetype'),url('/font/" + f.name + ".otf') format('opentype'),url('/font/" + f.name + ".woff2') format('woff2'); }";
-            document.head.appendChild(style);
-          }
+        if (f.path && !document.querySelector('style[data-font="' + f.name + '"]')) {
+          const style = document.createElement('style');
+          style.setAttribute('data-font', f.name);
+          style.textContent = "@font-face { font-family:'" + f.name + "'; src:url('/font/" + f.path + "'); }";
+          document.head.appendChild(style);
         }
       });
     } catch(e) {}
   }
 
+  function applyInterfaceFontDisplay() {
+    const fontName = document.getElementById('globalFont').value;
+    const toggle = document.getElementById('useInterfaceFont');
+    const use = toggle && toggle.checked && fontName;
+    const family = use ? "'" + fontName + "', monospace" : "'MMRock9', monospace";
+    document.body.style.fontFamily = family;
+    let styleEl = document.getElementById('interface-font-style');
+    if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = 'interface-font-style'; document.head.appendChild(styleEl); }
+    styleEl.textContent = "button, input, select, textarea { font-family: " + family + " !important; }";
+  }
+
+  function applyPreviewBg(color) {
+    document.querySelectorAll('.preview-box, .preview-solo-wrap').forEach(el => el.style.background = color);
+    try { localStorage.setItem('previewBgColor', color); } catch(e) {}
+  }
+  function resetPreviewBg() {
+    document.getElementById('previewBgColor').value = '#000000';
+    applyPreviewBg('#000000');
+  }
+  function loadPreviewBg() {
+    try {
+      const saved = localStorage.getItem('previewBgColor');
+      if (saved) { document.getElementById('previewBgColor').value = saved; applyPreviewBg(saved); }
+    } catch(e) {}
+  }
+
+  function broadcastFontToDiscord(fontName) {
+    const fontList = window._fontList || [];
+    const fontEntry = fontList.find(f => f.name === fontName);
+    const fontPath = fontEntry ? fontEntry.path : null;
+    const targets = [
+      document.querySelector('[data-wid="discord"] .preview-box iframe'),
+      document.getElementById('discord-live-preview-iframe'),
+      document.getElementById('discord-s1-frame'),
+      document.getElementById('discord-s2-frame')
+    ];
+    targets.forEach(frame => {
+      if (frame && frame.contentWindow && frame.src !== 'about:blank') {
+        try { frame.contentWindow.postMessage({ type: 'discordFont', font: fontName, fontPath }, '*'); } catch(e) {}
+      }
+    });
+  }
+
+  // ── Drop Shadow Knob ─────────────────────────────────────────────────────────
+  function drawShadowKnob(canvasId, valId) {
+    var canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var W = canvas.width, H = canvas.height, cx = W/2, cy = H/2, r = cx - 3;
+    var angle = parseFloat(canvas.dataset.angle || 135);
+    ctx.clearRect(0, 0, W, H);
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fillStyle = '#091e38'; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.strokeStyle = '#3a9fc8'; ctx.lineWidth = 2; ctx.stroke();
+    for (var t = 0; t < 360; t += 45) {
+      var tr = (t - 90) * Math.PI / 180;
+      ctx.beginPath();
+      ctx.moveTo(cx+(r-1)*Math.cos(tr), cy+(r-1)*Math.sin(tr));
+      ctx.lineTo(cx+(r-7)*Math.cos(tr), cy+(r-7)*Math.sin(tr));
+      ctx.strokeStyle = 'rgba(91,200,245,0.25)'; ctx.lineWidth = 1; ctx.stroke();
+    }
+    var ar = (angle - 90) * Math.PI / 180, dotR = r - 9;
+    var dx = cx + dotR * Math.cos(ar), dy = cy + dotR * Math.sin(ar);
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(dx, dy);
+    ctx.strokeStyle = 'rgba(91,200,245,0.55)'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.beginPath(); ctx.arc(dx, dy, 4, 0, Math.PI*2); ctx.fillStyle = '#5bc8f5'; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy, 2.5, 0, Math.PI*2); ctx.fillStyle = 'rgba(91,200,245,0.4)'; ctx.fill();
+    var valEl = document.getElementById(valId);
+    if (valEl) valEl.value = Math.round(angle);
+  }
+
+  function _knobAngleFromEvent(e, canvas) {
+    var rect = canvas.getBoundingClientRect();
+    var cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+    var a = Math.atan2(e.clientY - cy, e.clientX - cx) * 180 / Math.PI + 90;
+    if (a < 0) a += 360;
+    return a % 360;
+  }
+
+  function initShadowKnob(canvasId, valId, onDone) {
+    var canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    if (canvas._shadowKnobInited) { drawShadowKnob(canvasId, valId); return; }
+    canvas._shadowKnobInited = true;
+
+    canvas.addEventListener('pointerdown', function(e) {
+      e.preventDefault();
+      canvas.setPointerCapture(e.pointerId);
+      canvas.dataset.angle = _knobAngleFromEvent(e, canvas);
+      drawShadowKnob(canvasId, valId);
+    });
+
+    canvas.addEventListener('pointermove', function(e) {
+      if (!(e.buttons & 1)) return;
+      canvas.dataset.angle = _knobAngleFromEvent(e, canvas);
+      drawShadowKnob(canvasId, valId);
+    });
+
+    canvas.addEventListener('pointerup', function(e) {
+      canvas.releasePointerCapture(e.pointerId);
+      if (onDone) onDone();
+    });
+
+    drawShadowKnob(canvasId, valId);
+  }
+
+  function initAllShadowKnobs() {
+    initShadowKnob('clockShadowKnob', 'clockShadowAngleVal', saveClock);
+    initShadowKnob('cdShadowKnob',    'cdShadowAngleVal',    saveCountdown);
+    initShadowKnob('nmShadowKnob',    'nmShadowAngleVal',    saveNextMatch);
+  }
+
+  function getShadow(prefix) {
+    var knob      = document.getElementById(prefix + 'ShadowKnob');
+    var angleInp  = document.getElementById(prefix + 'ShadowAngleVal');
+    var distEl    = document.getElementById(prefix + 'ShadowDist');
+    var blurEl    = document.getElementById(prefix + 'ShadowBlur');
+    var spreadEl  = document.getElementById(prefix + 'ShadowSpread');
+    var opEl      = document.getElementById(prefix + 'ShadowOpacity');
+    var colEl     = document.getElementById(prefix + 'ShadowColor');
+    var angle = angleInp ? ((parseFloat(angleInp.value) || 0) + 360) % 360
+                         : parseFloat(knob ? knob.dataset.angle : 135);
+    return {
+      angle:    angle,
+      distance: parseFloat(distEl  ? distEl.value        : 8),
+      hardness: parseFloat(blurEl  ? blurEl.value        : 0),
+      spread:   parseFloat(spreadEl ? spreadEl.value     : 0),
+      color:    colEl ? colEl.value : '#000000',
+      opacity:  parseFloat(opEl   ? opEl.value           : 100) / 100
+    };
+  }
+
+  function loadShadow(prefix, cfg) {
+    var sh = cfg || {};
+    var angle   = sh.angle    != null ? sh.angle    : 135;
+    var dist    = sh.distance != null ? sh.distance : 8;
+    var blur    = sh.hardness != null ? sh.hardness : 0;
+    var spread  = sh.spread   != null ? sh.spread   : 0;
+    var opacity = sh.opacity  != null ? Math.round(sh.opacity * 100) : 100;
+    var color   = sh.color    || '#000000';
+    var knob = document.getElementById(prefix + 'ShadowKnob');
+    if (knob) knob.dataset.angle = angle;
+    var angleInp = document.getElementById(prefix + 'ShadowAngleVal');
+    if (angleInp) angleInp.value = Math.round(angle);
+    var distEl = document.getElementById(prefix + 'ShadowDist');
+    var distValEl = document.getElementById(prefix + 'ShadowDistVal');
+    if (distEl) { distEl.value = dist; if (distValEl) distValEl.textContent = dist + 'px'; }
+    var blurEl = document.getElementById(prefix + 'ShadowBlur');
+    var blurValEl = document.getElementById(prefix + 'ShadowBlurVal');
+    if (blurEl) { blurEl.value = blur; if (blurValEl) blurValEl.textContent = blur == 0 ? 'HARD' : blur + 'px'; }
+    var spreadEl = document.getElementById(prefix + 'ShadowSpread');
+    var spreadValEl = document.getElementById(prefix + 'ShadowSpreadVal');
+    if (spreadEl) { spreadEl.value = spread; if (spreadValEl) spreadValEl.textContent = spread + 'px'; }
+    var opEl = document.getElementById(prefix + 'ShadowOpacity');
+    var opValEl = document.getElementById(prefix + 'ShadowOpacityVal');
+    if (opEl) { opEl.value = opacity; if (opValEl) opValEl.textContent = opacity + '%'; }
+    var colEl = document.getElementById(prefix + 'ShadowColor');
+    if (colEl) colEl.value = color;
+    drawShadowKnob(prefix + 'ShadowKnob', prefix + 'ShadowAngleVal');
+  }
+
+  function resetShadow(prefix, saveFunc) {
+    loadShadow(prefix, {});
+    if (saveFunc) saveFunc();
+  }
+  // ── End Drop Shadow Knob ─────────────────────────────────────────────────────
+
+  // ── Editable slider value displays ──────────────────────────────────────────
+  function initSliderVals() {
+    document.querySelectorAll('input[type=range]').forEach(function(slider) {
+      var row = slider.closest('.row');
+      if (!row) return;
+      var valSpan = row.querySelector('span.val');
+      if (!valSpan) return;
+
+      // Read current displayed text to extract the number for initialization
+      var txt = valSpan.textContent.trim();
+      var m = txt.match(/^-?(\d+\.?\d*)/);
+      var initNum = m ? m[0] : String(slider.value);
+
+      var inp = document.createElement('input');
+      inp.type = 'text';
+      inp.setAttribute('inputmode', 'numeric');
+      inp.className = 'knob-angle-input';
+      if (valSpan.id) inp.id = valSpan.id;
+      inp.value = initNum;
+
+      // Intercept .textContent = '...' calls from existing inline oninput handlers
+      Object.defineProperty(inp, 'textContent', {
+        configurable: true,
+        get: function() { return this.value; },
+        set: function(v) {
+          var nm = String(v).match(/^-?(\d+\.?\d*)/);
+          if (nm) this.value = nm[0];
+        }
+      });
+
+      // Sync typed value back to slider and trigger existing save logic.
+      // data-display-factor: if the slider's displayed value differs from its raw value
+      // (e.g. bgOpacity shows 0–100 but slider is 0–1, factor=100; showMs shows seconds
+      // but slider is ms, factor=0.001), divide the typed number by the factor to get
+      // the actual slider value before clamping.
+      inp.addEventListener('change', function() {
+        var v = parseFloat(this.value);
+        if (isNaN(v)) { this.value = slider.value; return; }
+        var factor = parseFloat(slider.dataset.displayFactor) || 1;
+        var sliderV = v / factor;
+        var mn = slider.min !== '' ? parseFloat(slider.min) : 0;
+        var mx = slider.max !== '' ? parseFloat(slider.max) : 100;
+        sliderV = Math.max(mn, Math.min(mx, sliderV));
+        var st = parseFloat(slider.step);
+        if (!isNaN(st) && st >= 1) sliderV = Math.round(sliderV / st) * st;
+        slider.value = sliderV;
+        slider.dispatchEvent(new Event('input', { bubbles: true }));
+        slider.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+
+      valSpan.replaceWith(inp);
+    });
+  }
+  // ── End editable slider vals ─────────────────────────────────────────────────
+
   // ── Load all settings ───────────────────────────────────────────────────────
   async function load() {
     try {
       const r=await fetch('/settings'); const d=await r.json();
+      loadProfiles(d);
 
       // Music
       currentPos = d.position || 'bottom-right';
@@ -2412,70 +2748,83 @@
       document.getElementById('slideMsVal').textContent   = (d.slideMs||550)+'ms';
       document.getElementById('showMs').value             = d.showMs     || 8000;
       document.getElementById('showMsVal').textContent    = ((d.showMs||8000)/1000).toFixed(1)+'s';
-      document.getElementById('snipFile').value           = d.snipFile   || '';
-      document.getElementById('settingsPath').value       = d.settingsPath || '';
+      document.getElementById('snipFile').value           = d.snipFile       || '';
+      document.getElementById('settingsPath').value       = d.settingsPath   || '';
+      document.getElementById('songOutputPath').value     = d.songOutputPath || '';
       flash('music-status','Connected <span>✓</span>','status');
       overrides = d.overrides || [];
       renderOverrides();
 
-      // BRB
-      if (d.brb) {
-        document.getElementById('brbFolder').value              = d.brb.folder        || '';
-        document.getElementById('tshRoot').value                = d.brb.tshRoot       || '';
-        document.getElementById('brbImageDuration').value       = d.brb.imageDuration || 10;
-        document.getElementById('brbImageDurationVal').textContent = (d.brb.imageDuration||10)+'s';
-        document.getElementById('brbHtmlDuration').value        = d.brb.htmlDuration  || 20;
-        document.getElementById('brbHtmlDurationVal').textContent  = (d.brb.htmlDuration||20)+'s';
-        document.getElementById('brbVideoDuration').value       = d.brb.videoDuration || 0;
-        document.getElementById('brbVideoDurationVal').textContent = d.brb.videoDuration ? d.brb.videoDuration+'s' : 'Full';
-        document.getElementById('brbFade').value                = d.brb.fadeTime      || 1;
-        document.getElementById('brbFadeVal').textContent       = (d.brb.fadeTime||1).toFixed(1)+'s';
-        document.getElementById('brbRandomize').checked         = d.brb.randomize !== false;
-        highlightTransition(d.brb.transition || 'fade');
-        brbLinks = d.brb.links || [];
-        renderBrbLinks();
-        flash('brb-status','Connected <span>✓</span>','status');
-
-        // Widgets
-        const w = d.brb.widgets || {};
-        document.getElementById('globalFont').value         = (d.brb.globalFont) || 'MMRock9';
-        loadFonts((d.brb.globalFont) || 'MMRock9');
-        document.getElementById('clockLabel').value         = (w.clock && w.clock.label)           || 'Be Right Back';
-        highlightClockFmt((w.clock && w.clock.format) || '12h');
-        document.getElementById('clockInSlideshow').checked = !!(w.clock && w.clock.inSlideshow);
-        document.getElementById('countdownMinutes').value   = (w.countdown && w.countdown.minutes) || 5;
-        document.getElementById('countdownMinutesVal').textContent = ((w.countdown&&w.countdown.minutes)||5)+'m 00s';
-        document.getElementById('countdownTimeInput').value = formatMmSs((w.countdown && w.countdown.minutes || 5) * 60);
-        document.getElementById('countdownInSlideshow').checked = !!(w.countdown && w.countdown.inSlideshow);
-        document.getElementById('countdownLabel').value     = (w.countdown && w.countdown.label)   || 'Back in...';
-        const _cdLblCol = document.getElementById('countdownLabelColor'); if (_cdLblCol) _cdLblCol.value = (w.countdown && w.countdown.labelColor) || '#aaaaaa';
-        const _cdTimeCol = document.getElementById('countdownTimeColor'); if (_cdTimeCol) _cdTimeCol.value = (w.countdown && w.countdown.timeColor) || '#ffffff';
-        document.getElementById('socialInSlideshow').checked    = !!(w.social && w.social.inSlideshow);
-        document.getElementById('socialMessage').value      = (w.social && w.social.message)       || 'Follow for more!';
-        document.getElementById('socialTwitch').value       = (w.social && w.social.twitch)        || '';
-        document.getElementById('socialTwitter').value      = (w.social && w.social.twitter)       || '';
-        document.getElementById('socialDiscord').value      = (w.social && w.social.discord)       || '';
-
-        // Next Match
-        const nm = w.nextMatch || {};
-        document.getElementById('nextMatchInSlideshow').checked = !!nm.inSlideshow;
-        document.getElementById('nextMatchP1').value            = nm.p1       || '';
-        document.getElementById('nextMatchP2').value            = nm.p2       || '';
-        document.getElementById('nextMatchRound').value         = nm.round    || '';
-        document.getElementById('nextMatchSublabel') && (document.getElementById('nextMatchSublabel').value = nm.sublabel || '');
-        document.getElementById('nextMatchDuration').value      = nm.duration || 15;
-        document.getElementById('nextMatchDurationVal').textContent = (nm.duration || 15) + 's';
-      }
-
-      // Load widget layout from settings (filter out removed widgets like discord)
+      // Render widget grid first — it recreates all widget card DOM elements
       if(d.widgetLayout) widgetLayout = d.widgetLayout.map(s => s.filter(w => WIDGET_TEMPLATES[w])).filter(s => s.length > 0);
       if(d.widgetEnabled) widgetEnabled = Object.assign({}, DEFAULT_ENABLED, d.widgetEnabled);
       if(d.widgetOpen) widgetOpen = Object.assign({}, DEFAULT_OPEN, d.widgetOpen);
       renderWidgetGrid();
       renderWidgetEnableToggles();
 
+      // Populate widget card fields AFTER renderWidgetGrid() so they land on the live DOM
+      const setEl  = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.value = val; };
+      const setTxt = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.textContent = val; };
+      const setChk = (id, val) => { const el = document.getElementById(id); if (el) el.checked = !!val; };
+
+      if (d.brb && d.brb.widgets) {
+        loadShadow('clock', d.brb.widgets.clock?.shadow);
+        loadShadow('cd',    d.brb.widgets.countdown?.shadow);
+        loadShadow('nm',    d.brb.widgets.nextMatch?.shadow);
+        initAllShadowKnobs();
+      }
+      if (d.brb) {
+        setEl ('brbFolder',           d.brb.folder        || '');
+        setEl ('tshRoot',             d.brb.tshRoot       || '');
+        setEl ('brbImageDuration',    d.brb.imageDuration || 10);
+        setTxt('brbImageDurationVal', (d.brb.imageDuration||10)+'s');
+        setEl ('brbHtmlDuration',     d.brb.htmlDuration  || 20);
+        setTxt('brbHtmlDurationVal',  (d.brb.htmlDuration||20)+'s');
+        setEl ('brbVideoDuration',    d.brb.videoDuration || 0);
+        setTxt('brbVideoDurationVal', d.brb.videoDuration ? d.brb.videoDuration+'s' : 'Full');
+        setEl ('brbFade',             d.brb.fadeTime      || 1);
+        setTxt('brbFadeVal',          (d.brb.fadeTime||1).toFixed(1)+'s');
+        setChk('brbRandomize',        d.brb.randomize !== false);
+        highlightTransition(d.brb.transition || 'fade');
+        brbLinks = d.brb.links || [];
+        renderBrbLinks();
+        flash('brb-status','Connected <span>✓</span>','status');
+
+        // Widget card fields
+        const w = d.brb.widgets || {};
+        setEl ('globalFont',       d.brb.globalFont || 'MMRock9');
+        setChk('useInterfaceFont', d.brb.useInterfaceFont);
+        loadFonts((d.brb.globalFont) || 'MMRock9').then(applyInterfaceFontDisplay);
+        loadPreviewBg();
+        setEl ('clockLabel',       (w.clock && w.clock.label)  || 'Be Right Back');
+        highlightClockFmt((w.clock && w.clock.format) || '12h');
+        setChk('clockInSlideshow', w.clock && w.clock.inSlideshow);
+        setEl ('countdownMinutes', (w.countdown && w.countdown.minutes) || 5);
+        setTxt('countdownMinutesVal', ((w.countdown&&w.countdown.minutes)||5)+'m 00s');
+        setEl ('countdownTimeInput',  formatMmSs((w.countdown && w.countdown.minutes || 5) * 60));
+        setChk('countdownInSlideshow', w.countdown && w.countdown.inSlideshow);
+        setEl ('countdownLabel',      (w.countdown && w.countdown.label)      || 'Back in...');
+        setEl ('countdownLabelColor', (w.countdown && w.countdown.labelColor) || '#aaaaaa');
+        setEl ('countdownTimeColor',  (w.countdown && w.countdown.timeColor)  || '#ffffff');
+        setChk('socialInSlideshow', w.social && w.social.inSlideshow);
+        setEl ('socialMessage',     (w.social && w.social.message) || 'Follow for more!');
+        setEl ('socialTwitch',      (w.social && w.social.twitch)  || '');
+        setEl ('socialTwitter',     (w.social && w.social.twitter) || '');
+        setEl ('socialDiscord',     (w.social && w.social.discord) || '');
+
+        // Next Match
+        const nm = w.nextMatch || {};
+        setChk('nextMatchInSlideshow', nm.inSlideshow);
+        setEl ('nextMatchP1',       nm.p1       || '');
+        setEl ('nextMatchP2',       nm.p2       || '');
+        setEl ('nextMatchRound',    nm.round    || '');
+        setEl ('nextMatchSublabel', nm.sublabel || '');
+        setEl ('nextMatchDuration', nm.duration || 15);
+        setTxt('nextMatchDurationVal', (nm.duration || 15) + 's');
+      }
+      initSliderVals(); // wire editable inputs onto freshly rendered slider DOM
+
       // Set ALL widget fields directly from settings — no extra fetches needed
-      const setEl = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.value = val; };
 
       // Start.gg
       setEl('startggToken',    d.startggToken    || '');
@@ -2526,6 +2875,13 @@
     if(!val){flashEl('fileStatus','Enter a path first.','file-status err');return;}
     await fetch('/savefile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({snipFile:val})});
     flashEl('fileStatus','Saved ✓','file-status ok');
+  }
+  async function saveSongOutput() {
+    const val = document.getElementById('songOutputPath').value.trim();
+    try {
+      await fetch('/savefile', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ songOutputPath: val }) });
+      flashEl('songOutputStatus', 'Saved ✓', 'file-status ok');
+    } catch(e) { flashEl('songOutputStatus', 'Error', 'file-status err'); }
   }
   async function saveSettingsPath() {
     const val=document.getElementById('settingsPath').value.trim();
@@ -3261,78 +3617,9 @@
   // ── End auto-save ───────────────────────────────────────────────────────────
 
 
-  async function loadSaveData() {
-    try {
-      const r = await fetch('/settings');
-      const d = await r.json();
-      const setEl = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.value = val; };
-
-      // Start.gg
-      setEl('startggToken',     d.startggToken     || '');
-      setEl('startggTourneyUrl',d.startggTourneyUrl || '');
-
-      // Bluesky
-      setEl('bskyHandle',        d.bskyHandleSaved || d.bskyHandle || '');
-      setEl('bskyPassword',      d.bskyAppPassword   || '');
-      setEl('bskyReplaysFolder', d.bskyReplaysFolder || '');
-      setEl('bskyTitleTemplate', d.bskyTitleTemplate || '');
-      setEl('bskyDescription',   d.bskyDescription   || '');
-      const bskyFiltEl2 = document.getElementById('bskyFilterEnabled');
-      if (bskyFiltEl2) { bskyFiltEl2.checked = !!d.bskyFilterEnabled; document.getElementById('bskyFilterExtras').style.display = d.bskyFilterEnabled ? '' : 'none'; }
-      setEl('bskyFilterKeyword', d.bskyFilterKeyword || 'Replay');
-      previewBskyTitle();
-
-      // Next Match
-      setEl('nextMatchP1',       d.brb?.widgets?.nextMatch?.p1       || '');
-      setEl('nextMatchP2',       d.brb?.widgets?.nextMatch?.p2       || '');
-      setEl('nextMatchRound',    d.brb?.widgets?.nextMatch?.round     || '');
-      setEl('nextMatchSublabel', d.brb?.widgets?.nextMatch?.sublabel  || '');
-
-      // Social
-      setEl('socialMessage', d.brb?.widgets?.social?.message || '');
-      setEl('socialTwitch',  d.brb?.widgets?.social?.twitch  || '');
-      setEl('socialTwitter', d.brb?.widgets?.social?.twitter || '');
-      setEl('socialDiscord', d.brb?.widgets?.social?.discord || '');
-
-      // BRB
-      setEl('brbFolder', d.brb?.folder || '');
-
-      // Clock
-      setEl('clockLabel', d.brb?.widgets?.clock?.label || '');
-
-      // Countdown
-      setEl('countdownLabel', d.brb?.widgets?.countdown?.label || '');
-      const _cdLblCol2 = document.getElementById('countdownLabelColor'); if (_cdLblCol2) _cdLblCol2.value = d.brb?.widgets?.countdown?.labelColor || '#aaaaaa';
-      const _cdTimeCol2 = document.getElementById('countdownTimeColor'); if (_cdTimeCol2) _cdTimeCol2.value = d.brb?.widgets?.countdown?.timeColor || '#ffffff';
-
-      // Widget visibility toggles
-      if (d.widgetEnabled) widgetEnabled = Object.assign({}, DEFAULT_ENABLED, d.widgetEnabled);
-      renderWidgetEnableToggles();
-
-      // Auto-fetch Start.gg bracket if token and URL are present
-      if (d.startggToken && d.startggTourneyUrl) {
-        setTimeout(startggFetchTourney, 400);
-      }
-
-      // Discord
-      setEl('discordClientId',     d.discordClientId     || '');
-      setEl('discordClientSecret', d.discordClientSecret || '');
-      if (d.discordOverlay)     discordOverlayCfg  = Object.assign({}, discordOverlayCfg,  d.discordOverlay);
-      if (d.discordOverlay2)    discordOverlay2Cfg  = Object.assign({}, discordOverlay2Cfg,  d.discordOverlay2);
-      if (d.discordOverlaySolo) discordSoloCfg      = Object.assign({}, discordSoloCfg,      d.discordOverlaySolo);
-      discordLoadCfg(getActiveCfg());
-      if (d.discordClientId) setTimeout(discordConnectBtn, 1000);
-
-      // Auto-login Bluesky if credentials are saved
-      if (d.bskyAccessJwt) {
-        updateBskyLoginIndicator(true);
-      } else if ((d.bskyHandleSaved || d.bskyHandle) && d.bskyAppPassword) {
-        setTimeout(bskyLogin, 600);
-      }
-
-      const btn = event?.target;
-      if (btn) { const orig = btn.textContent; btn.textContent = '✓ LOADED'; setTimeout(() => btn.textContent = orig, 1500); }
-    } catch(e) { alert('Error loading save data: ' + e.message); }
+  async function loadSaveData(btn) {
+    await load();
+    if (btn) { const orig = btn.textContent; btn.textContent = '✓ LOADED'; setTimeout(() => btn.textContent = orig, 1500); }
   }
 
   async function saveStartggToken() {
@@ -4248,7 +4535,8 @@
         p2:          document.getElementById('nextMatchP2')?.value.trim(),
         round:       document.getElementById('nextMatchRound')?.value.trim(),
         sublabel:    document.getElementById('nextMatchSublabel')?.value.trim(),
-        duration:    parseFloat(document.getElementById('nextMatchDuration')?.value)
+        duration:    parseFloat(document.getElementById('nextMatchDuration')?.value),
+        shadow:      getShadow('nm')
       }}}})});
       flashEl('nextMatchStatus','Saved ✓','file-status ok');
     } catch(e) { flashEl('nextMatchStatus','Error','file-status err'); }
@@ -4271,10 +4559,192 @@
 
   async function saveGeneral() {
     try {
-      const r=await fetch('/save-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brb:{globalFont:document.getElementById('globalFont').value}})});
-      const d=await r.json();
+      const fontName = document.getElementById('globalFont').value;
+      const useIface = document.getElementById('useInterfaceFont').checked;
+      const r = await fetch('/save-settings', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ brb: { globalFont: fontName, useInterfaceFont: useIface } }) });
+      const d = await r.json();
       flashEl('generalStatus', d.ok ? 'Saved ✓' : 'Failed', d.ok ? 'file-status ok' : 'file-status err');
+      broadcastFontToDiscord(fontName);
+      applyInterfaceFontDisplay();
     } catch(e) { flashEl('generalStatus','Error','file-status err'); }
+  }
+
+  // ── Profiles ─────────────────────────────────────────────────────────────────
+  var _profileList = [];
+  var _activeProfile = 'default';
+  var _profileDropdownOpen = false;
+
+  function toggleProfileDropdown() {
+    _profileDropdownOpen = !_profileDropdownOpen;
+    const body  = document.getElementById('profile-dropdown-body');
+    const arrow = document.getElementById('profile-dropdown-arrow');
+    if (body)  body.style.display = _profileDropdownOpen ? 'flex' : 'none';
+    if (arrow) arrow.textContent  = _profileDropdownOpen ? '▾' : '▸';
+    if (_profileDropdownOpen) document.getElementById('newProfileForm').style.display = 'none';
+  }
+
+  function loadProfiles(data) {
+    _profileList = data._profileList || [];
+    _activeProfile = data._activeProfile || 'default';
+    updateProfileUI();
+  }
+
+  function updateProfileUI() {
+    const listEl = document.getElementById('profile-list-rows');
+    if (listEl) {
+      listEl.innerHTML = '';
+      _profileList.forEach(function(p) {
+        const isActive = p.id === _activeProfile;
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;border-bottom:1px solid rgba(255,255,255,0.04);';
+
+        const nameBtn = document.createElement('button');
+        nameBtn.className = 'px-btn';
+        nameBtn.style.cssText = 'flex:1;text-align:left;padding:9px 12px;font-size:8px;letter-spacing:0.08em;color:' + (isActive ? '#4ade80' : 'rgba(255,255,255,0.65)') + ';';
+        nameBtn.textContent = (isActive ? '● ' : '  ') + p.name;
+        nameBtn.onclick = function() { if (!isActive) switchProfile(p.id); else toggleProfileDropdown(); };
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'px-btn';
+        editBtn.title = 'Rename';
+        editBtn.style.cssText = 'padding:8px 9px;color:rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;';
+        editBtn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+        editBtn.onclick = function(e) { e.stopPropagation(); startInlineRename(p.id, nameBtn, p.name); };
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'px-btn';
+        delBtn.title = 'Delete';
+        delBtn.style.cssText = 'padding:8px 9px;color:rgba(248,113,113,0.55);display:flex;align-items:center;justify-content:center;';
+        delBtn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>';
+        delBtn.onclick = function(e) { e.stopPropagation(); deleteProfile(p.id); };
+
+        row.appendChild(nameBtn);
+        row.appendChild(editBtn);
+        row.appendChild(delBtn);
+        listEl.appendChild(row);
+      });
+    }
+
+    const indicator = document.getElementById('profile-active-indicator');
+    if (indicator) {
+      const cur = _profileList.find(function(p) { return p.id === _activeProfile; });
+      indicator.textContent = '● ' + (cur ? cur.name : 'Default');
+    }
+
+    const base = document.getElementById('newProfileBase');
+    if (base) {
+      const prev = base.value;
+      base.innerHTML = '<option value="">From scratch</option>';
+      _profileList.forEach(function(p) {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.name;
+        base.appendChild(opt);
+      });
+      if (prev) base.value = prev;
+    }
+  }
+
+  function startInlineRename(id, nameBtn, currentName) {
+    var committed = false;
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.className = 'file-input';
+    inp.value = currentName;
+    inp.style.cssText = 'flex:1;padding:5px 10px;font-size:8px;margin:4px 6px;';
+
+    async function doSave() {
+      if (committed) return;
+      committed = true;
+      const name = inp.value.trim();
+      if (name && name !== currentName) {
+        try {
+          const r = await fetch('/rename-profile', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id, name }) });
+          const d = await r.json();
+          if (d.ok) {
+            // Server may have assigned a new slug/id when the name changed
+            if (d.list) _profileList = d.list;
+            if (d.newId && d.newId !== id) {
+              if (_activeProfile === id) _activeProfile = d.newId;
+            }
+            flashEl('profileStatus', 'Renamed ✓', 'file-status ok');
+          }
+        } catch(e) {}
+      }
+      updateProfileUI();
+    }
+
+    inp.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); doSave(); }
+      if (e.key === 'Escape') { if (!committed) { committed = true; updateProfileUI(); } }
+    });
+    inp.addEventListener('blur', function() { setTimeout(doSave, 150); });
+
+    nameBtn.replaceWith(inp);
+    setTimeout(function() { inp.focus(); inp.select(); }, 0);
+  }
+
+  async function switchProfile(id) {
+    if (!id || id === _activeProfile) return;
+    flashEl('profileStatus', 'Switching...', 'file-status');
+    try {
+      const r = await fetch('/switch-profile', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id }) });
+      const d = await r.json();
+      if (!d.ok) { flashEl('profileStatus', 'Switch failed', 'file-status err'); return; }
+      _activeProfile = id;
+      _profileDropdownOpen = false;
+      const body = document.getElementById('profile-dropdown-body');
+      const arrow = document.getElementById('profile-dropdown-arrow');
+      if (body) body.style.display = 'none';
+      if (arrow) arrow.textContent = '▸';
+      await load();
+      flashEl('profileStatus', 'Profile loaded ✓', 'file-status ok');
+    } catch(e) { flashEl('profileStatus', 'Error', 'file-status err'); }
+  }
+
+  async function deleteProfile(id) {
+    id = id || _activeProfile;
+    const cur = _profileList.find(function(p) { return p.id === id; });
+    if (!cur) return;
+    if (_profileList.length <= 1) { flashEl('profileStatus', "Can't delete last profile", 'file-status err'); return; }
+    if (!confirm('Delete profile "' + cur.name + '"? This cannot be undone.')) return;
+    const wasActive = id === _activeProfile;
+    try {
+      const r = await fetch('/delete-profile', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id }) });
+      const d = await r.json();
+      if (!d.ok) { flashEl('profileStatus', 'Delete failed', 'file-status err'); return; }
+      _profileList = d.list || [];
+      _activeProfile = d.activeProfile || _activeProfile;
+      updateProfileUI();
+      if (wasActive) await load();
+      flashEl('profileStatus', 'Deleted ✓', 'file-status ok');
+    } catch(e) { flashEl('profileStatus', 'Error', 'file-status err'); }
+  }
+
+  function openNewProfileModal() {
+    document.getElementById('newProfileForm').style.display = '';
+    document.getElementById('newProfileName').value = '';
+    updateProfileUI();
+    setTimeout(function() { document.getElementById('newProfileName').focus(); }, 50);
+  }
+
+  async function createProfile() {
+    const name = (document.getElementById('newProfileName').value || '').trim();
+    if (!name) { flashEl('profileStatus', 'Enter a name', 'file-status err'); return; }
+    const dupFrom = document.getElementById('newProfileBase').value || null;
+    try {
+      const body = { name };
+      if (dupFrom) body.duplicateFrom = dupFrom;
+      const r = await fetch('/create-profile', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      const d = await r.json();
+      if (!d.ok) { flashEl('profileStatus', 'Create failed', 'file-status err'); return; }
+      document.getElementById('newProfileForm').style.display = 'none';
+      _profileList = d.list || _profileList;
+      updateProfileUI();
+      await switchProfile(d.id);
+      flashEl('profileStatus', 'Profile created ✓', 'file-status ok');
+    } catch(e) { flashEl('profileStatus', 'Error', 'file-status err'); }
   }
 
   // ── Transition ───────────────────────────────────────────────────────────────
@@ -4369,7 +4839,14 @@
   // ── Countdown ────────────────────────────────────────────────────────────────
   async function saveCountdown() {
     try {
-      await fetch('/save-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brb:{widgets:{countdown:{minutes:parseFloat(document.getElementById('countdownMinutes').value),label:document.getElementById('countdownLabel').value.trim(),inSlideshow:document.getElementById('countdownInSlideshow').checked,labelColor:document.getElementById('countdownLabelColor').value,timeColor:document.getElementById('countdownTimeColor').value}}}})});
+      await fetch('/save-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brb:{widgets:{countdown:{
+        minutes:parseFloat(document.getElementById('countdownMinutes').value),
+        label:document.getElementById('countdownLabel').value.trim(),
+        inSlideshow:document.getElementById('countdownInSlideshow').checked,
+        labelColor:document.getElementById('countdownLabelColor').value,
+        timeColor:document.getElementById('countdownTimeColor').value,
+        shadow:getShadow('cd')
+      }}}})});
     } catch(e){}
   }
   async function countdownCmd(cmd) {
@@ -4383,7 +4860,12 @@
   // ── Clock ─────────────────────────────────────────────────────────────────────
   async function saveClock() {
     try {
-      await fetch('/save-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brb:{widgets:{clock:{label:document.getElementById('clockLabel').value.trim(),format:getClockFmt(),inSlideshow:document.getElementById('clockInSlideshow').checked}}}})});
+      await fetch('/save-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brb:{widgets:{clock:{
+        label:document.getElementById('clockLabel').value.trim(),
+        format:getClockFmt(),
+        inSlideshow:document.getElementById('clockInSlideshow').checked,
+        shadow:getShadow('clock')
+      }}}})});
       flashEl('clockStatus','Saved ✓','file-status ok');
     } catch(e){}
   }
