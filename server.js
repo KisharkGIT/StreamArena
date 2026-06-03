@@ -1236,6 +1236,39 @@ const server = http.createServer(async (req, res) => {
       json200(res, { ok: true, activeProfile: activeProfileId, list: _profileListArr() }); return;
     } catch(e) { res.writeHead(400); res.end('Bad request'); return; }
   }
+  if (pathname === '/export-profile' && req.method === 'GET') {
+    const id = parsedUrl.query.id || activeProfileId;
+    const profilePath = _profilePath(id);
+    if (!profileIndex.profiles || !profileIndex.profiles[id] || !fs.existsSync(profilePath)) {
+      res.writeHead(404); res.end('Not found'); return;
+    }
+    const profileName = (profileIndex.profiles[id].name || id).replace(/[^a-z0-9_\- ]/gi, '_');
+    const data = fs.readFileSync(profilePath, 'utf8');
+    res.writeHead(200, {
+      'Content-Type': 'application/json',
+      'Content-Disposition': `attachment; filename="${profileName}_profile.json"`
+    });
+    res.end(data); return;
+  }
+
+  if (pathname === '/import-profile' && req.method === 'POST') {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const name = ((body.name || '').trim()) || 'Imported Profile';
+      const data = body.data;
+      if (!data || typeof data !== 'object') { res.writeHead(400); res.end('Bad request'); return; }
+      let newId = _slugify(name);
+      let base = newId, n = 2;
+      while (profileIndex.profiles && profileIndex.profiles[newId]) { newId = base + '_' + n++; }
+      const merged = Object.assign({}, DEFAULTS, data);
+      if (!profileIndex.profiles) profileIndex.profiles = {};
+      profileIndex.profiles[newId] = { name };
+      _saveIndex();
+      fs.writeFileSync(_profilePath(newId), JSON.stringify(merged, null, 2), 'utf8');
+      json200(res, { ok: true, id: newId, list: _profileListArr() }); return;
+    } catch(e) { res.writeHead(400); res.end('Bad request'); return; }
+  }
+
   // ── End profile management ────────────────────────────────────────────────
 
   if (pathname === '/position') { json200(res, { position: s.position }); return; }

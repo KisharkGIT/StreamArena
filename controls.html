@@ -766,8 +766,9 @@
       </div>
       <div id="profile-dropdown-body" style="display:none;flex-direction:column;border:1px solid rgba(91,200,245,0.12);background:rgba(0,0,0,0.2);">
         <div id="profile-list-rows"></div>
-        <div style="border-top:1px solid rgba(255,255,255,0.06);">
-          <button onclick="openNewProfileModal()" class="px-btn" style="width:100%;padding:9px 12px;text-align:left;font-size:8px;letter-spacing:0.1em;color:#5bc8f5;">+ NEW PROFILE</button>
+        <div style="border-top:1px solid rgba(255,255,255,0.06);display:flex;">
+          <button onclick="openNewProfileModal()" class="px-btn" style="flex:1;padding:9px 12px;text-align:left;font-size:8px;letter-spacing:0.1em;color:#5bc8f5;">+ NEW PROFILE</button>
+          <button onclick="importProfile()" class="px-btn" title="Import profile from file" style="padding:9px 12px;font-size:8px;letter-spacing:0.1em;color:#a78bfa;border-left:1px solid rgba(255,255,255,0.06);">&#8593; IMPORT</button>
         </div>
       </div>
       <div id="newProfileForm" style="display:none;margin-top:6px;padding:10px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.08);">
@@ -4605,6 +4606,13 @@
         nameBtn.textContent = (isActive ? '● ' : '  ') + p.name;
         nameBtn.onclick = function() { if (!isActive) switchProfile(p.id); else toggleProfileDropdown(); };
 
+        const exportBtn = document.createElement('button');
+        exportBtn.className = 'px-btn';
+        exportBtn.title = 'Export profile';
+        exportBtn.style.cssText = 'padding:8px 9px;color:rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;';
+        exportBtn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+        exportBtn.onclick = function(e) { e.stopPropagation(); exportProfile(p.id); };
+
         const editBtn = document.createElement('button');
         editBtn.className = 'px-btn';
         editBtn.title = 'Rename';
@@ -4620,6 +4628,7 @@
         delBtn.onclick = function(e) { e.stopPropagation(); deleteProfile(p.id); };
 
         row.appendChild(nameBtn);
+        row.appendChild(exportBtn);
         row.appendChild(editBtn);
         row.appendChild(delBtn);
         listEl.appendChild(row);
@@ -4745,6 +4754,39 @@
       await switchProfile(d.id);
       flashEl('profileStatus', 'Profile created ✓', 'file-status ok');
     } catch(e) { flashEl('profileStatus', 'Error', 'file-status err'); }
+  }
+
+  function exportProfile(id) {
+    const a = document.createElement('a');
+    a.href = '/export-profile?id=' + encodeURIComponent(id || _activeProfile);
+    a.download = '';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  function importProfile() {
+    const inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = '.json';
+    inp.onchange = async function() {
+      const file = inp.files[0];
+      if (!file) return;
+      flashEl('profileStatus', 'Importing...', 'file-status');
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        const name = file.name.replace(/\.json$/i, '').replace(/_profile$/i, '') || 'Imported Profile';
+        const r = await fetch('/import-profile', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, data }) });
+        const d = await r.json();
+        if (!d.ok) { flashEl('profileStatus', 'Import failed', 'file-status err'); return; }
+        _profileList = d.list || _profileList;
+        updateProfileUI();
+        await switchProfile(d.id);
+        flashEl('profileStatus', 'Imported ✓', 'file-status ok');
+      } catch(e) { flashEl('profileStatus', 'Import failed', 'file-status err'); }
+    };
+    inp.click();
   }
 
   // ── Transition ───────────────────────────────────────────────────────────────
