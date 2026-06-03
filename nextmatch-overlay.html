@@ -8,11 +8,11 @@
   @font-face { font-family:'MMRock9'; src:url('/font/MMRock9.ttf') format('truetype'), url('/font/MMRock9.otf') format('opentype'); }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { background:transparent; width:100vw; height:100vh; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; font-family:var(--widget-font,'MMRock9'),monospace; }
-  #nm-round    { font-size:28px; color:#aaa; letter-spacing:0.15em; text-transform:uppercase; text-shadow:6px 6px 0 #000; }
-  #nm-sublabel { font-size:18px; color:rgba(255,255,255,0.35); letter-spacing:0.12em; text-shadow:4px 4px 0 #000; margin-top:-8px; }
+  #nm-round    { font-size:28px; color:#aaa; letter-spacing:0.15em; text-transform:uppercase; text-shadow:var(--shadow,6px 6px 0 #000); }
+  #nm-sublabel { font-size:18px; color:rgba(255,255,255,0.35); letter-spacing:0.12em; text-shadow:var(--shadow,4px 4px 0 #000); margin-top:-8px; }
   #nm-vs    { display:flex; align-items:center; justify-content:center; gap:40px; width:100%; padding:0 40px; box-sizing:border-box; }
-  #nm-p1, #nm-p2 { color:#fff; text-shadow:6px 6px 0 #000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:38vw; }
-  #nm-vslabel { font-size:36px; color:rgba(255,255,255,0.35); text-shadow:4px 4px 0 #000; flex-shrink:0; }
+  #nm-p1, #nm-p2 { color:#fff; text-shadow:var(--shadow,6px 6px 0 #000); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:38vw; }
+  #nm-vslabel { font-size:36px; color:rgba(255,255,255,0.35); text-shadow:var(--shadow,4px 4px 0 #000); flex-shrink:0; }
 </style>
 </head>
 <body>
@@ -27,14 +27,14 @@
   <script>
     async function loadGlobalFont() {
       try {
-        const r = await fetch('/settings');
+        const r = await fetch('/font-info');
         const d = await r.json();
-        const font = (d.brb && d.brb.globalFont) || 'MMRock9';
-        if (font !== 'monospace' && font !== 'sans-serif') {
+        const font = d.name || 'MMRock9';
+        if (font !== 'monospace' && font !== 'sans-serif' && d.path) {
           if (!document.querySelector('style[data-font="' + font + '"]')) {
             const style = document.createElement('style');
             style.setAttribute('data-font', font);
-            style.textContent = "@font-face { font-family:'" + font + "'; src:url('/font/" + font + ".ttf') format('truetype'),url('/font/" + font + ".otf') format('opentype'); }";
+            style.textContent = "@font-face { font-family:'" + font + "'; src:url('/font/" + d.path + "'); }";
             document.head.appendChild(style);
           }
         }
@@ -42,11 +42,32 @@
       } catch(e) {}
     }
 
+    function applyShadow(cfg) {
+      var sh = cfg || {};
+      var angle = sh.angle != null ? sh.angle : 135;
+      var dist  = sh.distance != null ? sh.distance : 8;
+      var blur  = sh.hardness != null ? sh.hardness : 0;
+      var spread = sh.spread != null ? sh.spread : 0;
+      var color = sh.color || '#000000';
+      var opacity = sh.opacity != null ? sh.opacity : 1;
+      var rad = angle * Math.PI / 180;
+      var x = Math.round(dist * Math.sin(rad));
+      var y = Math.round(-dist * Math.cos(rad));
+      var rv = parseInt(color.slice(1,3)||'00',16), gv = parseInt(color.slice(3,5)||'00',16), bv = parseInt(color.slice(5,7)||'00',16);
+      var col = 'rgba('+rv+','+gv+','+bv+','+opacity+')';
+      var val = x+'px '+y+'px '+blur+'px '+col;
+      if (spread > 0) val += ', '+x+'px '+y+'px '+(blur+spread)+'px rgba('+rv+','+gv+','+bv+','+Math.max(0,+(opacity-0.35).toFixed(2))+')';
+      document.documentElement.style.setProperty('--shadow', val);
+    }
+
+    var _lastNmShadowKey = '';
     async function poll() {
       try {
         const r = await fetch('/settings');
         const d = await r.json();
         const nm = (d.brb && d.brb.widgets && d.brb.widgets.nextMatch) || {};
+        const _sk = JSON.stringify(nm.shadow||{});
+        if (_sk !== _lastNmShadowKey) { _lastNmShadowKey = _sk; applyShadow(nm.shadow); }
         document.getElementById('nm-round').textContent    = nm.round    || 'NEXT MATCH';
         document.getElementById('nm-sublabel').textContent = nm.sublabel || 'Up next...';
         const p1 = nm.p1 || 'P1';

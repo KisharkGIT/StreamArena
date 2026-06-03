@@ -6,22 +6,39 @@
   :root { --widget-font: 'MMRock9'; }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { background:transparent; width:100vw; height:100vh; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; }
-  #clock-label { font-family:var(--widget-font,'MMRock9'),monospace; font-size:28px; color:#aaa; letter-spacing:0.15em; text-transform:uppercase; text-shadow:6px 6px 0 #000; }
-  #clock-time  { font-family:var(--widget-font,'MMRock9'),monospace; font-size:96px; color:#fff; letter-spacing:0.05em; text-shadow:6px 6px 0 #000; }
+  #clock-label { font-family:var(--widget-font,'MMRock9'),monospace; font-size:28px; color:#aaa; letter-spacing:0.15em; text-transform:uppercase; text-shadow:var(--shadow,6px 6px 0 #000); }
+  #clock-time  { font-family:var(--widget-font,'MMRock9'),monospace; font-size:96px; color:#fff; letter-spacing:0.05em; text-shadow:var(--shadow,6px 6px 0 #000); }
 </style>
 </head>
 <body>
 <div id="clock-label">Be Right Back</div>
 <div id="clock-time">--:--</div>
 <script>
+  function applyShadow(cfg) {
+    var sh = cfg || {};
+    var angle = sh.angle != null ? sh.angle : 135;
+    var dist  = sh.distance != null ? sh.distance : 8;
+    var blur  = sh.hardness != null ? sh.hardness : 0;
+    var spread = sh.spread != null ? sh.spread : 0;
+    var color = sh.color || '#000000';
+    var opacity = sh.opacity != null ? sh.opacity : 1;
+    var rad = angle * Math.PI / 180;
+    var x = Math.round(dist * Math.sin(rad));
+    var y = Math.round(-dist * Math.cos(rad));
+    var r = parseInt(color.slice(1,3)||'00',16), g = parseInt(color.slice(3,5)||'00',16), b = parseInt(color.slice(5,7)||'00',16);
+    var col = 'rgba('+r+','+g+','+b+','+opacity+')';
+    var val = x+'px '+y+'px '+blur+'px '+col;
+    if (spread > 0) val += ', '+x+'px '+y+'px '+(blur+spread)+'px rgba('+r+','+g+','+b+','+Math.max(0,+(opacity-0.35).toFixed(2))+')';
+    document.documentElement.style.setProperty('--shadow', val);
+  }
+
   async function loadConfig() {
     try {
       const r = await fetch('/settings'); const d = await r.json();
       const w = d.brb && d.brb.widgets && d.brb.widgets.clock || {};
-      const font = (d.brb && d.brb.globalFont) || 'MMRock9';
-      
       document.getElementById('clock-label').textContent = w.label || 'Be Right Back';
       window._clockFmt = w.format || '12h';
+      applyShadow(w.shadow);
     } catch(e) {}
   }
 
@@ -46,14 +63,14 @@
 
   async function loadGlobalFont() {
     try {
-      const r = await fetch('/settings');
+      const r = await fetch('/font-info');
       const d = await r.json();
-      const font = (d.brb && d.brb.globalFont) || 'MMRock9';
-      if (font !== 'monospace' && font !== 'sans-serif') {
+      const font = d.name || 'MMRock9';
+      if (font !== 'monospace' && font !== 'sans-serif' && d.path) {
         if (!document.querySelector('style[data-font="' + font + '"]')) {
           const style = document.createElement('style');
           style.setAttribute('data-font', font);
-          style.textContent = "@font-face { font-family:'" + font + "'; src:url('/font/" + font + ".ttf') format('truetype'),url('/font/" + font + ".otf') format('opentype'),url('/font/" + font + ".woff2') format('woff2'); }";
+          style.textContent = "@font-face { font-family:'" + font + "'; src:url('/font/" + d.path + "'); }";
           document.head.appendChild(style);
         }
       }
