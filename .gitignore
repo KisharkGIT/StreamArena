@@ -1,0 +1,10 @@
+.gitignore
+settings.json
+settings_backup/
+node_modules/
+Claude_StreamArena_Project_Description.md
+current_spotify_song.txt
+profiles.json
+profiles/
+profile-index.json
+settings.json.bak
