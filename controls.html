@@ -1281,6 +1281,20 @@
     <p>Each overlay is a browser source URL you add in Streamlabs. You can copy any URL directly from the <span class="hl-widget">STREAMLABS URL</span> copy button inside each widget — click it and it copies to your clipboard.</p>
   </div>
 
+  <div class="howto-section">
+    <h2>PROFILES</h2>
+    <p>Profiles let you save completely separate configurations for different streams — one for tournament nights, one for casual sessions, etc. Every setting, widget layout, API token, and overlay config is stored per-profile and switches instantly.</p>
+    <p>The profile selector lives at the top of the sidebar. Click <span class="hl-general">PROFILE</span> to open the dropdown and switch, create, rename, export, or delete profiles. The active profile name is shown in green next to the button.</p>
+    <ul>
+      <li><span class="hl-general">New Profile</span> — create a blank profile or duplicate an existing one as a starting point.</li>
+      <li><span class="hl-general">Rename</span> — click the pencil icon on any profile row to edit the name inline. Press Enter to confirm.</li>
+      <li><span class="hl-general">Export</span> — click the download icon on any row to save that profile as a <span class="hl-url">.json</span> backup file.</li>
+      <li><span class="hl-general">Import</span> — click <span class="hl-general">↑ IMPORT</span> at the bottom of the dropdown to load a previously exported profile. It creates a new profile from the file and switches to it automatically.</li>
+      <li><span class="hl-general">Delete</span> — click the trash icon. The last remaining profile cannot be deleted.</li>
+    </ul>
+    <p>On first run with no existing profiles, StreamArena generates a <span class="hl-general">Default</span> profile automatically.</p>
+  </div>
+
   <details class="howto-details">
     <summary style="color:#5bc8f5;">WHAT YOU'LL NEED</summary>
     <div class="howto-details-body">
@@ -1300,12 +1314,10 @@
       <p>All stream overlay widgets live under <span class="hl-widget">Widget Settings</span>. There are three tabs at the top: <span class="hl-widget">General</span>, <span class="hl-widget">Widgets</span>, and <span class="hl-widget">Preview</span>.</p>
       <ul>
         <li><span class="hl-general">Global Font</span> — sets the font used across every overlay at once. Drop <span class="hl-url">.ttf</span> or <span class="hl-url">.otf</span> files into the <span class="hl-url">fonts/</span> subfolder and they appear here automatically. Hit <span class="hl-general">Update Fonts</span> to refresh the list after adding files.</li>
-        <li><span class="hl-general">Export Settings Backup</span> — downloads your full settings as a dated JSON file. Use this before making major changes.</li>
         <li><span class="hl-general">Widget Visibility</span> — toggle switches that show or hide individual widgets from the layout. Turning a widget off hides it from the Widgets tab but does not delete its settings. Turn it back on to restore it.</li>
         <li><span class="hl-general">Snip File Location</span> — path to the snip.txt file written by the Snip app. The server reads this every 2 seconds to power the music overlay. Set this before the music overlay will work.</li>
-        <li><span class="hl-general">Settings File Location</span> — optional. If you want to load and save settings from a custom path instead of the default settings.json in the StreamArena folder, point this here. Leave it blank to use the default.</li>
-        <li><span class="hl-general">Stream Notes</span> — a private notepad only visible in this panel. Use it for shoutout lists, match schedules, or anything you need to reference mid-stream. Never shows on screen.</li>
-        <li><span class="hl-general">Load Settings Button</span> — at the top of Widget Settings there is a <span class="hl-general">LOAD SAVE DATA</span> button. Clicking it re-fetches all saved settings from the server and fills every field. Your settings load automatically when the panel opens, but if something looks wrong or you edited settings.json directly, use this button to re-sync.</li>
+        <li><span class="hl-general">Stream Notes</span> — a private notepad only visible in this panel. Use it for shoutout lists, match schedules, or anything you need to reference mid-stream. Never shows on stream.</li>
+        <li><span class="hl-general">Load Save Data</span> — at the top of Widget Settings there is a <span class="hl-general">LOAD SAVE DATA</span> button. Clicking it re-fetches all saved settings from the active profile and fills every field. Settings load automatically when the panel opens, but use this button if something looks out of sync.</li>
       </ul>
     </div>
   </details>
@@ -1323,6 +1335,7 @@
         <li><span class="hl-music">Show Duration</span> — how many seconds the card stays visible before hiding.</li>
         <li><span class="hl-music">Slide In / Out</span> — toggle animated slide transitions on or off.</li>
         <li><span class="hl-music">Song Name Overrides</span> — if you want to fix incorrect Spotify metadata, go to <span class="hl-music">Music Settings</span> and add an Override. Copy the raw text from your Snip file, paste it as the raw value, then provide the correct title and artist.</li>
+        <li><span class="hl-music">Song Override Output File</span> — by default, <span class="hl-url">current_spotify_song.txt</span> is written to the same folder as your Snip file. Set a custom path here to write it somewhere else instead — useful if a Streamlabs text source is already pointing to a specific location.</li>
         <li><span class="hl-music">Test Popup</span> — triggers the card to appear so you can preview it without changing songs.</li>
       </ul>
       <p>Add this to Streamlabs as a browser source: <span class="hl-url">http://localhost:7777/overlay</span></p>
