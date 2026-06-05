@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Bitly Counter Overlay</title>
+<style>
+  @font-face { font-family: 'MMRock9'; src: url('/fonts/MMRock9.ttf'); }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; background: transparent; overflow: hidden; }
+
+  #root {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 24px 16px 24px;
+    background: rgba(4, 13, 26, 0.88);
+    border: 4px solid #000;
+    box-shadow: inset 3px 3px 0 #3a9fc8, inset -3px -3px 0 #164a5c;
+    min-width: 160px;
+  }
+
+  #label {
+    font-family: 'MMRock9', monospace;
+    font-size: 14px;
+    color: #3a9fc8;
+    text-shadow: 1px 1px 0 #000;
+    letter-spacing: 2px;
+    text-align: center;
+  }
+
+  #counter {
+    font-family: 'MMRock9', monospace;
+    font-size: 48px;
+    color: #fff;
+    text-shadow: 3px 3px 0 #000;
+    text-align: center;
+    min-width: 6ch;
+    letter-spacing: 2px;
+  }
+</style>
+</head>
+<body>
+<div id="root">
+  <div id="label">DOWNLOADS</div>
+  <div id="counter">0</div>
+</div>
+<script>
+  let displayedCount = 0;
+  let targetCount = 0;
+  let animTimer = null;
+
+  function animateTo(target) {
+    if (animTimer) { clearInterval(animTimer); animTimer = null; }
+    if (target <= displayedCount) { displayedCount = target; document.getElementById('counter').textContent = target; return; }
+    const diff = target - displayedCount;
+    const step = Math.max(1, Math.ceil(diff / 40));
+    animTimer = setInterval(() => {
+      displayedCount = Math.min(displayedCount + step, target);
+      document.getElementById('counter').textContent = displayedCount;
+      if (displayedCount >= target) { clearInterval(animTimer); animTimer = null; }
+    }, 50);
+  }
+
+  async function fetchCount() {
+    try {
+      const r = await fetch('/bitly-count');
+      const d = await r.json();
+      document.getElementById('label').textContent = d.label || 'DOWNLOADS';
+      if (typeof d.count === 'number' && d.count !== targetCount) {
+        targetCount = d.count;
+        animateTo(targetCount);
+      }
+    } catch(e) {}
+  }
+
+  fetchCount();
+  setInterval(fetchCount, 30000);
+</script>
+</body>
+</html>

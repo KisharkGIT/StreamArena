@@ -79,6 +79,16 @@ const DEFAULTS = {
   bskyDescription: '',
   bskyFilterEnabled: false,
   bskyFilterKeyword: 'Replay',
+  ytClientId: '',
+  ytClientSecret: '',
+  ytAccessToken: '',
+  ytRefreshToken: '',
+  ytTokenExpiry: 0,
+  ytChannelName: '',
+  chatCommands: [],
+  bitlyToken: '',
+  bitlyLink: '',
+  bitlyLabel: 'DOWNLOADS',
   brb: {
     folder:   'C:/Users/kisha/Desktop/MMA_Casting/MMA_Resources/StreamResources/SpotifyDisplay/Server/brb_display',
     imageDuration: 10,
@@ -287,6 +297,114 @@ function parseSong(raw, overrides) {
   return { raw, title: raw, artist: '' };
 }
 
+// ── YouTube Chat global state ─────────────────────────────────────────────────
+if (!global.ytState)   global.ytState   = { liveChatId: null, nextPageToken: null, polling: false, pollTimer: null };
+if (!global.pollState) global.pollState = { active: false, votes: { '1': 0, '2': 0 }, voters: new Map(), p1: { name: '', imageUrl: '' }, p2: { name: '', imageUrl: '' } };
+
+function ytApiReq(method, pathStr, params, body, token) {
+  const https = require('https');
+  const qs = params ? ('?' + Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&')) : '';
+  const buf = body ? Buffer.from(typeof body === 'string' ? body : JSON.stringify(body)) : null;
+  return new Promise((resolve, reject) => {
+    const r = https.request({
+      hostname: 'www.googleapis.com', path: pathStr + qs, method,
+      headers: Object.assign({ 'Authorization': 'Bearer ' + token },
+        buf ? { 'Content-Type': 'application/json', 'Content-Length': buf.length } : {})
+    }, res => {
+      const chunks = [];
+      res.on('data', d => chunks.push(d));
+      res.on('end', () => {
+        const txt = Buffer.concat(chunks).toString();
+        try { resolve({ status: res.statusCode, body: JSON.parse(txt) }); }
+        catch(e) { resolve({ status: res.statusCode, body: txt }); }
+      });
+    });
+    r.on('error', reject);
+    if (buf) r.write(buf);
+    r.end();
+  });
+}
+
+async function ytEnsureToken() {
+  const s = loadSettings();
+  if (!s.ytAccessToken) return null;
+  if (s.ytTokenExpiry && Date.now() < s.ytTokenExpiry - 10000) return s.ytAccessToken;
+  if (!s.ytRefreshToken || !s.ytClientId || !s.ytClientSecret) return null;
+  const https = require('https');
+  const body = 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(s.ytRefreshToken) +
+    '&client_id=' + encodeURIComponent(s.ytClientId) + '&client_secret=' + encodeURIComponent(s.ytClientSecret);
+  const buf = Buffer.from(body);
+  return new Promise(resolve => {
+    const r = https.request({
+      hostname: 'oauth2.googleapis.com', path: '/token', method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': buf.length }
+    }, res2 => {
+      let d = ''; res2.on('data', c => d += c);
+      res2.on('end', () => {
+        try {
+          const p = JSON.parse(d);
+          if (p.access_token) {
+            s.ytAccessToken = p.access_token;
+            s.ytTokenExpiry = Date.now() + (p.expires_in - 60) * 1000;
+            saveSettings(s);
+            resolve(p.access_token);
+          } else resolve(null);
+        } catch(e) { resolve(null); }
+      });
+    });
+    r.on('error', () => resolve(null));
+    r.write(buf); r.end();
+  });
+}
+
+async function ytPollOnce() {
+  const yt = global.ytState;
+  if (!yt.liveChatId) return;
+  const token = await ytEnsureToken();
+  if (!token) return;
+  const s = loadSettings();
+  const params = { liveChatId: yt.liveChatId, part: 'snippet,authorDetails', maxResults: '200' };
+  if (yt.nextPageToken) params.pageToken = yt.nextPageToken;
+  const r = await ytApiReq('GET', '/youtube/v3/liveChat/messages', params, null, token);
+  if (r.status !== 200) return;
+  yt.nextPageToken = r.body.nextPageToken || null;
+  for (const msg of (r.body.items || [])) {
+    const text = (msg.snippet?.textMessageDetails?.messageText || '').trim();
+    const channelId = msg.authorDetails?.channelId || '';
+    if (!text || !channelId) continue;
+    if (global.pollState.active && (text === '1' || text === '2') && !global.pollState.voters.has(channelId)) {
+      global.pollState.votes[text]++;
+      global.pollState.voters.set(channelId, text);
+    }
+    const lower = text.toLowerCase();
+    for (const cmd of (s.chatCommands || [])) {
+      if (!cmd.command || !cmd.response) continue;
+      const c = cmd.command.toLowerCase();
+      if (lower === c || lower.startsWith(c + ' ')) {
+        const freshToken = await ytEnsureToken();
+        if (freshToken) {
+          await ytApiReq('POST', '/youtube/v3/liveChat/messages', { part: 'snippet' },
+            { snippet: { liveChatId: yt.liveChatId, type: 'textMessageEvent', textMessageDetails: { messageText: cmd.response } } }, freshToken);
+        }
+        break;
+      }
+    }
+  }
+}
+
+function ytStartPolling() {
+  if (global.ytState.polling) return;
+  global.ytState.polling = true;
+  global.ytState.pollTimer = setInterval(() => { ytPollOnce().catch(() => {}); }, 5000);
+}
+
+function ytStopPolling() {
+  if (global.ytState.pollTimer) clearInterval(global.ytState.pollTimer);
+  global.ytState.polling = false;
+  global.ytState.pollTimer = null;
+}
+// ── End YouTube Chat global state ─────────────────────────────────────────────
+
 // ── Server ───────────────────────────────────────────────────────────────────
 const server = http.createServer(async (req, res) => {
   const parsed   = url.parse(req.url, true);
@@ -301,6 +419,8 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/countdown') { serveHtml('countdown-overlay.html', res); return; }
   if (pathname === '/social')     { serveHtml('social-overlay.html',    res); return; }
   if (pathname === '/nextmatch')      { serveHtml('nextmatch-overlay.html',  res); return; }
+  if (pathname === '/poll-overlay')         { serveHtml('poll-overlay.html',         res); return; }
+  if (pathname === '/bitly-overlay')        { serveHtml('bitly-overlay.html',        res); return; }
   if (pathname === '/discord-overlay')      { serveHtml('discord-overlay.html',      res); return; }
   if (pathname === '/discord-overlay-2')    { serveHtml('discord-overlay.html',      res); return; }
   if (pathname === '/discord-overlay-solo') { serveHtml('discord-overlay-solo.html', res); return; }
@@ -467,6 +587,208 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+
+  // ── Chat Engagement ──────────────────────────────────────────────────────────
+
+  if (pathname === '/youtube-auth') {
+    if (!s.ytClientId) { res.writeHead(400); res.end('No Client ID saved'); return; }
+    const params = new URLSearchParams({
+      client_id: s.ytClientId, redirect_uri: 'http://127.0.0.1:7777/youtube-callback',
+      response_type: 'code', scope: 'https://www.googleapis.com/auth/youtube',
+      access_type: 'offline', prompt: 'consent'
+    });
+    res.writeHead(302, { 'Location': 'https://accounts.google.com/o/oauth2/v2/auth?' + params.toString() });
+    res.end(); return;
+  }
+
+  if (pathname === '/youtube-callback') {
+    const code = parsed.query.code;
+    if (!code) { res.writeHead(400); res.end('Missing code'); return; }
+    const https = require('https');
+    const tokenBody = 'code=' + encodeURIComponent(code) +
+      '&client_id=' + encodeURIComponent(s.ytClientId) +
+      '&client_secret=' + encodeURIComponent(s.ytClientSecret) +
+      '&redirect_uri=' + encodeURIComponent('http://127.0.0.1:7777/youtube-callback') +
+      '&grant_type=authorization_code';
+    const buf = Buffer.from(tokenBody);
+    const tok = await new Promise(resolve => {
+      const r = https.request({
+        hostname: 'oauth2.googleapis.com', path: '/token', method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': buf.length }
+      }, res2 => { let d = ''; res2.on('data', c => d += c); res2.on('end', () => { try { resolve(JSON.parse(d)); } catch(e) { resolve({}); } }); });
+      r.on('error', () => resolve({})); r.write(buf); r.end();
+    });
+    if (!tok.access_token) {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end('<html><body style="background:#000;color:red;font-family:monospace;padding:20px;">YouTube auth failed: ' + JSON.stringify(tok) + '</body></html>');
+      return;
+    }
+    s.ytAccessToken  = tok.access_token;
+    s.ytRefreshToken = tok.refresh_token || s.ytRefreshToken;
+    s.ytTokenExpiry  = Date.now() + (tok.expires_in - 60) * 1000;
+    const chR = await ytApiReq('GET', '/youtube/v3/channels', { part: 'snippet', mine: 'true' }, null, s.ytAccessToken);
+    if (chR.status === 200 && chR.body.items?.[0]) s.ytChannelName = chR.body.items[0].snippet.title;
+    saveSettings(s);
+    ytStartPolling();
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end('<html><body style="background:#000;color:#3a9fc8;font-family:monospace;display:flex;align-items:center;justify-content:center;height:100vh;margin:0"><div style="text-align:center;"><div style="font-size:14px;letter-spacing:0.1em;margin-bottom:8px;">YOUTUBE CONNECTED</div><div style="font-size:9px;color:rgba(255,255,255,0.5);">' + (s.ytChannelName || 'your channel') + '</div><div style="font-size:8px;color:rgba(255,255,255,0.3);margin-top:12px;">You may close this window.</div></div></body></html>');
+    return;
+  }
+
+  if (pathname === '/youtube-status') {
+    json200(res, { connected: !!(s.ytAccessToken), channelName: s.ytChannelName || '', liveChatId: global.ytState?.liveChatId || '', polling: !!(global.ytState?.polling) });
+    return;
+  }
+
+  if (pathname === '/youtube-disconnect' && req.method === 'POST') {
+    s.ytAccessToken = ''; s.ytRefreshToken = ''; s.ytTokenExpiry = 0; s.ytChannelName = '';
+    saveSettings(s);
+    ytStopPolling();
+    global.ytState.liveChatId = null; global.ytState.nextPageToken = null;
+    json200(res, { ok: true }); return;
+  }
+
+  if (pathname === '/youtube-find-broadcast' && req.method === 'POST') {
+    try {
+      const token = await ytEnsureToken();
+      if (!token) { json200(res, { error: 'Not connected to YouTube' }); return; }
+      const r = await ytApiReq('GET', '/youtube/v3/liveBroadcasts', { part: 'snippet', broadcastStatus: 'active', mine: 'true' }, null, token);
+      const bc = r.body?.items?.[0];
+      if (!bc) { json200(res, { error: 'No active broadcast found. Start your stream first.' }); return; }
+      const liveChatId = bc.snippet?.liveChatId;
+      if (!liveChatId) { json200(res, { error: 'Broadcast has no live chat' }); return; }
+      global.ytState.liveChatId = liveChatId;
+      global.ytState.nextPageToken = null;
+      ytStartPolling();
+      json200(res, { ok: true, title: bc.snippet.title, liveChatId });
+    } catch(e) { json200(res, { error: e.message }); }
+    return;
+  }
+
+  if (pathname === '/poll-status') {
+    const ps = global.pollState;
+    const total = ps.votes['1'] + ps.votes['2'];
+    json200(res, {
+      active: ps.active, votes: ps.votes, total,
+      p1Pct: total > 0 ? Math.round(ps.votes['1'] / total * 100) : 50,
+      p2Pct: total > 0 ? Math.round(ps.votes['2'] / total * 100) : 50,
+      p1: ps.p1, p2: ps.p2
+    }); return;
+  }
+
+  if (pathname === '/poll-open' && req.method === 'POST') {
+    try {
+      const body = JSON.parse(await readBody(req));
+      global.pollState.active = true;
+      global.pollState.votes = { '1': 0, '2': 0 };
+      global.pollState.voters = new Map();
+      global.pollState.p1 = body.p1 || { name: '', imageUrl: '' };
+      global.pollState.p2 = body.p2 || { name: '', imageUrl: '' };
+      json200(res, { ok: true });
+    } catch(e) { res.writeHead(400); res.end('Bad request'); }
+    return;
+  }
+
+  if (pathname === '/poll-close' && req.method === 'POST') {
+    global.pollState.active = false;
+    json200(res, { ok: true, final: global.pollState.votes }); return;
+  }
+
+  if (pathname === '/bitly-count') {
+    try {
+      if (!s.bitlyToken || !s.bitlyLink) { json200(res, { count: 0, label: s.bitlyLabel || 'DOWNLOADS', error: 'Not configured' }); return; }
+      const bitlink = s.bitlyLink.replace(/^https?:\/\//, '');
+      const https = require('https');
+      const r = await new Promise((resolve, reject) => {
+        const req2 = https.request({
+          hostname: 'api-ssl.bitly.com',
+          path: '/v4/bitlinks/' + encodeURIComponent(bitlink) + '/clicks/summary',
+          method: 'GET',
+          headers: { 'Authorization': 'Bearer ' + s.bitlyToken }
+        }, res2 => {
+          let d = ''; res2.on('data', c => d += c);
+          res2.on('end', () => { try { resolve({ status: res2.statusCode, body: JSON.parse(d) }); } catch(e) { resolve({ status: res2.statusCode, body: d }); } });
+        });
+        req2.on('error', reject); req2.end();
+      });
+      if (r.status === 200) {
+        json200(res, { count: r.body.total_clicks || 0, label: s.bitlyLabel || 'DOWNLOADS' });
+      } else {
+        const msg = typeof r.body === 'object' ? (r.body.message || r.body.description || JSON.stringify(r.body)) : String(r.body);
+        json200(res, { count: 0, label: s.bitlyLabel || 'DOWNLOADS', error: msg });
+      }
+    } catch(e) { json200(res, { count: 0, label: s.bitlyLabel || 'DOWNLOADS', error: e.message }); }
+    return;
+  }
+
+  if (pathname === '/save-commands' && req.method === 'POST') {
+    try {
+      const body = JSON.parse(await readBody(req));
+      s.chatCommands = Array.isArray(body) ? body : [];
+      saveSettings(s);
+      json200(res, { ok: true });
+    } catch(e) { res.writeHead(400); res.end('Bad request'); }
+    return;
+  }
+
+  if (pathname === '/startgg-characters') {
+    try {
+      const token = s.startggToken;
+      const tourneyUrl = s.startggTourneyUrl || '';
+      const slug = tourneyUrl.replace('https://www.start.gg/tournament/', '').replace('https://start.gg/tournament/', '').split('/')[0];
+      if (!token || !slug) { json200(res, { characters: [] }); return; }
+      const https = require('https');
+      const payload = JSON.stringify({ query: `query TournamentChars($slug:String!){tournament(slug:$slug){videogames{id name characters{id name images{url}}}}}`, variables: { slug } });
+      const buf = Buffer.from(payload);
+      const apiRes = await new Promise((resolve, reject) => {
+        const r = https.request({
+          hostname: 'api.start.gg', path: '/gql/alpha', method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token, 'Content-Length': buf.length }
+        }, res2 => { let d = ''; res2.on('data', c => d += c); res2.on('end', () => { try { resolve(JSON.parse(d)); } catch(e) { resolve({}); } }); });
+        r.on('error', reject); r.write(buf); r.end();
+      });
+      const characters = [];
+      for (const game of (apiRes.data?.tournament?.videogames || [])) {
+        for (const char of (game.characters || [])) {
+          characters.push({ id: char.id, name: char.name, imageUrl: char.images?.[0]?.url || '', game: game.name });
+        }
+      }
+      json200(res, { characters });
+    } catch(e) { json200(res, { characters: [], error: e.message }); }
+    return;
+  }
+
+  if (pathname === '/startgg-player-avatars' && req.method === 'POST') {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const { p1Name, p2Name } = body;
+      const token = s.startggToken;
+      const tourneyUrl = s.startggTourneyUrl || '';
+      const slug = tourneyUrl.replace('https://www.start.gg/tournament/', '').replace('https://start.gg/tournament/', '').split('/')[0];
+      if (!token || !slug) { json200(res, { p1: '', p2: '' }); return; }
+      const https = require('https');
+      async function fetchAvatar(name) {
+        const payload = JSON.stringify({ query: `query PA($slug:String!,$name:String!){tournament(slug:$slug){participants(query:{filter:{search:{fieldsToSearch:["gamerTag"],searchString:$name}},perPage:3}){nodes{gamerTag player{user{images{url type}}}}}}}`, variables: { slug, name } });
+        const buf = Buffer.from(payload);
+        const r = await new Promise((resolve, reject) => {
+          const req2 = https.request({ hostname: 'api.start.gg', path: '/gql/alpha', method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token, 'Content-Length': buf.length }
+          }, res2 => { let d = ''; res2.on('data', c => d += c); res2.on('end', () => { try { resolve(JSON.parse(d)); } catch(e) { resolve({}); } }); });
+          r.on('error', () => resolve({})); r.write(buf); r.end();
+        });
+        const nodes = r.data?.tournament?.participants?.nodes || [];
+        const match = nodes.find(n => n.gamerTag?.toLowerCase() === name.toLowerCase()) || nodes[0];
+        const images = match?.player?.user?.images || [];
+        const profile = images.find(i => i.type === 'profile') || images[0];
+        return profile?.url || '';
+      }
+      const [p1Url, p2Url] = await Promise.all([fetchAvatar(p1Name || ''), fetchAvatar(p2Name || '')]);
+      json200(res, { p1: p1Url, p2: p2Url });
+    } catch(e) { json200(res, { p1: '', p2: '' }); }
+    return;
+  }
+
+  // ── End Chat Engagement ───────────────────────────────────────────────────────
 
   // ── Bluesky ─────────────────────────────────────────────────────────────────
 
@@ -1380,6 +1702,11 @@ const server = http.createServer(async (req, res) => {
       if (body.bskyDescription !== undefined) s.bskyDescription = body.bskyDescription;
       if (body.bskyFilterEnabled !== undefined) s.bskyFilterEnabled = body.bskyFilterEnabled;
       if (body.bskyFilterKeyword !== undefined) s.bskyFilterKeyword = body.bskyFilterKeyword;
+      if (body.ytClientId     !== undefined) s.ytClientId     = body.ytClientId;
+      if (body.ytClientSecret !== undefined) s.ytClientSecret = body.ytClientSecret;
+      if (body.bitlyToken     !== undefined) s.bitlyToken     = body.bitlyToken;
+      if (body.bitlyLink      !== undefined) s.bitlyLink      = body.bitlyLink;
+      if (body.bitlyLabel     !== undefined) s.bitlyLabel     = body.bitlyLabel;
       if (body.discordClientId     !== undefined) s.discordClientId     = body.discordClientId;
       if (body.discordClientSecret !== undefined) s.discordClientSecret = body.discordClientSecret;
       if (body.discordOverlay      !== undefined) s.discordOverlay      = Object.assign({}, s.discordOverlay || {}, body.discordOverlay);

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Poll Overlay</title>
+<style>
+  @font-face { font-family: 'MMRock9'; src: url('/fonts/MMRock9.ttf'); }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; background: transparent; overflow: hidden; }
+
+  #root {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    height: 100%;
+    padding: 12px 12px 16px 12px;
+    opacity: 0;
+    transition: opacity 1.5s ease;
+  }
+  #root.visible { opacity: 1; }
+
+  .bar-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 1;
+    height: 100%;
+    gap: 0;
+  }
+
+  .bar-wrap {
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    overflow: hidden;
+    image-rendering: pixelated;
+  }
+
+  .bar-fill {
+    width: 100%;
+    height: 0%;
+    transition: height 0.6s ease;
+  }
+  #bar1 .bar-fill { background: #3a9fc8; }
+  #bar2 .bar-fill { background: #ff6694; }
+
+  .portrait-wrap {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+    overflow: hidden;
+    image-rendering: pixelated;
+    border: 3px solid #000;
+  }
+  .portrait-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    image-rendering: pixelated;
+  }
+  .portrait-placeholder {
+    width: 100%;
+    height: 100%;
+    background: #1a1a2e;
+  }
+
+  .pct-label {
+    font-family: 'MMRock9', monospace;
+    font-size: 18px;
+    color: #fff;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000;
+    margin-top: 4px;
+    text-align: center;
+  }
+
+  .votes-label {
+    font-family: 'MMRock9', monospace;
+    font-size: 12px;
+    color: #aaa;
+    text-shadow: 1px 1px 0 #000;
+    margin-top: 2px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div id="root">
+  <div class="bar-col" id="bar1">
+    <div class="bar-wrap"><div class="bar-fill" id="fill1"></div></div>
+    <div class="portrait-wrap" id="portrait1"><div class="portrait-placeholder"></div></div>
+    <div class="pct-label" id="pct1">0%</div>
+    <div class="votes-label" id="votes1">0 votes</div>
+  </div>
+  <div class="bar-col" id="bar2">
+    <div class="bar-wrap"><div class="bar-fill" id="fill2"></div></div>
+    <div class="portrait-wrap" id="portrait2"><div class="portrait-placeholder"></div></div>
+    <div class="pct-label" id="pct2">0%</div>
+    <div class="votes-label" id="votes2">0 votes</div>
+  </div>
+</div>
+<script>
+  const root = document.getElementById('root');
+  let wasActive = false;
+
+  function setPortrait(el, url) {
+    if (url) {
+      el.innerHTML = '<img src="' + url + '" alt="">';
+    } else {
+      el.innerHTML = '<div class="portrait-placeholder"></div>';
+    }
+  }
+
+  async function poll() {
+    try {
+      const r = await fetch('/poll-status');
+      const d = await r.json();
+
+      if (d.active) {
+        wasActive = true;
+        root.classList.add('visible');
+
+        setPortrait(document.getElementById('portrait1'), d.p1 && d.p1.imageUrl);
+        setPortrait(document.getElementById('portrait2'), d.p2 && d.p2.imageUrl);
+
+        document.getElementById('fill1').style.height = d.p1Pct + '%';
+        document.getElementById('fill2').style.height = d.p2Pct + '%';
+        document.getElementById('pct1').textContent = Math.round(d.p1Pct) + '%';
+        document.getElementById('pct2').textContent = Math.round(d.p2Pct) + '%';
+        document.getElementById('votes1').textContent = d.votes['1'] + ' vote' + (d.votes['1'] !== 1 ? 's' : '');
+        document.getElementById('votes2').textContent = d.votes['2'] + ' vote' + (d.votes['2'] !== 1 ? 's' : '');
+      } else {
+        if (wasActive) {
+          root.classList.remove('visible');
+          wasActive = false;
+          document.getElementById('fill1').style.height = '0%';
+          document.getElementById('fill2').style.height = '0%';
+          document.getElementById('pct1').textContent = '0%';
+          document.getElementById('pct2').textContent = '0%';
+          document.getElementById('votes1').textContent = '0 votes';
+          document.getElementById('votes2').textContent = '0 votes';
+          setPortrait(document.getElementById('portrait1'), null);
+          setPortrait(document.getElementById('portrait2'), null);
+        }
+      }
+    } catch(e) {}
+  }
+
+  poll();
+  setInterval(poll, 2000);
+</script>
+</body>
+</html>

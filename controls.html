@@ -621,6 +621,49 @@
   }
 
 
+  /* ── Chat tab ── */
+  #wtab-chat-btn { border-color:rgba(0,133,255,0.3) !important; color:rgba(90,180,255,0.6) !important; }
+  #wtab-chat-btn:hover { border-color:rgba(0,133,255,0.6) !important; color:#5ab4ff !important; }
+  #wtab-chat-btn.active { background:#000d22 !important; border-color:#0085ff !important; color:#5ab4ff !important; box-shadow: inset 3px 3px 0 0 rgba(0,6,26,0.9), inset -3px -3px 0 0 rgba(0,133,255,0.4) !important; }
+  #wtab-chat { width:480px; }
+  /* Chat widget cards — same visual style as WIDGETS tab cards */
+  .chat-widget-card {
+    background: #0d1b2e;
+    border: 1px solid rgba(255,255,255,0.15);
+    overflow: hidden;
+  }
+  .chat-widget-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px; cursor: pointer; user-select: none;
+    border-bottom: 1px solid transparent;
+  }
+  .chat-widget-header:hover { background: rgba(255,255,255,0.03); }
+  .chat-widget-arrow { font-size:9px; color:rgba(255,255,255,0.4); flex-shrink:0; }
+  .chat-widget-body {
+    padding: 14px; display: flex; flex-direction: column; gap: 12px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .chat-widget-body.hidden { display: none; }
+  /* command rows */
+  .cmd-row { display: flex; gap: 6px; align-items: center; }
+  .cmd-row input { flex: 1; }
+  /* poll character grid */
+  .poll-char-grid {
+    display: flex; flex-wrap: wrap; gap: 6px; max-height: 180px; overflow-y: auto;
+  }
+  .poll-char-item {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 4px; border: 2px solid rgba(58,159,200,0.2); cursor: pointer;
+    width: 60px;
+  }
+  .poll-char-item:hover { border-color: rgba(58,159,200,0.6); }
+  .poll-char-item.selected { border-color: #3a9fc8; background: rgba(58,159,200,0.15); }
+  .poll-char-item img { width: 36px; height: 36px; object-fit: contain; image-rendering: pixelated; }
+  .poll-char-item span { font-family: 'MMRock9', monospace; font-size: 6px; color: #aaa; text-align: center; word-break: break-all; }
+  .poll-toggle-wrap { display: flex; gap: 0; }
+  .poll-toggle-wrap .px-btn { flex: 1; }
+  .poll-toggle-wrap .px-btn.active { background: rgba(58,159,200,0.25); border-color: #3a9fc8; color: #5bc8f5; }
+
   /* ── Protect range inputs from pixel box system ── */
   input[type=range] {
     flex:1;
@@ -748,6 +791,7 @@
     <button class="btn px-btn" id="wtab-music-btn" onclick="showWidgetTab('music',this)" style="flex:1;padding:10px;">MUSIC</button>
     <button class="btn px-btn" id="wtab-widgets-btn" onclick="showWidgetTab('widgets',this)" style="flex:1;padding:10px;">WIDGETS</button>
     <button class="btn px-btn" id="wtab-discord-btn" onclick="showWidgetTab('discord',this)" style="flex:1;padding:10px;position:relative;">DISCORD<span id="discord-tab-dot" style="position:absolute;top:5px;right:7px;width:6px;height:6px;border-radius:50%;background:#23a55a;box-shadow:0 0 5px #23a55a;display:none;"></span></button>
+    <button class="btn px-btn" id="wtab-chat-btn" onclick="showWidgetTab('chat',this)" style="flex:1;padding:10px;">CHAT</button>
     <button class="btn px-btn" id="wtab-preview-btn" onclick="showWidgetTab('preview',this)" style="flex:1;padding:10px;">PREVIEW</button>
   </div>
 
@@ -1266,6 +1310,208 @@
     </div>
   </div><!-- /preview tab -->
 
+  <!-- ── CHAT TAB ── -->
+  <div id="wtab-chat" style="display:none;width:480px;">
+
+    <!-- YouTube Account (collapsible dropdown — same pattern as Discord account) -->
+    <div style="background:#000d22;border:1px solid rgba(0,133,255,0.35);margin-bottom:14px;box-shadow:inset 2px 2px 0 0 rgba(0,133,255,0.15),inset -2px -2px 0 0 rgba(0,6,26,0.8);">
+      <button class="px-btn" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:8px 10px;" onclick="ytAccountToggle()">
+        <span style="font-size:9px;letter-spacing:0.1em;color:#5ab4ff;">YOUTUBE ACCOUNT</span>
+        <span style="display:flex;align-items:center;gap:10px;">
+          <span id="yt-account-indicator" style="font-size:7px;letter-spacing:0.06em;color:rgba(255,255,255,0.25);">● NOT CONNECTED</span>
+          <span id="yt-account-arrow" style="font-size:10px;color:rgba(255,255,255,0.5);">▶</span>
+        </span>
+      </button>
+      <div id="yt-account-section" style="max-height:0;overflow:hidden;transition:max-height 0.4s ease;">
+        <div style="padding:10px;display:flex;flex-direction:column;gap:8px;">
+          <div>
+            <div class="section-label">GOOGLE CLIENT ID</div>
+            <input class="file-input" type="text" id="ytClientId" placeholder="xxxx.apps.googleusercontent.com" style="width:100%;" oninput="autoSave()">
+          </div>
+          <div>
+            <div class="section-label">GOOGLE CLIENT SECRET</div>
+            <input class="file-input" type="password" id="ytClientSecret" placeholder="GOCSPX-..." style="width:100%;" oninput="autoSave()">
+          </div>
+          <div style="font-size:7px;color:rgba(255,255,255,0.2);line-height:2;letter-spacing:0.04em;">
+            console.cloud.google.com → APIs → YouTube Data API v3<br>
+            Credentials → OAuth client → Redirect: http://127.0.0.1:7777/youtube-callback
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="px-btn" style="flex:1;padding:7px;font-size:7px;" onclick="ytSaveAndConnect()">CONNECT YOUTUBE</button>
+            <button class="px-btn" style="flex:1;padding:7px;font-size:7px;" onclick="ytFindBroadcast()">FIND BROADCAST</button>
+            <button class="px-btn" style="padding:7px 10px;font-size:7px;color:#f87171;" onclick="ytDisconnect()">DISCONNECT</button>
+          </div>
+          <div class="file-status" id="ytStatus">Not connected</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat widget cards (same visual style as WIDGETS tab) -->
+    <div style="display:flex;flex-direction:column;gap:12px;">
+
+      <!-- Bitly Download Counter -->
+      <div class="chat-widget-card">
+        <div class="chat-widget-header" onclick="chatWidgetToggle(this)">
+          <span class="section-label" style="margin:0;flex:1;color:#5bc8f5;">BITLY DOWNLOAD COUNTER</span>
+          <span class="chat-widget-arrow">▾</span>
+        </div>
+        <div class="chat-widget-body">
+          <div>
+            <div class="section-label">BITLY API TOKEN</div>
+            <input class="file-input" type="password" id="bitlyToken" placeholder="Bearer token" style="width:100%;" oninput="autoSave()">
+          </div>
+          <div>
+            <div class="section-label">BITLY LINK</div>
+            <input class="file-input" type="text" id="bitlyLink" placeholder="bit.ly/xxxxxx" style="width:100%;" oninput="autoSave()">
+          </div>
+          <div>
+            <div class="section-label">OVERLAY LABEL</div>
+            <select class="file-input" id="bitlyLabel" style="width:100%;" onchange="autoSave()">
+              <option value="DOWNLOADS">DOWNLOADS</option>
+              <option value="CLICKS">CLICKS</option>
+              <option value="VIEWS">VIEWS</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="px-btn" style="flex:1;padding:7px;font-size:7px;" onclick="fetchBitlyCount()">TEST FETCH</button>
+          </div>
+          <div class="file-status" id="bitlyStatus"></div>
+          <div>
+            <div class="section-label" style="margin-bottom:4px;">OBS OVERLAY URL</div>
+            <div class="preview-url" style="font-size:7px;" onclick="copyUrl('http://127.0.0.1:7777/bitly-overlay','copy-bitly-url')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#3a9fc8" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              <span>127.0.0.1:7777/bitly-overlay</span>
+            </div>
+            <div class="copy-flash" id="copy-bitly-url"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Commands -->
+      <div class="chat-widget-card">
+        <div class="chat-widget-header" onclick="chatWidgetToggle(this)">
+          <span class="section-label" style="margin:0;flex:1;color:#5bc8f5;">CHAT COMMANDS</span>
+          <span class="chat-widget-arrow">▾</span>
+        </div>
+        <div class="chat-widget-body">
+          <div style="font-size:7px;color:rgba(255,255,255,0.3);letter-spacing:0.08em;line-height:1.6;">Bot replies in YouTube live chat when a viewer types the command.</div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <span class="section-label" style="flex:0 0 110px;margin:0;">COMMAND</span>
+            <span class="section-label" style="flex:1;margin:0;">RESPONSE</span>
+          </div>
+          <div id="cmdList" style="display:flex;flex-direction:column;gap:4px;"></div>
+          <div style="display:flex;gap:6px;">
+            <button class="px-btn" style="flex:1;padding:7px;font-size:7px;" onclick="addChatCommand()">+ ADD COMMAND</button>
+            <button class="px-btn" style="flex:1;padding:7px;font-size:7px;" onclick="saveChatCommands()">SAVE</button>
+          </div>
+          <div class="file-status" id="cmdStatus"></div>
+        </div>
+      </div>
+
+      <!-- Live Poll -->
+      <div class="chat-widget-card">
+        <div class="chat-widget-header" onclick="chatWidgetToggle(this)">
+          <span class="section-label" style="margin:0;flex:1;color:#5bc8f5;">LIVE POLL — WHO WINS?</span>
+          <span class="chat-widget-arrow">▾</span>
+        </div>
+        <div class="chat-widget-body">
+
+          <!-- Mock preview at top -->
+          <div>
+            <div class="section-label">LIVE PREVIEW</div>
+            <div style="background:#030c1c;border:3px solid #000;box-shadow:inset 2px 2px 0 #0a1628;padding:12px;display:flex;gap:12px;height:160px;">
+              <!-- P1 column -->
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:0;">
+                <div style="flex:1;width:100%;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;">
+                  <div id="mock-fill1" style="width:100%;height:0%;background:#3a9fc8;transition:height 0.6s ease;min-height:2px;opacity:0.2;"></div>
+                </div>
+                <div id="mock-portrait1" style="width:44px;height:44px;background:#0d1b2e;border:2px solid rgba(58,159,200,0.3);overflow:hidden;flex-shrink:0;">
+                  <img id="mock-portrait1-img" style="display:none;width:100%;height:100%;object-fit:cover;image-rendering:pixelated;" alt="">
+                </div>
+                <div id="mock-pct1" style="font-family:'MMRock9',monospace;font-size:10px;color:#3a9fc8;text-shadow:1px 1px 0 #000;margin-top:3px;">0%</div>
+                <div id="mock-votes1" style="font-family:'MMRock9',monospace;font-size:7px;color:rgba(58,159,200,0.6);">0 votes</div>
+              </div>
+              <!-- P2 column -->
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:0;">
+                <div style="flex:1;width:100%;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;">
+                  <div id="mock-fill2" style="width:100%;height:0%;background:#ff6694;transition:height 0.6s ease;min-height:2px;opacity:0.2;"></div>
+                </div>
+                <div id="mock-portrait2" style="width:44px;height:44px;background:#0d1b2e;border:2px solid rgba(255,102,148,0.3);overflow:hidden;flex-shrink:0;">
+                  <img id="mock-portrait2-img" style="display:none;width:100%;height:100%;object-fit:cover;image-rendering:pixelated;" alt="">
+                </div>
+                <div id="mock-pct2" style="font-family:'MMRock9',monospace;font-size:10px;color:#ff6694;text-shadow:1px 1px 0 #000;margin-top:3px;">0%</div>
+                <div id="mock-votes2" style="font-family:'MMRock9',monospace;font-size:7px;color:rgba(255,102,148,0.6);">0 votes</div>
+              </div>
+            </div>
+            <div id="pollLiveStatus" style="font-family:'MMRock9',monospace;font-size:7px;color:rgba(255,255,255,0.4);letter-spacing:0.06em;margin-top:4px;min-height:12px;text-align:center;"></div>
+          </div>
+
+          <!-- Poll controls -->
+          <div style="display:flex;gap:6px;">
+            <button class="px-btn" style="flex:1;padding:8px;font-size:7px;color:#4ade80;" onclick="pollOpenPoll()">OPEN POLL</button>
+            <button class="px-btn" style="flex:1;padding:8px;font-size:7px;color:#f87171;" onclick="pollClosePoll()">CLOSE POLL</button>
+          </div>
+
+          <!-- Mode toggle -->
+          <div>
+            <div class="section-label">PORTRAIT MODE</div>
+            <div class="poll-toggle-wrap">
+              <button class="px-btn active" id="poll-mode-char" onclick="pollToggleMode('char')" style="padding:7px;font-size:7px;">CHARACTER</button>
+              <button class="px-btn" id="poll-mode-avatar" onclick="pollToggleMode('avatar')" style="padding:7px;font-size:7px;">AVATAR</button>
+            </div>
+          </div>
+
+          <!-- Character mode -->
+          <div id="poll-char-section">
+            <button class="px-btn" style="width:100%;padding:7px;font-size:7px;margin-bottom:6px;" onclick="pollLoadCharacters()">LOAD CHARACTERS FROM TOURNEY</button>
+            <div class="file-status" id="pollCharStatus"></div>
+            <div style="display:flex;gap:8px;">
+              <div style="flex:1;">
+                <div class="section-label" style="color:#3a9fc8;">P1 CHARACTER</div>
+                <div class="poll-char-grid" id="pollCharGrid1"></div>
+                <div id="pollCharSelected1" style="font-family:'MMRock9',monospace;font-size:6px;color:#3a9fc8;margin-top:4px;min-height:12px;"></div>
+              </div>
+              <div style="flex:1;">
+                <div class="section-label" style="color:#ff6694;">P2 CHARACTER</div>
+                <div class="poll-char-grid" id="pollCharGrid2"></div>
+                <div id="pollCharSelected2" style="font-family:'MMRock9',monospace;font-size:6px;color:#ff6694;margin-top:4px;min-height:12px;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Avatar mode -->
+          <div id="poll-avatar-section" style="display:none;">
+            <div style="display:flex;gap:6px;">
+              <div style="flex:1;">
+                <div class="section-label">P1 NAME</div>
+                <input class="file-input" type="text" id="pollP1Name" placeholder="Player 1 tag" style="width:100%;">
+              </div>
+              <div style="flex:1;">
+                <div class="section-label">P2 NAME</div>
+                <input class="file-input" type="text" id="pollP2Name" placeholder="Player 2 tag" style="width:100%;">
+              </div>
+            </div>
+            <button class="px-btn" style="width:100%;padding:7px;font-size:7px;margin-top:6px;" onclick="pollFetchAvatars()">FETCH AVATARS</button>
+            <div class="file-status" id="pollAvatarStatus"></div>
+          </div>
+
+          <!-- OBS URL -->
+          <div>
+            <div class="section-label" style="margin-bottom:4px;">OBS OVERLAY URL</div>
+            <div class="preview-url" style="font-size:7px;" onclick="copyUrl('http://127.0.0.1:7777/poll-overlay','copy-poll-url')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#3a9fc8" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              <span>127.0.0.1:7777/poll-overlay</span>
+            </div>
+            <div class="copy-flash" id="copy-poll-url"></div>
+          </div>
+
+        </div>
+      </div>
+
+    </div><!-- /chat widget cards -->
+
+  </div><!-- /chat tab -->
+
 </div><!-- /widget-page -->
 
 
@@ -1536,6 +1782,149 @@
         <li>Solo Slot 1: <span class="hl-url">http://127.0.0.1:7777/discord-overlay-solo?slot=s1</span></li>
         <li>Solo Slot 2: <span class="hl-url">http://127.0.0.1:7777/discord-overlay-solo?slot=s2</span></li>
       </ul>
+    </div>
+  </details>
+
+  <!-- ── CHAT ENGAGEMENT ── -->
+  <div class="howto-group-label">CHAT ENGAGEMENT</div>
+
+  <details class="howto-details">
+    <summary style="color:#5ab4ff;">LINKING YOUR YOUTUBE ACCOUNT</summary>
+    <div class="howto-details-body">
+      <p>The Chat Engagement tab connects to your YouTube live chat so StreamArena can read viewer votes for the Live Poll and post automatic replies for Chat Commands. To do this you need a Google OAuth credential — a key you generate yourself that lets StreamArena talk to YouTube on your behalf. This only takes about 10 minutes to set up and you only ever do it once.</p>
+
+      <p><span class="hl-widget">What can this access do?</span></p>
+      <p>The YouTube scope used here (<span class="hl-url">youtube</span>) gives access to your YouTube channel only — not Gmail, Drive, billing, or anything else on your Google account. The most damaging thing it could do is post or delete chat messages and comments on your channel, or change video visibility. It cannot delete your channel, change your Google password, or access any other Google service. In practice the access token lives only on your local machine in your profile file and the server only accepts connections from <span class="hl-url">127.0.0.1</span>, so nothing from the internet can reach it. If you ever want to cut access, go to <span class="hl-url">myaccount.google.com → Security → Third-party apps with account access</span> and revoke StreamArena instantly.</p>
+
+      <p><span class="hl-widget">Step 1 — Create a Google Cloud Project</span></p>
+      <ul>
+        <li>Go to <span class="hl-url">console.cloud.google.com</span> and sign in with your Google account.</li>
+        <li>At the top of the page, click the <span class="hl-widget">project selector dropdown</span> — it will say "Select a project" or show an existing project name next to the Google Cloud logo.</li>
+        <li>In the popup that opens, click <span class="hl-widget">New Project</span> in the top-right corner. Do not use any wizard shortcuts like "Deploy an application" or "Create an agent" — those are for different purposes.</li>
+        <li>Name it anything you like (e.g. <span class="hl-url">StreamArena</span>) and click <span class="hl-widget">Create</span>.</li>
+        <li>Wait a few seconds for the project to be created, then make sure it is selected in the dropdown before continuing.</li>
+      </ul>
+
+      <p><span class="hl-widget">Step 2 — Enable the YouTube Data API</span></p>
+      <ul>
+        <li>Click the hamburger menu (three lines) in the top-left corner if you don't see the sidebar.</li>
+        <li>Go to <span class="hl-widget">APIs &amp; Services → Library</span>.</li>
+        <li>Search for <span class="hl-url">YouTube Data API v3</span> and click the result.</li>
+        <li>Click <span class="hl-widget">Enable</span>. The page will reload and show a "Manage" button — that means it's active.</li>
+        <li>This step is required before the scope will appear in later steps — if you try to add the YouTube scope without enabling the API first, the search will return nothing.</li>
+      </ul>
+
+      <p><span class="hl-widget">Step 3 — Set up the OAuth Consent Screen</span></p>
+      <p>This is the screen your browser shows when you authorize StreamArena to access YouTube. You only see it once.</p>
+      <ul>
+        <li>In the left sidebar under <span class="hl-widget">APIs &amp; Services</span>, click <span class="hl-widget">OAuth consent screen</span>. If you're using the newer Google Cloud UI, this may appear as <span class="hl-widget">Branding</span> in a section called <span class="hl-widget">Auth</span> in the sidebar.</li>
+        <li>Select <span class="hl-widget">External</span> for User Type and click <span class="hl-widget">Create</span>.</li>
+        <li>Fill in the App name (e.g. StreamArena) and your email address for the support contact. Everything else is optional.</li>
+        <li>Click <span class="hl-widget">Save and Continue</span> to get to the Scopes screen. In the newer UI, Scopes may be called <span class="hl-widget">Data Access</span> in the left sidebar — click that instead.</li>
+      </ul>
+
+      <p><span class="hl-widget">Step 4 — Add the YouTube Scope</span></p>
+      <p>The scope controls exactly what YouTube actions StreamArena is allowed to perform.</p>
+      <ul>
+        <li>On the Scopes / Data Access screen, click <span class="hl-widget">Add or Remove Scopes</span>.</li>
+        <li>In the search box, type <span class="hl-url">youtube</span>. If nothing appears, go back and make sure you completed Step 2 — the API must be enabled first.</li>
+        <li>Check <span class="hl-url">https://www.googleapis.com/auth/youtube</span> — this is the full YouTube scope and is required for the bot to post chat command responses. If you only want poll vote reading and don't need chat replies, you can use <span class="hl-url">youtube.readonly</span> instead, but command responses won't work.</li>
+        <li>Click <span class="hl-widget">Update</span>, then <span class="hl-widget">Save and Continue</span>.</li>
+      </ul>
+
+      <p><span class="hl-widget">Step 5 — Add Yourself as a Test User</span></p>
+      <p>While the app is in Testing mode (which is fine — you never need to publish it), only accounts you explicitly list can use it.</p>
+      <ul>
+        <li>In the sidebar, click <span class="hl-widget">Audience</span> (or continue to the Test Users step in the wizard).</li>
+        <li>Under <span class="hl-widget">Test users</span>, click <span class="hl-widget">+ Add Users</span> and enter the Google account email address you stream with.</li>
+        <li>Save. You won't need to add anyone else — this is your personal tool.</li>
+      </ul>
+
+      <p><span class="hl-widget">Step 6 — Create OAuth Credentials</span></p>
+      <ul>
+        <li>In the sidebar, click <span class="hl-widget">Clients</span> (or <span class="hl-widget">Credentials</span> in the older UI) → <span class="hl-widget">+ Create Credentials</span> → <span class="hl-widget">OAuth client ID</span>.</li>
+        <li>Set Application type to <span class="hl-widget">Web application</span>.</li>
+        <li>Under <span class="hl-widget">Authorized redirect URIs</span>, click <span class="hl-widget">+ Add URI</span> and enter exactly: <span class="hl-url">http://127.0.0.1:7777/youtube-callback</span></li>
+        <li>Click <span class="hl-widget">Create</span>. A popup shows your <span class="hl-widget">Client ID</span> and <span class="hl-widget">Client Secret</span>.</li>
+        <li>The Client ID is the long string ending in <span class="hl-url">.apps.googleusercontent.com</span>. The Client Secret is a shorter string starting with <span class="hl-url">GOCSPX-</span>. Copy both — use the copy icon next to each value, or click the edit/pencil icon on your credential to see the full values at any time.</li>
+      </ul>
+
+      <p><span class="hl-widget">Step 7 — Connect in StreamArena</span></p>
+      <ul>
+        <li>Go to the <span class="hl-widget">Chat</span> tab in Widget Settings.</li>
+        <li>Click <span class="hl-widget">YouTube Account</span> to expand the dropdown.</li>
+        <li>Paste your <span class="hl-widget">Client ID</span> and <span class="hl-widget">Client Secret</span> into the fields. They save automatically as you type.</li>
+        <li>Click <span class="hl-widget">Connect YouTube</span>. A browser window opens showing Google's sign-in / consent screen. Sign in with your YouTube account and click <span class="hl-widget">Allow</span>.</li>
+        <li>The browser will redirect back to StreamArena automatically. The status indicator in the YouTube Account section will update to show your channel name.</li>
+        <li>Start or join a YouTube live stream, then click <span class="hl-widget">Find Broadcast</span> to connect StreamArena to the live chat. You can test this with an unlisted stream — the API works identically regardless of stream visibility.</li>
+        <li>Once a broadcast is found, the poll and chat commands are live. The status will confirm the live chat is active.</li>
+      </ul>
+
+      <p><span class="hl-widget">You only do this once.</span> Your access token is saved locally in your profile and refreshes automatically. On future sessions StreamArena reconnects without asking you to sign in again — just click <span class="hl-widget">Find Broadcast</span> when your stream goes live.</p>
+    </div>
+  </details>
+
+  <details class="howto-details">
+    <summary style="color:#5ab4ff;">LIVE POLL</summary>
+    <div class="howto-details-body">
+      <p>The <span class="hl-widget">Live Poll</span> lets viewers vote in YouTube chat on who will win the upcoming match by typing <span class="hl-url">1</span> or <span class="hl-url">2</span>. Each viewer can only vote once. The results display as two vertical bars on a sidebar overlay in real time.</p>
+
+      <p><span class="hl-widget">Setting up portraits</span></p>
+      <p>You can display either tournament character art or player avatars at the base of each bar. Switch between modes using the <span class="hl-widget">CHARACTER / AVATAR</span> toggle.</p>
+      <ul>
+        <li><span class="hl-widget">Character mode</span> — click <span class="hl-widget">Load Characters from Tourney</span> to pull the character roster from your active Start.gg tournament. Character images are fetched automatically. Click a character in the P1 grid to assign it to Player 1, and the P2 grid to assign Player 2.</li>
+        <li><span class="hl-widget">Avatar mode</span> — type the Start.gg gamer tags for P1 and P2 and click <span class="hl-widget">Fetch Avatars</span>. StreamArena searches the tournament participant list and pulls their profile pictures.</li>
+      </ul>
+
+      <p><span class="hl-widget">Running the poll</span></p>
+      <ul>
+        <li>After assigning portraits, click <span class="hl-widget">Open Poll</span>. The overlay becomes visible and starts counting votes immediately. The mock preview in the panel updates every 3 seconds so you can watch the numbers live without switching windows.</li>
+        <li>Click <span class="hl-widget">Close Poll</span> when voting is done. The overlay fades out and stays hidden until the next poll is opened.</li>
+        <li>Opening a new poll always resets the vote counts. You cannot reopen a closed poll and retain its votes.</li>
+      </ul>
+
+      <p>Add this to Streamlabs as a browser source: <span class="hl-url">http://127.0.0.1:7777/poll-overlay</span></p>
+      <p>Size it as a tall narrow strip on the side of the screen — it is designed for portrait/sidebar layout.</p>
+    </div>
+  </details>
+
+  <details class="howto-details">
+    <summary style="color:#5ab4ff;">CHAT COMMANDS</summary>
+    <div class="howto-details-body">
+      <p>Chat Commands let you define <span class="hl-url">!commands</span> that StreamArena watches for in your YouTube live chat. When a viewer types a command, the bot automatically posts the response you configured. This requires YouTube to be connected and a broadcast to be found.</p>
+      <ul>
+        <li>In the <span class="hl-widget">Chat Commands</span> card, click <span class="hl-widget">+ Add Command</span>.</li>
+        <li>In the left field, type the command exactly as viewers will type it — include the <span class="hl-url">!</span> prefix (e.g. <span class="hl-url">!bracket</span>).</li>
+        <li>In the right field, type the response the bot will post in chat.</li>
+        <li>Add as many commands as you need, then click <span class="hl-widget">Save</span>. Commands are saved to your profile and load automatically next session.</li>
+        <li>Commands are case-insensitive — <span class="hl-url">!Bracket</span> and <span class="hl-url">!bracket</span> both trigger the same response.</li>
+        <li>To remove a command, click the <span class="hl-url">X</span> button on its row and click Save.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="howto-details">
+    <summary style="color:#5ab4ff;">BITLY DOWNLOAD COUNTER</summary>
+    <div class="howto-details-body">
+      <p>The <span class="hl-widget">Bitly Download Counter</span> displays a live click count from a Bitly short link as an overlay on stream. Use it to show download counts, view counts, or click counts for any link you've shortened through Bitly. The number animates upward like a clock when it changes.</p>
+
+      <p><span class="hl-widget">Step 1 — Get a Bitly API token</span></p>
+      <ul>
+        <li>Log in at <span class="hl-url">app.bitly.com</span> and click your profile icon in the top-right.</li>
+        <li>Go to <span class="hl-widget">Account Settings</span> → <span class="hl-widget">API</span>.</li>
+        <li>Enter your password and click <span class="hl-widget">Generate token</span>. Copy the token shown.</li>
+      </ul>
+
+      <p><span class="hl-widget">Step 2 — Configure in StreamArena</span></p>
+      <ul>
+        <li>Paste the token into <span class="hl-widget">Bitly API Token</span>.</li>
+        <li>Paste your short link into <span class="hl-widget">Bitly Link</span> — just the short part, like <span class="hl-url">bit.ly/xxxxxx</span>, without <span class="hl-url">https://</span>.</li>
+        <li>Choose a label from the dropdown: <span class="hl-widget">Downloads</span>, <span class="hl-widget">Clicks</span>, or <span class="hl-widget">Views</span> — this appears above the number on the overlay.</li>
+        <li>Click <span class="hl-widget">Test Fetch</span> to confirm the count loads correctly before going live.</li>
+      </ul>
+
+      <p>Add this to Streamlabs as a browser source: <span class="hl-url">http://127.0.0.1:7777/bitly-overlay</span></p>
+      <p>The count refreshes every 30 seconds automatically.</p>
     </div>
   </details>
 
@@ -2452,7 +2841,7 @@
 
 
   function showWidgetTab(tab, btn) {
-    ['general','music','widgets','discord','preview'].forEach(t => {
+    ['general','music','widgets','discord','chat','preview'].forEach(t => {
       document.getElementById('wtab-'+t).style.display = t===tab ? 'block' : 'none';
       const b = document.getElementById('wtab-'+t+'-btn');
       if(b) b.classList.toggle('active', t===tab);
@@ -2462,6 +2851,7 @@
       if (!document.querySelector('#widget-grid .widget-slot')) renderWidgetGrid();
       refreshFileList();
     }
+    if(tab==='chat') { ytCheckStatus(); pollRefreshStatus(); }
   }
 
   function toggleCol(header) {
@@ -2858,6 +3248,16 @@
       if (d.discordOverlay2)    discordOverlay2Cfg  = Object.assign({}, discordOverlay2Cfg,  d.discordOverlay2);
       if (d.discordOverlaySolo) discordSoloCfg      = Object.assign({}, discordSoloCfg,      d.discordOverlaySolo);
       discordLoadCfg(getActiveCfg());
+
+      // Chat Engagement fields
+      setEl('ytClientId',     d.ytClientId     || '');
+      setEl('ytClientSecret', d.ytClientSecret || '');
+      setEl('bitlyToken',     d.bitlyToken     || '');
+      setEl('bitlyLink',      d.bitlyLink      || '');
+      const bitlyLabelEl = document.getElementById('bitlyLabel');
+      if (bitlyLabelEl && d.bitlyLabel) bitlyLabelEl.value = d.bitlyLabel;
+      if (Array.isArray(d.chatCommands)) { _chatCommands = d.chatCommands.map(c => Object.assign({}, c)); renderChatCommands(); }
+      ytCheckStatus();
 
       // Auto-actions after fields are set
       if (d.startggToken && d.startggTourneyUrl) {
@@ -3620,6 +4020,11 @@
     add('bskyFilterKeyword',  get('bskyFilterKeyword') || 'Replay');
     add('discordClientId',     get('discordClientId'));
     add('discordClientSecret', get('discordClientSecret'));
+    add('ytClientId',     get('ytClientId'));
+    add('ytClientSecret', get('ytClientSecret'));
+    add('bitlyToken',     get('bitlyToken'));
+    add('bitlyLink',      get('bitlyLink'));
+    add('bitlyLabel',     get('bitlyLabel'));
     if (!Object.keys(body).length) return;
     await fetch('/save-settings', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -5090,6 +5495,286 @@
     }
   }
   setInterval(heartbeat, 3000);
+
+  // ── Chat Engagement ───────────────────────────────────────────────────────────
+
+  function ytAccountToggle() {
+    const sec   = document.getElementById('yt-account-section');
+    const arrow = document.getElementById('yt-account-arrow');
+    const open  = !sec.style.maxHeight || sec.style.maxHeight === '0px';
+    sec.style.maxHeight = open ? '500px' : '0px';
+    if (arrow) arrow.textContent = open ? '▼' : '▶';
+  }
+
+  function chatWidgetToggle(header) {
+    const body  = header.nextElementSibling;
+    const arrow = header.querySelector('.chat-widget-arrow');
+    const hidden = body.classList.toggle('hidden');
+    header.style.borderBottom = hidden ? '1px solid transparent' : '1px solid rgba(255,255,255,0.08)';
+    if (arrow) arrow.textContent = hidden ? '▸' : '▾';
+  }
+
+  // ── YouTube Account ──────────────────────────────────────────────────────────
+
+  async function ytCheckStatus() {
+    try {
+      const r = await fetch('/youtube-status');
+      const d = await r.json();
+      updateYtStatusIndicator(d);
+    } catch(e) {}
+  }
+
+  function updateYtStatusIndicator(d) {
+    const statusEl = document.getElementById('ytStatus');
+    const indEl    = document.getElementById('yt-account-indicator');
+    if (d.connected) {
+      let msg = 'Connected: ' + (d.channelName || 'YouTube');
+      if (d.liveChatId) msg += ' | Live chat active';
+      else msg += ' | No broadcast found';
+      if (statusEl) { statusEl.className = 'file-status ok'; statusEl.textContent = msg; }
+      if (indEl)    { indEl.style.color = '#4ade80'; indEl.textContent = '● ' + (d.channelName || 'CONNECTED'); }
+    } else {
+      if (statusEl) { statusEl.className = 'file-status'; statusEl.textContent = 'Not connected'; }
+      if (indEl)    { indEl.style.color = 'rgba(255,255,255,0.25)'; indEl.textContent = '● NOT CONNECTED'; }
+    }
+  }
+
+  async function ytSaveAndConnect() {
+    const id  = document.getElementById('ytClientId')?.value?.trim() || '';
+    const sec = document.getElementById('ytClientSecret')?.value?.trim() || '';
+    if (!id || !sec) { flashChatStatus('ytStatus', 'Enter Client ID and Secret first', true); return; }
+    await fetch('/save-settings', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ytClientId: id, ytClientSecret: sec })
+    });
+    window.open('/youtube-auth', '_blank', 'width=600,height=700');
+    flashChatStatus('ytStatus', 'Complete sign-in in the popup, then click FIND BROADCAST', false);
+  }
+
+  async function ytDisconnect() {
+    await fetch('/youtube-disconnect', { method: 'POST' }).catch(() => {});
+    flashChatStatus('ytStatus', 'Disconnected', false);
+  }
+
+  async function ytFindBroadcast() {
+    flashChatStatus('ytStatus', 'Searching for active broadcast...', false);
+    try {
+      const r = await fetch('/youtube-find-broadcast', { method: 'POST' });
+      const d = await r.json();
+      if (d.ok) { flashChatStatus('ytStatus', 'Broadcast found: ' + (d.title || 'live'), false); ytCheckStatus(); }
+      else { flashChatStatus('ytStatus', d.error || 'No active broadcast found', true); }
+    } catch(e) { flashChatStatus('ytStatus', 'Error: ' + e.message, true); }
+  }
+
+  function flashChatStatus(id, msg, isErr) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = msg;
+    el.className = 'file-status' + (isErr ? ' err' : ' ok');
+  }
+
+  setInterval(ytCheckStatus, 15000);
+
+  // ── Bitly ────────────────────────────────────────────────────────────────────
+
+  async function fetchBitlyCount() {
+    flashChatStatus('bitlyStatus', 'Fetching...', false);
+    try {
+      const r = await fetch('/bitly-count');
+      const d = await r.json();
+      if (d.error && !d.count) { flashChatStatus('bitlyStatus', 'Error: ' + d.error, true); return; }
+      flashChatStatus('bitlyStatus', (d.label || 'DOWNLOADS') + ': ' + d.count, false);
+    } catch(e) { flashChatStatus('bitlyStatus', 'Fetch failed', true); }
+  }
+
+  // ── Chat Commands ─────────────────────────────────────────────────────────────
+
+  let _chatCommands = [];
+
+  function renderChatCommands() {
+    const list = document.getElementById('cmdList');
+    if (!list) return;
+    list.innerHTML = '';
+    _chatCommands.forEach((cmd, i) => {
+      const row = document.createElement('div');
+      row.className = 'cmd-row';
+      row.innerHTML =
+        '<input class="file-input" type="text" placeholder="!command" value="' + escAttr(cmd.command || '') + '" style="flex:0 0 110px;" oninput="_chatCommands['+i+'].command=this.value">' +
+        '<input class="file-input" type="text" placeholder="Response text..." value="' + escAttr(cmd.response || '') + '" style="flex:1;" oninput="_chatCommands['+i+'].response=this.value">' +
+        '<button class="px-btn" style="padding:5px 9px;font-size:9px;color:#f87171;" onclick="deleteChatCommand('+i+')">X</button>';
+      list.appendChild(row);
+    });
+  }
+
+  function escAttr(s) { return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+  function addChatCommand() {
+    _chatCommands.push({ command: '', response: '' });
+    renderChatCommands();
+  }
+
+  function deleteChatCommand(i) {
+    _chatCommands.splice(i, 1);
+    renderChatCommands();
+  }
+
+  async function saveChatCommands() {
+    try {
+      await fetch('/save-commands', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(_chatCommands)
+      });
+      flashChatStatus('cmdStatus', 'Commands saved', false);
+    } catch(e) { flashChatStatus('cmdStatus', 'Save failed', true); }
+  }
+
+  // ── Live Poll ─────────────────────────────────────────────────────────────────
+
+  let _pollMode = 'char';
+  let _pollP1 = { name: '', imageUrl: '' };
+  let _pollP2 = { name: '', imageUrl: '' };
+  let _pollChars = [];
+  let _pollSel1 = null, _pollSel2 = null;
+  let _pollRefreshTimer = null;
+
+  function pollToggleMode(mode) {
+    _pollMode = mode;
+    document.getElementById('poll-mode-char').classList.toggle('active', mode === 'char');
+    document.getElementById('poll-mode-avatar').classList.toggle('active', mode === 'avatar');
+    document.getElementById('poll-char-section').style.display = mode === 'char' ? '' : 'none';
+    document.getElementById('poll-avatar-section').style.display = mode === 'avatar' ? '' : 'none';
+  }
+
+  async function pollLoadCharacters() {
+    flashChatStatus('pollCharStatus', 'Loading...', false);
+    try {
+      const r = await fetch('/startgg-characters');
+      const d = await r.json();
+      if (!d.characters || !d.characters.length) { flashChatStatus('pollCharStatus', 'No characters found — check tourney URL', true); return; }
+      _pollChars = d.characters;
+      flashChatStatus('pollCharStatus', d.characters.length + ' characters loaded', false);
+      _renderCharGrid('pollCharGrid1', 1);
+      _renderCharGrid('pollCharGrid2', 2);
+    } catch(e) { flashChatStatus('pollCharStatus', 'Error: ' + e.message, true); }
+  }
+
+  function _renderCharGrid(gridId, player) {
+    const grid = document.getElementById(gridId);
+    if (!grid) return;
+    grid.innerHTML = '';
+    const sel = player === 1 ? _pollSel1 : _pollSel2;
+    _pollChars.forEach((ch, i) => {
+      const item = document.createElement('div');
+      item.className = 'poll-char-item' + (sel === i ? ' selected' : '');
+      item.innerHTML = ch.images && ch.images.length
+        ? '<img src="' + ch.images[0].url + '" alt="' + escAttr(ch.name) + '">'
+        : '<div style="width:36px;height:36px;background:#111;"></div>';
+      item.innerHTML += '<span>' + escAttr(ch.name) + '</span>';
+      item.onclick = () => _selectChar(i, player);
+      grid.appendChild(item);
+    });
+  }
+
+  function _selectChar(idx, player) {
+    const ch = _pollChars[idx];
+    if (!ch) return;
+    const imgUrl = (ch.images && ch.images.length) ? ch.images[0].url : '';
+    if (player === 1) {
+      _pollSel1 = idx;
+      _pollP1 = { name: ch.name, imageUrl: imgUrl };
+      const el = document.getElementById('pollCharSelected1');
+      if (el) el.textContent = ch.name;
+    } else {
+      _pollSel2 = idx;
+      _pollP2 = { name: ch.name, imageUrl: imgUrl };
+      const el = document.getElementById('pollCharSelected2');
+      if (el) el.textContent = ch.name;
+    }
+    _renderCharGrid(player === 1 ? 'pollCharGrid1' : 'pollCharGrid2', player);
+  }
+
+  async function pollFetchAvatars() {
+    const p1 = document.getElementById('pollP1Name')?.value?.trim() || '';
+    const p2 = document.getElementById('pollP2Name')?.value?.trim() || '';
+    if (!p1 || !p2) { flashChatStatus('pollAvatarStatus', 'Enter both player names', true); return; }
+    flashChatStatus('pollAvatarStatus', 'Fetching avatars...', false);
+    try {
+      const r = await fetch('/startgg-player-avatars', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p1, p2 })
+      });
+      const d = await r.json();
+      _pollP1 = { name: p1, imageUrl: d.p1 || '' };
+      _pollP2 = { name: p2, imageUrl: d.p2 || '' };
+      flashChatStatus('pollAvatarStatus', 'Avatars loaded', false);
+    } catch(e) { flashChatStatus('pollAvatarStatus', 'Error: ' + e.message, true); }
+  }
+
+  async function pollOpenPoll() {
+    const p1 = _pollMode === 'char' ? _pollP1 : { name: document.getElementById('pollP1Name')?.value?.trim() || 'P1', imageUrl: _pollP1.imageUrl };
+    const p2 = _pollMode === 'char' ? _pollP2 : { name: document.getElementById('pollP2Name')?.value?.trim() || 'P2', imageUrl: _pollP2.imageUrl };
+    // Mirror selected portraits into mock immediately
+    if (p1.imageUrl) { const img = document.getElementById('mock-portrait1-img'); if (img) { img.src = p1.imageUrl; img.style.display = 'block'; } }
+    if (p2.imageUrl) { const img = document.getElementById('mock-portrait2-img'); if (img) { img.src = p2.imageUrl; img.style.display = 'block'; } }
+    try {
+      await fetch('/poll-open', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p1, p2 })
+      });
+      pollRefreshStatus();
+      if (!_pollRefreshTimer) _pollRefreshTimer = setInterval(pollRefreshStatus, 3000);
+    } catch(e) {}
+  }
+
+  async function pollClosePoll() {
+    try {
+      await fetch('/poll-close', { method: 'POST' });
+      if (_pollRefreshTimer) { clearInterval(_pollRefreshTimer); _pollRefreshTimer = null; }
+      pollRefreshStatus();
+    } catch(e) {}
+  }
+
+  async function pollRefreshStatus() {
+    try {
+      const r = await fetch('/poll-status');
+      const d = await r.json();
+
+      const liveEl = document.getElementById('pollLiveStatus');
+      if (liveEl) {
+        if (d.active) {
+          liveEl.textContent = 'POLL OPEN — ' + d.total + ' votes';
+          liveEl.style.color = '#4ade80';
+        } else {
+          liveEl.textContent = d.total ? 'Poll closed — ' + d.total + ' votes' : 'POLL CLOSED';
+          liveEl.style.color = 'rgba(255,255,255,0.4)';
+        }
+      }
+
+      // Update mock preview bars
+      const p1Pct = d.p1Pct || 0, p2Pct = d.p2Pct || 0;
+      const v1 = d.votes ? d.votes['1'] : 0, v2 = d.votes ? d.votes['2'] : 0;
+      const fill1 = document.getElementById('mock-fill1');
+      const fill2 = document.getElementById('mock-fill2');
+      if (fill1) { fill1.style.height = p1Pct + '%'; fill1.style.opacity = d.active ? '1' : '0.25'; }
+      if (fill2) { fill2.style.height = p2Pct + '%'; fill2.style.opacity = d.active ? '1' : '0.25'; }
+      const pct1el = document.getElementById('mock-pct1'); if (pct1el) pct1el.textContent = Math.round(p1Pct) + '%';
+      const pct2el = document.getElementById('mock-pct2'); if (pct2el) pct2el.textContent = Math.round(p2Pct) + '%';
+      const mv1 = document.getElementById('mock-votes1'); if (mv1) mv1.textContent = v1 + (v1 !== 1 ? ' votes' : ' vote');
+      const mv2 = document.getElementById('mock-votes2'); if (mv2) mv2.textContent = v2 + (v2 !== 1 ? ' votes' : ' vote');
+
+      // Update portrait images in mock if p1/p2 have images
+      if (d.p1 && d.p1.imageUrl) {
+        const img1 = document.getElementById('mock-portrait1-img');
+        if (img1) { img1.src = d.p1.imageUrl; img1.style.display = 'block'; }
+      }
+      if (d.p2 && d.p2.imageUrl) {
+        const img2 = document.getElementById('mock-portrait2-img');
+        if (img2) { img2.src = d.p2.imageUrl; img2.style.display = 'block'; }
+      }
+    } catch(e) {}
+  }
+
+  // ── End Chat Engagement ───────────────────────────────────────────────────────
 
   load().then(() => { setTimeout(loadSaveData, 250); });
 </script>
