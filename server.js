@@ -38,6 +38,8 @@ let triggerCount = 0;
 
 // ── Countdown state ───────────────────────────────────────────────────────────
 let countdownState = { running: false, endTime: null, remaining: 0, totalMs: 300000 };
+let _bitlyCache = null; // { rawCount, stat }
+let _bitlyCacheTs = 0;
 
 function tickCountdown() {
   if (countdownState.running && countdownState.endTime) {
@@ -85,10 +87,41 @@ const DEFAULTS = {
   ytRefreshToken: '',
   ytTokenExpiry: 0,
   ytChannelName: '',
+  autoSyncStreamQueue: false,
   chatCommands: [],
+  poll: {
+    p1Color: '#3a9fc8', p2Color: '#ff6694', barWidth: 40, barGap: 12,
+    bgOpacity: 0, bgRadius: 0, bgWidth: 200, bgHeight: 300, barRadius: 0,
+    maxHeightEnabled: false, maxHeight: 300,
+    pctSize: 18, voteSize: 12, pfpSize: 80,
+    pfpShape: 'square', pollType: 'vs'
+  },
+  chatWidgetEnabled: { bitly: true, chatcmds: true, poll: true },
+  helpSettings: { enabled: true, format: 'verbose', separator: ' | ' },
+  tabOrder: null,
   bitlyToken: '',
   bitlyLink: '',
   bitlyLabel: 'DOWNLOADS',
+  bitlyCountOffset: 0,
+  bitlyCountSince: '',
+  bitlyCountFontSize: 48,
+  bitlyLabelColor: '#3a9fc8',
+  bitlyCountColor: '#ffffff',
+  bitlyInSlideshow: false,
+  bitlySlideshow: 'none',
+  bitlyStat: 'alltime',
+  bitlyPosition: 'bottom-right',
+  slideshowLinks: [],
+  info: {
+    folder: '',
+    imageDuration: 10,
+    htmlDuration: 20,
+    videoDuration: 0,
+    fadeTime: 1,
+    randomize: true,
+    transition: 'fade',
+    links: []
+  },
   brb: {
     folder:   'C:/Users/kisha/Desktop/MMA_Casting/MMA_Resources/StreamResources/SpotifyDisplay/Server/brb_display',
     imageDuration: 10,
@@ -298,7 +331,7 @@ function parseSong(raw, overrides) {
 }
 
 // ── YouTube Chat global state ─────────────────────────────────────────────────
-if (!global.ytState)   global.ytState   = { liveChatId: null, nextPageToken: null, polling: false, pollTimer: null };
+if (!global.ytState)   global.ytState   = { liveChatId: null, nextPageToken: null, polling: false, pollTimer: null, seenIds: new Set(), nextPollInterval: 15000 };
 if (!global.pollState) global.pollState = { active: false, votes: { '1': 0, '2': 0 }, voters: new Map(), p1: { name: '', imageUrl: '' }, p2: { name: '', imageUrl: '' } };
 
 function ytApiReq(method, pathStr, params, body, token) {
@@ -368,7 +401,14 @@ async function ytPollOnce() {
   const r = await ytApiReq('GET', '/youtube/v3/liveChat/messages', params, null, token);
   if (r.status !== 200) return;
   yt.nextPageToken = r.body.nextPageToken || null;
+  // Respect YouTube's suggested interval, floor at 15s to protect daily quota
+  yt.nextPollInterval = Math.max(15000, r.body.pollingIntervalMillis || 15000);
   for (const msg of (r.body.items || [])) {
+    if (yt.seenIds.has(msg.id)) continue;
+    yt.seenIds.add(msg.id);
+    if (yt.seenIds.size > 5000) {
+      const arr = [...yt.seenIds]; yt.seenIds = new Set(arr.slice(-2500));
+    }
     const text = (msg.snippet?.textMessageDetails?.messageText || '').trim();
     const channelId = msg.authorDetails?.channelId || '';
     if (!text || !channelId) continue;
@@ -377,14 +417,33 @@ async function ytPollOnce() {
       global.pollState.voters.set(channelId, text);
     }
     const lower = text.toLowerCase();
+    // !help auto-reply
+    const hs = s.helpSettings || {};
+    if (hs.enabled !== false && (lower === '!help' || lower.startsWith('!help '))) {
+      const cmds = (s.chatCommands || []).filter(c => c.command && c.response);
+      if (cmds.length > 0) {
+        const sep = hs.separator || ' | ';
+        const helpText = hs.format === 'compact'
+          ? cmds.map(c => c.command).join(sep)
+          : cmds.map(c => c.command + ' -> ' + c.response).join(sep);
+        const freshToken = await ytEnsureToken();
+        if (freshToken) {
+          const sent = await ytApiReq('POST', '/youtube/v3/liveChat/messages', { part: 'snippet' },
+            { snippet: { liveChatId: yt.liveChatId, type: 'textMessageEvent', textMessageDetails: { messageText: helpText } } }, freshToken);
+          if (sent.body?.id) yt.seenIds.add(sent.body.id);
+        }
+      }
+      continue;
+    }
     for (const cmd of (s.chatCommands || [])) {
       if (!cmd.command || !cmd.response) continue;
       const c = cmd.command.toLowerCase();
       if (lower === c || lower.startsWith(c + ' ')) {
         const freshToken = await ytEnsureToken();
         if (freshToken) {
-          await ytApiReq('POST', '/youtube/v3/liveChat/messages', { part: 'snippet' },
+          const sent = await ytApiReq('POST', '/youtube/v3/liveChat/messages', { part: 'snippet' },
             { snippet: { liveChatId: yt.liveChatId, type: 'textMessageEvent', textMessageDetails: { messageText: cmd.response } } }, freshToken);
+          if (sent.body?.id) yt.seenIds.add(sent.body.id);
         }
         break;
       }
@@ -392,20 +451,122 @@ async function ytPollOnce() {
   }
 }
 
+function ytScheduleNextPoll() {
+  const yt = global.ytState;
+  if (!yt.polling) return;
+  const delay = Math.max(15000, yt.nextPollInterval || 15000);
+  yt.pollTimer = setTimeout(() => {
+    ytPollOnce().catch(() => {}).finally(() => { ytScheduleNextPoll(); });
+  }, delay);
+}
+
 function ytStartPolling() {
   if (global.ytState.polling) return;
   global.ytState.polling = true;
-  global.ytState.pollTimer = setInterval(() => { ytPollOnce().catch(() => {}); }, 5000);
+  global.ytState.nextPollInterval = 15000;
+  ytScheduleNextPoll();
+}
+
+async function ytConnectAndStart(liveChatId) {
+  ytStopPolling();
+  global.ytState.liveChatId = liveChatId;
+  global.ytState.nextPageToken = null;
+  global.ytState.seenIds = new Set();
+  // Advance cursor to "now" — fetch current messages once without processing them
+  const token = await ytEnsureToken();
+  if (token) {
+    try {
+      const r = await ytApiReq('GET', '/youtube/v3/liveChat/messages',
+        { liveChatId, part: 'snippet', maxResults: '200' }, null, token);
+      if (r.status === 200) {
+        if (r.body.nextPageToken) global.ytState.nextPageToken = r.body.nextPageToken;
+        // Mark all existing messages as already seen so they are never processed
+        for (const msg of (r.body.items || [])) { if (msg.id) global.ytState.seenIds.add(msg.id); }
+      }
+    } catch(e) {}
+  }
+  ytStartPolling();
 }
 
 function ytStopPolling() {
-  if (global.ytState.pollTimer) clearInterval(global.ytState.pollTimer);
+  if (global.ytState.pollTimer) clearTimeout(global.ytState.pollTimer);
   global.ytState.polling = false;
   global.ytState.pollTimer = null;
 }
 // ── End YouTube Chat global state ─────────────────────────────────────────────
 
+// ── Stream Queue Auto-Sync ────────────────────────────────────────────────────
+if (!global.streamQueueState) global.streamQueueState = {
+  sets: [], lastTopId: null, lastFetch: 0, error: null
+};
+
+function _sqExtractPfp(participants) {
+  const imgs = participants?.[0]?.player?.user?.images || [];
+  const profile = imgs.find(i => i.type === 'profile') || imgs[0];
+  return profile?.url || '';
+}
+
+async function doStreamQueuePoll() {
+  const s = loadSettings();
+  if (!s.startggToken || !s.startggTourneyUrl) return;
+  const slug = s.startggTourneyUrl
+    .replace('https://www.start.gg/tournament/', '')
+    .replace('https://start.gg/tournament/', '')
+    .split('/')[0];
+  if (!slug) return;
+  const https = require('https');
+  const query = `query StreamQueue($slug:String!){tournament(slug:$slug){streamQueue{sets{id fullRoundText slots{entrant{name participants{player{user{images{url type}}}}}}}}}}}`;
+  const payload = JSON.stringify({ query, variables: { slug } });
+  const buf = Buffer.from(payload);
+  try {
+    const apiRes = await new Promise((resolve, reject) => {
+      const r = https.request({
+        hostname: 'api.start.gg', path: '/gql/alpha', method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + s.startggToken, 'Content-Length': buf.length }
+      }, res2 => { let d = ''; res2.on('data', c => d += c); res2.on('end', () => { try { resolve(JSON.parse(d)); } catch(e) { resolve({}); } }); });
+      r.on('error', reject); r.write(buf); r.end();
+    });
+    const rawSets = apiRes.data?.tournament?.streamQueue?.sets || [];
+    global.streamQueueState.sets = rawSets.map(set => {
+      const s0 = set.slots?.[0]; const s1 = set.slots?.[1];
+      return {
+        id: set.id,
+        round: set.fullRoundText || '',
+        p1: { name: s0?.entrant?.name || '?', pfpUrl: _sqExtractPfp(s0?.entrant?.participants) },
+        p2: { name: s1?.entrant?.name || '?', pfpUrl: _sqExtractPfp(s1?.entrant?.participants) }
+      };
+    });
+    global.streamQueueState.error = null;
+    global.streamQueueState.lastFetch = Date.now();
+    // Auto-update Next Match when top set changes
+    const top = global.streamQueueState.sets[0];
+    if (top && top.id !== global.streamQueueState.lastTopId) {
+      global.streamQueueState.lastTopId = top.id;
+      const fresh = loadSettings();
+      fresh.brb = fresh.brb || {};
+      fresh.brb.widgets = fresh.brb.widgets || {};
+      fresh.brb.widgets.nextMatch = Object.assign({}, fresh.brb.widgets.nextMatch || {}, {
+        p1: top.p1.name, p2: top.p2.name, round: top.round
+      });
+      saveSettings(fresh);
+    }
+  } catch(e) {
+    global.streamQueueState.error = e.message;
+  }
+}
+
+function startStreamQueuePolling() {
+  stopStreamQueuePolling();
+  doStreamQueuePoll();
+  global.streamQueueTimer = setInterval(doStreamQueuePoll, 30000);
+}
+
+function stopStreamQueuePolling() {
+  if (global.streamQueueTimer) { clearInterval(global.streamQueueTimer); global.streamQueueTimer = null; }
+}
+
 // ── Server ───────────────────────────────────────────────────────────────────
+let _discordAutoLoginPending = true;
 const server = http.createServer(async (req, res) => {
   const parsed   = url.parse(req.url, true);
   const pathname = parsed.pathname;
@@ -420,7 +581,9 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/social')     { serveHtml('social-overlay.html',    res); return; }
   if (pathname === '/nextmatch')      { serveHtml('nextmatch-overlay.html',  res); return; }
   if (pathname === '/poll-overlay')         { serveHtml('poll-overlay.html',         res); return; }
+  if (pathname === '/poll-overlay-h')       { serveHtml('poll-overlay-h.html',       res); return; }
   if (pathname === '/bitly-overlay')        { serveHtml('bitly-overlay.html',        res); return; }
+  if (pathname === '/info-overlay')         { serveHtml('info-overlay.html',          res); return; }
   if (pathname === '/discord-overlay')      { serveHtml('discord-overlay.html',      res); return; }
   if (pathname === '/discord-overlay-2')    { serveHtml('discord-overlay.html',      res); return; }
   if (pathname === '/discord-overlay-solo') { serveHtml('discord-overlay-solo.html', res); return; }
@@ -657,10 +820,41 @@ const server = http.createServer(async (req, res) => {
       if (!bc) { json200(res, { error: 'No active broadcast found. Start your stream first.' }); return; }
       const liveChatId = bc.snippet?.liveChatId;
       if (!liveChatId) { json200(res, { error: 'Broadcast has no live chat' }); return; }
-      global.ytState.liveChatId = liveChatId;
-      global.ytState.nextPageToken = null;
-      ytStartPolling();
+      await ytConnectAndStart(liveChatId);
       json200(res, { ok: true, title: bc.snippet.title, liveChatId });
+    } catch(e) { json200(res, { error: e.message }); }
+    return;
+  }
+
+  if (pathname === '/youtube-set-broadcast' && req.method === 'POST') {
+    try {
+      const token = await ytEnsureToken();
+      if (!token) { json200(res, { error: 'Not connected to YouTube' }); return; }
+      const body = JSON.parse(await readBody(req));
+      let videoId = (body.videoId || '').trim();
+      // Accept full YouTube URLs — extract video ID from all common formats
+      const urlMatch = videoId.match(/[?&]v=([A-Za-z0-9_-]{11})/)       // watch?v=
+                    || videoId.match(/youtu\.be\/([A-Za-z0-9_-]{11})/)   // youtu.be/
+                    || videoId.match(/\/live\/([A-Za-z0-9_-]{11})/)       // youtube.com/live/
+                    || videoId.match(/\/shorts\/([A-Za-z0-9_-]{11})/);    // youtube.com/shorts/
+      if (urlMatch) videoId = urlMatch[1];
+      if (!videoId) { json200(res, { error: 'Enter a YouTube video URL or ID' }); return; }
+      const r = await ytApiReq('GET', '/youtube/v3/videos', { part: 'liveStreamingDetails,snippet', id: videoId }, null, token);
+      if (r.status !== 200 || r.body?.error) {
+        const reason = r.body?.error?.errors?.[0]?.reason || '';
+        if (reason === 'quotaExceeded' || r.status === 429) {
+          json200(res, { error: 'YouTube API daily quota exceeded — resets at midnight Pacific time. You can request a higher quota in Google Cloud Console → APIs & Services → YouTube Data API v3 → Quotas.' }); return;
+        }
+        const rawMsg = r.body?.error?.message || (typeof r.body?.error === 'string' ? r.body.error : null) || ('HTTP ' + r.status);
+        const apiMsg = rawMsg.replace(/<[^>]+>/g, '');
+        json200(res, { error: 'YouTube API error: ' + apiMsg }); return;
+      }
+      const video = r.body?.items?.[0];
+      if (!video) { json200(res, { error: 'Video not found (ID: ' + videoId + ') — it may be private, deleted, or the YouTube Data API v3 may not be enabled in your Google Cloud project' }); return; }
+      const liveChatId = video.liveStreamingDetails?.activeLiveChatId;
+      if (!liveChatId) { json200(res, { error: 'No active live chat — "' + (video.snippet?.title || videoId) + '" is not currently live' }); return; }
+      await ytConnectAndStart(liveChatId);
+      json200(res, { ok: true, title: video.snippet?.title || videoId, liveChatId });
     } catch(e) { json200(res, { error: e.message }); }
     return;
   }
@@ -670,9 +864,10 @@ const server = http.createServer(async (req, res) => {
     const total = ps.votes['1'] + ps.votes['2'];
     json200(res, {
       active: ps.active, votes: ps.votes, total,
-      p1Pct: total > 0 ? Math.round(ps.votes['1'] / total * 100) : 50,
-      p2Pct: total > 0 ? Math.round(ps.votes['2'] / total * 100) : 50,
-      p1: ps.p1, p2: ps.p2
+      p1Pct: total > 0 ? Math.round(ps.votes['1'] / total * 100) : 0,
+      p2Pct: total > 0 ? Math.round(ps.votes['2'] / total * 100) : 0,
+      p1: ps.p1, p2: ps.p2,
+      pollSettings: s.poll || {}
     }); return;
   }
 
@@ -696,15 +891,39 @@ const server = http.createServer(async (req, res) => {
 
   if (pathname === '/bitly-count') {
     try {
-      if (!s.bitlyToken || !s.bitlyLink) { json200(res, { count: 0, label: s.bitlyLabel || 'DOWNLOADS', error: 'Not configured' }); return; }
+      const stat = s.bitlyStat || 'alltime';
+      const stylePayload = {
+        label: s.bitlyLabel || 'DOWNLOADS',
+        countFontSize: s.bitlyCountFontSize || 48,
+        labelColor: s.bitlyLabelColor || '#3a9fc8',
+        countColor: s.bitlyCountColor || '#ffffff',
+        countSince: s.bitlyCountSince || '',
+        offset: stat === 'alltime' ? (s.bitlyCountOffset || 0) : 0,
+        bitlyStat: stat,
+        position: s.bitlyPosition || 'bottom-right'
+      };
+      if (!s.bitlyToken || !s.bitlyLink) { json200(res, { count: 0, ...stylePayload, error: 'Not configured' }); return; }
+
+      // Serve from cache if fresh (30s) and same stat
+      const now = Date.now();
+      if (_bitlyCache && _bitlyCache.stat === stat && (now - _bitlyCacheTs) < 30000) {
+        const offset = stat === 'alltime' ? (s.bitlyCountOffset || 0) : 0;
+        json200(res, { count: Math.max(0, _bitlyCache.rawCount - offset), rawCount: _bitlyCache.rawCount, ...stylePayload });
+        return;
+      }
+
+      const statQs = stat === 'today' ? '?unit=day&units=1&rollup=true'
+                   : stat === 'week7' ? '?unit=day&units=7&rollup=true'
+                   : stat === 'month' ? '?unit=month&units=1&rollup=true'
+                   :                    '?unit=month&units=-1&rollup=true';
       const bitlink = s.bitlyLink.replace(/^https?:\/\//, '');
       const https = require('https');
       const r = await new Promise((resolve, reject) => {
         const req2 = https.request({
-          hostname: 'api-ssl.bitly.com',
-          path: '/v4/bitlinks/' + encodeURIComponent(bitlink) + '/clicks/summary',
+          hostname: 'api-ssl.bitly.com', port: 443,
+          path: '/v4/bitlinks/' + encodeURIComponent(bitlink) + '/clicks/summary' + statQs,
           method: 'GET',
-          headers: { 'Authorization': 'Bearer ' + s.bitlyToken }
+          headers: { 'Authorization': 'Bearer ' + s.bitlyToken, 'Accept': 'application/json' }
         }, res2 => {
           let d = ''; res2.on('data', c => d += c);
           res2.on('end', () => { try { resolve({ status: res2.statusCode, body: JSON.parse(d) }); } catch(e) { resolve({ status: res2.statusCode, body: d }); } });
@@ -712,13 +931,120 @@ const server = http.createServer(async (req, res) => {
         req2.on('error', reject); req2.end();
       });
       if (r.status === 200) {
-        json200(res, { count: r.body.total_clicks || 0, label: s.bitlyLabel || 'DOWNLOADS' });
+        const raw = r.body.total_clicks || 0;
+        _bitlyCache = { rawCount: raw, stat }; _bitlyCacheTs = Date.now();
+        const offset = stat === 'alltime' ? (s.bitlyCountOffset || 0) : 0;
+        json200(res, { count: Math.max(0, raw - offset), rawCount: raw, ...stylePayload });
       } else {
-        const msg = typeof r.body === 'object' ? (r.body.message || r.body.description || JSON.stringify(r.body)) : String(r.body);
-        json200(res, { count: 0, label: s.bitlyLabel || 'DOWNLOADS', error: msg });
+        const msg = r.status === 403 ? 'FORBIDDEN — check token and that this link belongs to your Bitly account'
+                  : typeof r.body === 'object' ? (r.body.message || r.body.description || JSON.stringify(r.body)) : String(r.body);
+        json200(res, { count: 0, ...stylePayload, error: msg });
       }
     } catch(e) { json200(res, { count: 0, label: s.bitlyLabel || 'DOWNLOADS', error: e.message }); }
     return;
+  }
+
+  if (pathname === '/bitly-reset-count' && req.method === 'POST') {
+    try {
+      if (!s.bitlyToken || !s.bitlyLink) { json200(res, { error: 'Not configured' }); return; }
+      const bitlink = s.bitlyLink.replace(/^https?:\/\//, '');
+      const https = require('https');
+      const r = await new Promise((resolve, reject) => {
+        const req2 = https.request({
+          hostname: 'api-ssl.bitly.com', port: 443,
+          path: '/v4/bitlinks/' + encodeURIComponent(bitlink) + '/clicks/summary?unit=month&units=-1&rollup=true',
+          method: 'GET',
+          headers: { 'Authorization': 'Bearer ' + s.bitlyToken, 'Accept': 'application/json' }
+        }, res2 => {
+          let d = ''; res2.on('data', c => d += c);
+          res2.on('end', () => { try { resolve({ status: res2.statusCode, body: JSON.parse(d) }); } catch(e) { resolve({ status: res2.statusCode, body: d }); } });
+        });
+        req2.on('error', reject); req2.end();
+      });
+      if (r.status !== 200) {
+        const msg = r.status === 403 ? 'FORBIDDEN — check token' : (r.body?.message || 'API error');
+        json200(res, { error: msg }); return;
+      }
+      const raw = r.body.total_clicks || 0;
+      const now = new Date().toISOString();
+      s.bitlyCountOffset = raw;
+      s.bitlyCountSince = now;
+      _bitlyCache = null;
+      saveSettings(s);
+      json200(res, { ok: true, offset: raw, countSince: now });
+    } catch(e) { json200(res, { error: e.message }); }
+    return;
+  }
+
+  if (pathname === '/bitly-verify') {
+    try {
+      if (!s.bitlyToken) { json200(res, { ok: false, error: 'No token — enter your Bitly API token first' }); return; }
+      const https = require('https');
+      const r = await new Promise((resolve, reject) => {
+        const req2 = https.request({
+          hostname: 'api-ssl.bitly.com', port: 443,
+          path: '/v4/user', method: 'GET',
+          headers: { 'Authorization': 'Bearer ' + s.bitlyToken, 'Accept': 'application/json' }
+        }, res2 => {
+          let d = ''; res2.on('data', c => d += c);
+          res2.on('end', () => { try { resolve({ status: res2.statusCode, body: JSON.parse(d) }); } catch(e) { resolve({ status: res2.statusCode, body: {} }); } });
+        });
+        req2.on('error', reject); req2.end();
+      });
+      if (r.status === 200) {
+        json200(res, { ok: true, login: r.body.login || r.body.name || '', email: r.body.email || '' });
+      } else {
+        const msg = r.status === 403 ? 'FORBIDDEN — invalid or expired token' : (r.body?.message || 'API error ' + r.status);
+        json200(res, { ok: false, error: msg });
+      }
+    } catch(e) { json200(res, { ok: false, error: e.message }); }
+    return;
+  }
+
+  if (pathname === '/info-config') {
+    const info = s.info || {};
+    const folderSlides = scanBrbFolder(info.folder || '');
+    const inInfo = (sw) => sw === 'info' || sw === 'both';
+    // Unified manual links (fall back to old info.links if not migrated yet)
+    const allInfoLinks = s.slideshowLinks && s.slideshowLinks.length > 0
+      ? s.slideshowLinks
+      : (info.links || []).map(l => typeof l === 'string' ? { src: l, slideshow: 'info' } : { ...l, slideshow: 'info' });
+    const manualSlides = allInfoLinks.filter(l => {
+      const src = typeof l === 'string' ? l : (l.src || '');
+      return src && src.trim() && inInfo(l.slideshow);
+    }).map(l => {
+      const src = (typeof l === 'string' ? l : (l.src || '')).replace(/\\/g, '/');
+      const ext = path.extname(src).toLowerCase();
+      const type = HTML_EXTS.has(ext) ? 'iframe' : VIDEO_EXTS.has(ext) ? 'video' : 'image';
+      const dur = typeof l === 'object' ? l.duration : null;
+      return { type, src, manual: true, ...(dur ? { duration: dur } : {}) };
+    });
+    const seenInfo = new Set(folderSlides.map(s2 => s2.src));
+    const combined = [...folderSlides, ...manualSlides.filter(m => !seenInfo.has(m.src))];
+
+    // Add widget slides enabled for INFO
+    const w = s.brb.widgets || {};
+    if (w.clock     && inInfo(w.clock.slideshow))     combined.push({ type: 'clock',     config: w.clock });
+    if (w.countdown && inInfo(w.countdown.slideshow)) combined.push({ type: 'countdown', config: w.countdown });
+    if (w.social    && inInfo(w.social.slideshow))    combined.push({ type: 'social',    config: w.social });
+    if (w.nextMatch && w.nextMatch.p1 && w.nextMatch.p2 && inInfo(w.nextMatch.slideshow))
+      combined.push({ type: 'nextmatch', config: w.nextMatch });
+    if (inInfo(s.bitlySlideshow)) combined.push({ type: 'bitly' });
+    if (info.randomize !== false) {
+      for (let i = combined.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [combined[i], combined[j]] = [combined[j], combined[i]];
+      }
+    }
+    json200(res, {
+      slides: combined,
+      imageDuration: info.imageDuration || 10,
+      htmlDuration:  info.htmlDuration  || 20,
+      videoDuration: info.videoDuration || 0,
+      fadeTime:      info.fadeTime      || 1,
+      transition:    info.transition    || 'fade',
+      folder:        info.folder        || ''
+    }); return;
   }
 
   if (pathname === '/save-commands' && req.method === 'POST') {
@@ -731,14 +1057,133 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (pathname === '/stream-queue-status') {
+    json200(res, global.streamQueueState);
+    return;
+  }
+
+  if (pathname === '/stream-queue-poll' && req.method === 'POST') {
+    try {
+      await doStreamQueuePoll();
+      json200(res, global.streamQueueState);
+    } catch(e) { json200(res, { error: e.message, sets: [] }); }
+    return;
+  }
+
+  if (pathname === '/stream-queue-set-current' && req.method === 'POST') {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const set = global.streamQueueState.sets.find(s2 => String(s2.id) === String(body.setId));
+      if (!set) { json200(res, { error: 'Set not found' }); return; }
+      global.streamQueueState.lastTopId = set.id;
+      s.brb = s.brb || {};
+      s.brb.widgets = s.brb.widgets || {};
+      s.brb.widgets.nextMatch = Object.assign({}, s.brb.widgets.nextMatch || {}, {
+        p1: set.p1.name, p2: set.p2.name, round: set.round
+      });
+      saveSettings(s);
+      json200(res, { ok: true, set });
+    } catch(e) { json200(res, { error: e.message }); }
+    return;
+  }
+
   if (pathname === '/startgg-characters') {
     try {
       const token = s.startggToken;
-      const tourneyUrl = s.startggTourneyUrl || '';
+      const tourneyUrl = parsed.query.url || s.startggTourneyUrl || '';
       const slug = tourneyUrl.replace('https://www.start.gg/tournament/', '').replace('https://start.gg/tournament/', '').split('/')[0];
       if (!token || !slug) { json200(res, { characters: [] }); return; }
       const https = require('https');
-      const payload = JSON.stringify({ query: `query TournamentChars($slug:String!){tournament(slug:$slug){videogames{id name characters{id name images{url}}}}}`, variables: { slug } });
+
+      // Reusable GQL helper for this endpoint
+      const gqlPost = (query, variables) => new Promise((resolve, reject) => {
+        const buf = Buffer.from(JSON.stringify({ query, variables }));
+        const r = https.request({
+          hostname: 'api.start.gg', path: '/gql/alpha', method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token, 'Content-Length': buf.length }
+        }, res2 => { let d = ''; res2.on('data', c => d += c); res2.on('end', () => { try { resolve(JSON.parse(d)); } catch(e) { resolve({}); } }); });
+        r.on('error', reject); r.write(buf); r.end();
+      });
+
+      // Query videogame roster (global registry) AND all game selections across ALL sets
+      // (no state filter — includes in-progress and unreported sets so we see the full character pool).
+      // pageInfo lets us paginate to capture every character ever picked.
+      const Q = `query TournamentChars($slug:String!,$page:Int!){tournament(slug:$slug){
+        videogames{id name characters{id name images{url}}}
+        events{
+          videogame{id name characters{id name images{url}}}
+          sets(perPage:200 page:$page){
+            pageInfo{totalPages}
+            nodes{games{selections{character{id name images{url}}}}}
+          }
+        }
+      }}`;
+
+      // Fetch page 1, then remaining pages in parallel (cap at 5 pages = 1000 sets)
+      const first = await gqlPost(Q, { slug, page: 1 });
+      const eventsP1 = first.data?.tournament?.events || [];
+      const maxPages = eventsP1.reduce((m, ev) => Math.max(m, ev.sets?.pageInfo?.totalPages || 1), 1);
+      const extraPages = [];
+      for (let p = 2; p <= Math.min(maxPages, 5); p++) extraPages.push(p);
+      const extraResults = await Promise.all(extraPages.map(p => gqlPost(Q, { slug, page: p })));
+      const allResults = [first, ...extraResults];
+
+      const seen = new Set();
+      const characters = [];
+      const foundGames = [];
+
+      function collectRoster(game) {
+        if (!game) return;
+        if (game.name && !foundGames.includes(game.name)) foundGames.push(game.name);
+        for (const char of (game.characters || [])) {
+          const key = char.id != null ? String(char.id) : char.name;
+          if (!key || seen.has(key)) continue;
+          seen.add(key);
+          characters.push({ id: char.id, name: char.name, imageUrl: char.images?.[0]?.url || '', source: 'roster', game: game.name });
+        }
+      }
+      function collectSelChar(char, gameName) {
+        if (!char) return;
+        const key = char.id != null ? String(char.id) : char.name;
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        if (gameName && !foundGames.includes(gameName)) foundGames.push(gameName);
+        characters.push({ id: char.id, name: char.name, imageUrl: char.images?.[0]?.url || '', source: 'used', game: gameName || '' });
+      }
+
+      for (const result of allResults) {
+        const t = result.data?.tournament;
+        if (!t) continue;
+        for (const game of (t.videogames || [])) collectRoster(game);
+        for (const ev of (t.events || [])) {
+          collectRoster(ev.videogame);
+          const gameName = ev.videogame?.name || '';
+          for (const set of (ev.sets?.nodes || [])) {
+            for (const game of (set.games || [])) {
+              for (const sel of (game.selections || [])) {
+                collectSelChar(sel.character, gameName);
+              }
+            }
+          }
+        }
+      }
+
+      json200(res, { characters, games: foundGames, pages: allResults.length });
+    } catch(e) { json200(res, { characters: [], error: e.message }); }
+    return;
+  }
+
+  if (pathname === '/startgg-participants') {
+    try {
+      const token = s.startggToken;
+      const tourneyUrl = parsed.query.url || s.startggTourneyUrl || '';
+      const slug = tourneyUrl.replace('https://www.start.gg/tournament/', '').replace('https://start.gg/tournament/', '').split('/')[0];
+      if (!token || !slug) { json200(res, { participants: [] }); return; }
+      const https = require('https');
+      const payload = JSON.stringify({
+        query: `query Participants($slug:String!){tournament(slug:$slug){participants(query:{perPage:200,page:1}){nodes{gamerTag player{user{images{url type}}}}}}}`,
+        variables: { slug }
+      });
       const buf = Buffer.from(payload);
       const apiRes = await new Promise((resolve, reject) => {
         const r = https.request({
@@ -747,14 +1192,14 @@ const server = http.createServer(async (req, res) => {
         }, res2 => { let d = ''; res2.on('data', c => d += c); res2.on('end', () => { try { resolve(JSON.parse(d)); } catch(e) { resolve({}); } }); });
         r.on('error', reject); r.write(buf); r.end();
       });
-      const characters = [];
-      for (const game of (apiRes.data?.tournament?.videogames || [])) {
-        for (const char of (game.characters || [])) {
-          characters.push({ id: char.id, name: char.name, imageUrl: char.images?.[0]?.url || '', game: game.name });
-        }
-      }
-      json200(res, { characters });
-    } catch(e) { json200(res, { characters: [], error: e.message }); }
+      const nodes = apiRes.data?.tournament?.participants?.nodes || [];
+      const participants = nodes.map(n => {
+        const images = n.player?.user?.images || [];
+        const profile = images.find(i => i.type === 'profile') || images[0];
+        return { name: n.gamerTag || '', imageUrl: profile?.url || '' };
+      }).filter(p => p.name);
+      json200(res, { participants });
+    } catch(e) { json200(res, { participants: [], error: e.message }); }
     return;
   }
 
@@ -1371,6 +1816,12 @@ const server = http.createServer(async (req, res) => {
     tryPipe();
   }
 
+  // Auto-connect Discord on first request if client ID is saved
+  if (_discordAutoLoginPending && s.discordClientId && ds.status === 'disconnected') {
+    _discordAutoLoginPending = false;
+    setTimeout(() => discordConnect(s.discordClientId), 800);
+  }
+
   if (pathname === '/discord-connect' && req.method === 'POST') {
     try {
       const body = JSON.parse(await readBody(req));
@@ -1636,24 +2087,32 @@ const server = http.createServer(async (req, res) => {
   // ── BRB ──────────────────────────────────────────────────────────────────
   if (pathname === '/brb-config') {
     const folderSlides = scanBrbFolder(s.brb.folder);
-    // Merge manual links, detect type by extension
-    const manualSlides = (s.brb.links || []).filter(l => l && l.trim()).map(l => {
-      const normalized = l.replace(/\\/g, '/');
-      const ext = path.extname(l).toLowerCase();
+    const inBrb = (sw, leg) => sw === 'brb' || sw === 'both' || (!sw && !!leg);
+    // Unified manual links (fall back to old brb.links if not migrated yet)
+    const allLinks = s.slideshowLinks && s.slideshowLinks.length > 0
+      ? s.slideshowLinks
+      : (s.brb.links || []).map(l => typeof l === 'string' ? { src: l, slideshow: 'brb' } : { ...l, slideshow: 'brb' });
+    const manualSlides = allLinks.filter(l => {
+      const src = typeof l === 'string' ? l : (l.src || '');
+      return src && src.trim() && inBrb(l.slideshow, true);
+    }).map(l => {
+      const src = (typeof l === 'string' ? l : (l.src || '')).replace(/\\/g, '/');
+      const ext = path.extname(src).toLowerCase();
       const type = HTML_EXTS.has(ext) ? 'iframe' : VIDEO_EXTS.has(ext) ? 'video' : 'image';
-      return { type, src: normalized, manual: true };
+      const dur = typeof l === 'object' ? l.duration : null;
+      return { type, src, manual: true, ...(dur ? { duration: dur } : {}) };
     });
-    // Combine: folder first, then manual links (avoid duplicates by src)
     const seen = new Set(folderSlides.map(s => s.src));
     const combined = [...folderSlides, ...manualSlides.filter(m => !seen.has(m.src))];
 
-    // Add widget slides if enabled
+    // Add widget slides if enabled for BRB
     const w = s.brb.widgets || {};
-    if (w.clock && w.clock.inSlideshow)     combined.push({ type: 'clock',     config: w.clock });
-    if (w.countdown && w.countdown.inSlideshow) combined.push({ type: 'countdown', config: w.countdown });
-    if (w.social && w.social.inSlideshow)   combined.push({ type: 'social',    config: w.social });
-    if (w.nextMatch && w.nextMatch.inSlideshow && w.nextMatch.p1 && w.nextMatch.p2)
+    if (w.clock     && inBrb(w.clock.slideshow,     w.clock.inSlideshow))     combined.push({ type: 'clock',     config: w.clock });
+    if (w.countdown && inBrb(w.countdown.slideshow, w.countdown.inSlideshow)) combined.push({ type: 'countdown', config: w.countdown });
+    if (w.social    && inBrb(w.social.slideshow,    w.social.inSlideshow))    combined.push({ type: 'social',    config: w.social });
+    if (w.nextMatch && w.nextMatch.p1 && w.nextMatch.p2 && inBrb(w.nextMatch.slideshow, w.nextMatch.inSlideshow))
       combined.push({ type: 'nextmatch', config: w.nextMatch });
+    if (inBrb(s.bitlySlideshow, s.bitlyInSlideshow)) combined.push({ type: 'bitly' });
 
     // Shuffle or keep in order
     if (s.brb.randomize !== false) {
@@ -1704,17 +2163,41 @@ const server = http.createServer(async (req, res) => {
       if (body.bskyFilterKeyword !== undefined) s.bskyFilterKeyword = body.bskyFilterKeyword;
       if (body.ytClientId     !== undefined) s.ytClientId     = body.ytClientId;
       if (body.ytClientSecret !== undefined) s.ytClientSecret = body.ytClientSecret;
-      if (body.bitlyToken     !== undefined) s.bitlyToken     = body.bitlyToken;
-      if (body.bitlyLink      !== undefined) s.bitlyLink      = body.bitlyLink;
-      if (body.bitlyLabel     !== undefined) s.bitlyLabel     = body.bitlyLabel;
+      if (body.slideshowLinks      !== undefined) s.slideshowLinks     = body.slideshowLinks;
+      if (body.bitlyToken         !== undefined) { s.bitlyToken = body.bitlyToken; _bitlyCache = null; }
+      if (body.bitlyLink          !== undefined) { s.bitlyLink  = body.bitlyLink;  _bitlyCache = null; }
+      if (body.bitlyStat          !== undefined) { s.bitlyStat  = body.bitlyStat;  _bitlyCache = null; }
+      if (body.bitlySlideshow     !== undefined) s.bitlySlideshow     = body.bitlySlideshow;
+      if (body.bitlyLabel         !== undefined) s.bitlyLabel         = body.bitlyLabel;
+      if (body.bitlyCountFontSize !== undefined) s.bitlyCountFontSize = body.bitlyCountFontSize;
+      if (body.bitlyLabelColor    !== undefined) s.bitlyLabelColor    = body.bitlyLabelColor;
+      if (body.bitlyCountColor    !== undefined) s.bitlyCountColor    = body.bitlyCountColor;
+      if (body.bitlyPosition      !== undefined) s.bitlyPosition      = body.bitlyPosition;
+      if (body.bitlyInSlideshow   !== undefined) s.bitlyInSlideshow   = body.bitlyInSlideshow;
+      if (body.info !== undefined) s.info = Object.assign({}, s.info || {}, body.info);
       if (body.discordClientId     !== undefined) s.discordClientId     = body.discordClientId;
       if (body.discordClientSecret !== undefined) s.discordClientSecret = body.discordClientSecret;
       if (body.discordOverlay      !== undefined) s.discordOverlay      = Object.assign({}, s.discordOverlay || {}, body.discordOverlay);
       if (body.discordOverlay2     !== undefined) s.discordOverlay2     = Object.assign({}, s.discordOverlay2 || {}, body.discordOverlay2);
       if (body.discordOverlaySolo  !== undefined) s.discordOverlaySolo  = Object.assign({}, s.discordOverlaySolo || {}, body.discordOverlaySolo);
+      if (body.poll                !== undefined) s.poll                = Object.assign({}, s.poll || {}, body.poll);
+      if (body.chatWidgetEnabled   !== undefined) s.chatWidgetEnabled   = Object.assign({}, s.chatWidgetEnabled || {}, body.chatWidgetEnabled);
+      if (body.tabOrder            !== undefined) s.tabOrder            = body.tabOrder;
+      if (body.helpSettings        !== undefined) s.helpSettings        = Object.assign({}, s.helpSettings || {}, body.helpSettings);
       if (body.widgetEnabled !== undefined) s.widgetEnabled = body.widgetEnabled;
       if (body.widgetOpen !== undefined) s.widgetOpen = body.widgetOpen;
+      const prevAutoSync = loadSettings().autoSyncStreamQueue;
+      if (body.autoSyncStreamQueue !== undefined) s.autoSyncStreamQueue = body.autoSyncStreamQueue;
       saveSettings(s);
+      // Start/stop stream queue polling when toggle changes
+      if (body.autoSyncStreamQueue !== undefined && body.autoSyncStreamQueue !== prevAutoSync) {
+        if (s.autoSyncStreamQueue && s.startggToken && s.startggTourneyUrl) startStreamQueuePolling();
+        else stopStreamQueuePolling();
+      }
+      // Restart poll immediately if credentials changed while polling is active
+      if (global.streamQueueTimer && (body.startggToken !== undefined || body.startggTourneyUrl !== undefined)) {
+        startStreamQueuePolling();
+      }
       json200(res, { ok: true, settings: s });
     } catch(e) { res.writeHead(400); res.end('Bad request'); }
     return;
@@ -1840,4 +2323,8 @@ server.listen(PORT, '127.0.0.1', () => {
   console.log('  Keep this window open while streaming.');
   console.log('  Press Ctrl+C to stop.');
   console.log('');
+  const _s0 = loadSettings();
+  if (_s0.autoSyncStreamQueue && _s0.startggToken && _s0.startggTourneyUrl) {
+    setTimeout(startStreamQueuePolling, 2000);
+  }
 });

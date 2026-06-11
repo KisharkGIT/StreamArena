@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Poll Overlay</title>
+<title>Poll Overlay – Horizontal</title>
 <style>
   @font-face { font-family: 'MMRock9'; src: url('/fonts/MMRock9.ttf'); }
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -10,13 +10,13 @@
 
   #root {
     display: flex;
-    flex-direction: row;
-    align-items: flex-end;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
     gap: 12px;
     width: 100%;
     height: 100%;
-    padding: 12px 12px 16px 12px;
+    padding: 16px;
     opacity: 0;
     transition: opacity 1.5s ease;
     position: relative;
@@ -25,11 +25,11 @@
 
   #poll-bg {
     position: absolute;
-    bottom: 0;
     left: 50%;
-    transform: translateX(-50%);
-    width: 200px;
-    height: 300px;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 80%;
     background: transparent;
     border-radius: 0;
     pointer-events: none;
@@ -60,57 +60,93 @@
     z-index: 11;
   }
 
-  .bar-col {
+  .bar-row {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: flex-end;
-    flex: none;
-    height: 100%;
-    gap: 0;
-    position: relative;
-    z-index: 1;
-  }
-
-  .bar-wrap {
-    width: 40px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    overflow: hidden;
-    image-rendering: pixelated;
-    position: relative;
-    z-index: 1;
-  }
-
-  .bar-fill {
+    gap: 10px;
     width: 100%;
-    height: 0%;
-    transition: height 0.6s ease;
+    position: relative;
+    z-index: 1;
+    flex: none;
   }
-  #bar1 .bar-fill { background: #3a9fc8; }
-  #bar2 .bar-fill { background: #ff6694; }
 
   .portrait-wrap {
+    flex-shrink: 0;
     width: 80px;
     height: 80px;
-    flex-shrink: 0;
     overflow: hidden;
     image-rendering: pixelated;
     border: 3px solid #000;
     position: relative;
     z-index: 2;
   }
+  .portrait-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    image-rendering: pixelated;
+  }
+  .portrait-placeholder {
+    width: 100%;
+    height: 100%;
+    background: #1a1a2e;
+  }
+
+  .bar-track-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    overflow: visible;
+  }
+
+  .bar-track {
+    width: 100%;
+    height: 40px;
+    background: rgba(255,255,255,0.06);
+    position: relative;
+    overflow: visible;
+  }
+
+  .bar-fill {
+    height: 100%;
+    width: 0%;
+    transition: width 0.6s ease;
+    position: relative;
+    min-width: 2px;
+  }
+  #fill1 { background: #3a9fc8; }
+  #fill2 { background: #ff6694; }
+
+  .pct-label {
+    position: absolute;
+    left: calc(100% + 6px);
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'MMRock9', monospace;
+    font-size: 18px;
+    color: #fff;
+    text-shadow: 2px 2px 0 #000;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .votes-label {
+    font-family: 'MMRock9', monospace;
+    font-size: 12px;
+    color: #aaa;
+    text-shadow: 1px 1px 0 #000;
+    text-align: left;
+  }
 
   @keyframes winnerBounce {
-    0%   { transform: translateY(0) scale(1); }
-    15%  { transform: translateY(-24px) scale(1.08); }
-    30%  { transform: translateY(0) scale(1); }
-    45%  { transform: translateY(-14px) scale(1.04); }
-    60%  { transform: translateY(0) scale(1); }
-    75%  { transform: translateY(-7px) scale(1.02); }
-    100% { transform: translateY(0) scale(1); }
+    0%   { transform: translateX(0) scale(1); }
+    15%  { transform: translateX(10px) scale(1.05); }
+    30%  { transform: translateX(0) scale(1); }
+    45%  { transform: translateX(6px) scale(1.03); }
+    60%  { transform: translateX(0) scale(1); }
+    75%  { transform: translateX(3px) scale(1.01); }
+    100% { transform: translateX(0) scale(1); }
   }
   @keyframes winnerGlow {
     0%, 100% { filter: brightness(1) drop-shadow(0 0 0px transparent); }
@@ -143,41 +179,6 @@
     animation: sparkleUp 0.9s ease forwards;
     image-rendering: pixelated;
   }
-
-  @keyframes loserShrink {
-    0%   { opacity: 1; }
-    100% { opacity: 0.2; }
-  }
-
-  .portrait-wrap img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    image-rendering: pixelated;
-  }
-  .portrait-placeholder {
-    width: 100%;
-    height: 100%;
-    background: #1a1a2e;
-  }
-
-  .pct-label {
-    font-family: 'MMRock9', monospace;
-    font-size: 18px;
-    color: #fff;
-    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000;
-    margin-top: 4px;
-    text-align: center;
-  }
-
-  .votes-label {
-    font-family: 'MMRock9', monospace;
-    font-size: 12px;
-    color: #aaa;
-    text-shadow: 1px 1px 0 #000;
-    margin-top: 2px;
-    text-align: center;
-  }
 </style>
 </head>
 <body>
@@ -185,17 +186,29 @@
   <div id="poll-bg"></div>
   <div id="particles"></div>
   <div id="winner-label"></div>
-  <div class="bar-col" id="bar1">
-    <div class="bar-wrap" id="bar-wrap1"><div class="bar-fill" id="fill1"></div></div>
+
+  <div class="bar-row" id="bar-row1">
     <div class="portrait-wrap" id="portrait1"><div class="portrait-placeholder"></div></div>
-    <div class="pct-label" id="pct1">0%</div>
-    <div class="votes-label" id="votes1">0 votes</div>
+    <div class="bar-track-wrap">
+      <div class="bar-track" id="bar-track1">
+        <div class="bar-fill" id="fill1">
+          <span class="pct-label" id="pct1">0%</span>
+        </div>
+      </div>
+      <div class="votes-label" id="votes1">0 votes</div>
+    </div>
   </div>
-  <div class="bar-col" id="bar2">
-    <div class="bar-wrap" id="bar-wrap2"><div class="bar-fill" id="fill2"></div></div>
+
+  <div class="bar-row" id="bar-row2">
     <div class="portrait-wrap" id="portrait2"><div class="portrait-placeholder"></div></div>
-    <div class="pct-label" id="pct2">0%</div>
-    <div class="votes-label" id="votes2">0 votes</div>
+    <div class="bar-track-wrap">
+      <div class="bar-track" id="bar-track2">
+        <div class="bar-fill" id="fill2">
+          <span class="pct-label" id="pct2">0%</span>
+        </div>
+      </div>
+      <div class="votes-label" id="votes2">0 votes</div>
+    </div>
   </div>
 </div>
 <script>
@@ -213,27 +226,25 @@
     }
   }
 
-  // Clears animation effects but does NOT hide overlay or reset bar heights
   function resetWinnerState() {
     const label = document.getElementById('winner-label');
     if (label) { label.className = ''; label.textContent = ''; label.style.opacity = '0'; }
     const parts = document.getElementById('particles');
     if (parts) parts.innerHTML = '';
-    ['bar1','bar2'].forEach(id => {
-      const col = document.getElementById(id);
-      if (col) { col.classList.remove('winner-anim'); col.style.opacity = ''; col.style.transition = ''; }
+    ['bar-row1', 'bar-row2'].forEach(id => {
+      const row = document.getElementById(id);
+      if (row) { row.classList.remove('winner-anim'); row.style.opacity = ''; row.style.transition = ''; }
     });
-    ['fill1','fill2'].forEach(id => {
+    ['fill1', 'fill2'].forEach(id => {
       const f = document.getElementById(id);
-      if (f) { f.style.transition = 'height 0.6s ease'; f.style.filter = ''; }
+      if (f) { f.style.transition = 'width 0.6s ease'; f.style.filter = ''; }
     });
   }
 
-  // Full reset including bars/portraits — used when poll has 0 votes
   function fullReset() {
     resetWinnerState();
-    document.getElementById('fill1').style.height = '0%';
-    document.getElementById('fill2').style.height = '0%';
+    document.getElementById('fill1').style.width = '0%';
+    document.getElementById('fill2').style.width = '0%';
     document.getElementById('pct1').textContent = '0%';
     document.getElementById('pct2').textContent = '0%';
     document.getElementById('votes1').textContent = '0 votes';
@@ -242,27 +253,22 @@
     setPortrait(document.getElementById('portrait2'), null);
   }
 
-  function spawnParticles(winIdx, color) {
+  function spawnParticles(rowIdx, color) {
     const partsEl = document.getElementById('particles');
     if (!partsEl) return;
-    const winCol = document.getElementById('bar' + winIdx);
-    if (!winCol) return;
-
+    const row = document.getElementById('bar-row' + rowIdx);
+    if (!row) return;
     const colors = [color, '#ffffff', '#ffff66', color + 'bb'];
-    const count  = 12;
-
-    const colRect  = winCol.getBoundingClientRect();
+    const count = 12;
+    const rowRect  = row.getBoundingClientRect();
     const rootRect = root.getBoundingClientRect();
-
-    // Position relative to #root (which is position:relative)
-    const relLeft = colRect.left - rootRect.left;
-    const relTop  = colRect.top  - rootRect.top;
-
+    const relLeft = rowRect.left - rootRect.left;
+    const relTop  = rowRect.top  - rootRect.top;
     for (let i = 0; i < count; i++) {
       const p = document.createElement('div');
       p.className = 'particle';
-      const px = relLeft + Math.random() * colRect.width;
-      const py = relTop  + Math.random() * colRect.height * 0.6;
+      const px = relLeft + Math.random() * rowRect.width;
+      const py = relTop  + Math.random() * rowRect.height;
       const sz = 4 + Math.floor(Math.random() * 6);
       p.style.cssText = [
         'left:' + px + 'px',
@@ -275,7 +281,6 @@
       ].join(';');
       partsEl.appendChild(p);
     }
-    // Clean up particles after animation completes
     setTimeout(() => { if (partsEl) partsEl.innerHTML = ''; }, 1800);
   }
 
@@ -284,7 +289,6 @@
     const v1 = (d.votes && d.votes['1']) || 0;
     const v2 = (d.votes && d.votes['2']) || 0;
 
-    // No votes at all — hide overlay and fully reset
     if (v1 === 0 && v2 === 0) {
       root.classList.remove('visible');
       await sleep(1600);
@@ -293,30 +297,29 @@
       return;
     }
 
-    const tied   = v1 === v2;
+    const tied    = v1 === v2;
     const winIdx  = (!tied && v1 > v2) ? 1 : 2;
     const loseIdx = winIdx === 1 ? 2 : 1;
 
-    // Phase 1 — shrink loser (1s)
-    const loseCol  = document.getElementById('bar' + loseIdx);
+    // Phase 1 — shrink loser bar width to 0
+    const loseRow  = document.getElementById('bar-row'  + loseIdx);
     const loseFill = document.getElementById('fill' + loseIdx);
-    if (loseFill) { loseFill.style.transition = 'height 0.9s ease'; loseFill.style.height = '0%'; }
-    if (loseCol)  { loseCol.style.transition = 'opacity 0.7s ease'; loseCol.style.opacity = '0.18'; }
+    if (loseFill) { loseFill.style.transition = 'width 0.9s ease'; loseFill.style.width = '0%'; }
+    if (loseRow)  { loseRow.style.transition  = 'opacity 0.7s ease'; loseRow.style.opacity = '0.18'; }
 
     await sleep(1050);
 
     if (!tied) {
       // Phase 2 — winner celebration
-      const winCol   = document.getElementById('bar' + winIdx);
+      const winRow   = document.getElementById('bar-row' + winIdx);
       const winFill  = document.getElementById('fill' + winIdx);
       const winColor = winIdx === 1
         ? (document.getElementById('fill1')?.style.background || '#3a9fc8')
         : (document.getElementById('fill2')?.style.background || '#ff6694');
 
-      if (winCol)  winCol.classList.add('winner-anim');
-      if (winFill) { winFill.style.filter = 'brightness(1.5)'; }
+      if (winRow)  winRow.classList.add('winner-anim');
+      if (winFill) winFill.style.filter = 'brightness(1.5)';
 
-      // Show WINNER label
       const label = document.getElementById('winner-label');
       if (label) {
         const name = winIdx === 1
@@ -329,13 +332,11 @@
         label.className = 'show';
       }
 
-      // Spawn pixel particles
       spawnParticles(winIdx, winColor);
 
-      await sleep(1950); // 3 × 0.65s bounce
+      await sleep(1950);
     }
 
-    // Overlay stays visible — no fade out
     animating = false;
   }
 
@@ -347,14 +348,13 @@
     const barGap   = ps.barGap   || 12;
     const bgOpacity = ps.bgOpacity != null ? ps.bgOpacity : 0;
     const bgRadius  = ps.bgRadius  != null ? ps.bgRadius  : 0;
-    const bgWidth   = ps.bgWidth   != null ? ps.bgWidth   : 200;
-    const bgHeight  = ps.bgHeight  != null ? ps.bgHeight  : 300;
+    const bgWidth   = ps.bgWidth   != null ? ps.bgWidth   : 80;
+    const bgHeight  = ps.bgHeight  != null ? ps.bgHeight  : 80;
     const barRadius = ps.barRadius != null ? ps.barRadius : 0;
-    const maxHeightEnabled = !!ps.maxHeightEnabled;
-    const maxHeight = ps.maxHeight || 300;
-    const pctSize  = ps.pctSize  || 18;
-    const voteSize = ps.voteSize || 12;
-    const pfpSize  = ps.pfpSize  || 80;
+    const pctSize   = ps.pctSize   || 18;
+    const voteSize  = ps.voteSize  || 12;
+    const pfpSize   = ps.pfpSize   || 80;
+    const pfpShape  = ps.pfpShape  || 'square';
 
     root.style.gap = barGap + 'px';
 
@@ -366,7 +366,6 @@
       bgEl.style.height       = bgHeight + '%';
     }
 
-    // Position winner label just above the top edge of the bg element
     const winLabel = document.getElementById('winner-label');
     if (winLabel) {
       const rootH = (root && root.clientHeight) ? root.clientHeight : 600;
@@ -374,32 +373,24 @@
       winLabel.style.top = Math.max(4, bgTopPx - 40) + 'px';
     }
 
-    const bw1 = document.getElementById('bar-wrap1');
-    if (bw1) { bw1.style.width = barWidth + 'px'; bw1.style.maxHeight = maxHeightEnabled ? maxHeight + 'px' : ''; }
-    const bw2 = document.getElementById('bar-wrap2');
-    if (bw2) { bw2.style.width = barWidth + 'px'; bw2.style.maxHeight = maxHeightEnabled ? maxHeight + 'px' : ''; }
+    // Bar track height = barWidth setting (horizontal bars use height for thickness)
+    const t1 = document.getElementById('bar-track1'); if (t1) t1.style.height = barWidth + 'px';
+    const t2 = document.getElementById('bar-track2'); if (t2) t2.style.height = barWidth + 'px';
 
-    const f1 = document.getElementById('fill1');
-    if (f1) { f1.style.background = p1Color; f1.style.borderRadius = barRadius + 'px ' + barRadius + 'px 0 0'; }
-    const f2 = document.getElementById('fill2');
-    if (f2) { f2.style.background = p2Color; f2.style.borderRadius = barRadius + 'px ' + barRadius + 'px 0 0'; }
+    const f1 = document.getElementById('fill1'); if (f1) { f1.style.background = p1Color; f1.style.borderRadius = barRadius + 'px'; }
+    const f2 = document.getElementById('fill2'); if (f2) { f2.style.background = p2Color; f2.style.borderRadius = barRadius + 'px'; }
 
-    const pct1 = document.getElementById('pct1');
-    if (pct1) { pct1.style.color = p1Color; pct1.style.fontSize = pctSize + 'px'; }
-    const pct2 = document.getElementById('pct2');
-    if (pct2) { pct2.style.color = p2Color; pct2.style.fontSize = pctSize + 'px'; }
+    const pct1el = document.getElementById('pct1'); if (pct1el) { pct1el.style.color = p1Color; pct1el.style.fontSize = pctSize + 'px'; }
+    const pct2el = document.getElementById('pct2'); if (pct2el) { pct2el.style.color = p2Color; pct2el.style.fontSize = pctSize + 'px'; }
 
-    const v1el = document.getElementById('votes1'); if (v1el) v1el.style.fontSize = voteSize + 'px';
-    const v2el = document.getElementById('votes2'); if (v2el) v2el.style.fontSize = voteSize + 'px';
+    const v1el = document.getElementById('votes1'); if (v1el) { v1el.style.color = p1Color + 'aa'; v1el.style.fontSize = voteSize + 'px'; }
+    const v2el = document.getElementById('votes2'); if (v2el) { v2el.style.color = p2Color + 'aa'; v2el.style.fontSize = voteSize + 'px'; }
 
-    const pfpShape = ps.pfpShape || 'square';
-    const overlap  = Math.round(pfpSize * 0.45);
     [document.getElementById('portrait1'), document.getElementById('portrait2')].forEach(p => {
       if (!p) return;
       p.style.width        = pfpSize + 'px';
       p.style.height       = pfpSize + 'px';
       p.style.borderRadius = pfpShape === 'modern' ? '50%' : '0';
-      p.style.marginTop    = '-' + overlap + 'px';
     });
   }
 
@@ -412,28 +403,23 @@
       applyPollSettings(d.pollSettings);
 
       if (d.active) {
-        if (!wasActive) {
-          // New poll starting — clear winner state from any previous poll
-          resetWinnerState();
-        }
+        if (!wasActive) resetWinnerState();
         wasActive = true;
         root.classList.add('visible');
 
         setPortrait(document.getElementById('portrait1'), d.p1 && d.p1.imageUrl);
         setPortrait(document.getElementById('portrait2'), d.p2 && d.p2.imageUrl);
 
-        document.getElementById('fill1').style.height = d.p1Pct + '%';
-        document.getElementById('fill2').style.height = d.p2Pct + '%';
-        document.getElementById('pct1').textContent = Math.round(d.p1Pct) + '%';
-        document.getElementById('pct2').textContent = Math.round(d.p2Pct) + '%';
+        document.getElementById('fill1').style.width  = d.p1Pct + '%';
+        document.getElementById('fill2').style.width  = d.p2Pct + '%';
+        document.getElementById('pct1').textContent   = Math.round(d.p1Pct) + '%';
+        document.getElementById('pct2').textContent   = Math.round(d.p2Pct) + '%';
         document.getElementById('votes1').textContent = d.votes['1'] + ' vote' + (d.votes['1'] !== 1 ? 's' : '');
         document.getElementById('votes2').textContent = d.votes['2'] + ' vote' + (d.votes['2'] !== 1 ? 's' : '');
       } else {
         if (wasActive) {
           wasActive = false;
-          playWinnerAnimation(d).catch(() => {
-            animating = false;
-          });
+          playWinnerAnimation(d).catch(() => { animating = false; });
         }
       }
     } catch(e) {}

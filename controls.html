@@ -551,6 +551,7 @@
     font-size: 9px;
     letter-spacing: 0.08em;
     cursor: pointer;
+    color: #fff;
   }
   .px-btn:hover  { filter: brightness(1.22); }
   .px-btn:active {
@@ -622,22 +623,24 @@
 
 
   /* ── Chat tab ── */
-  #wtab-chat-btn { border-color:rgba(0,133,255,0.3) !important; color:rgba(90,180,255,0.6) !important; }
-  #wtab-chat-btn:hover { border-color:rgba(0,133,255,0.6) !important; color:#5ab4ff !important; }
-  #wtab-chat-btn.active { background:#000d22 !important; border-color:#0085ff !important; color:#5ab4ff !important; box-shadow: inset 3px 3px 0 0 rgba(0,6,26,0.9), inset -3px -3px 0 0 rgba(0,133,255,0.4) !important; }
-  #wtab-chat { width:480px; }
-  /* Chat widget cards — same visual style as WIDGETS tab cards */
+  #wtab-chat-btn { border-color:rgba(255,0,0,0.3) !important; color:rgba(255,80,80,0.6) !important; }
+  #wtab-chat-btn:hover { border-color:rgba(255,0,0,0.6) !important; color:#ff4444 !important; }
+  #wtab-chat-btn.active { background:#220000 !important; border-color:#ff0000 !important; color:#ff4444 !important; box-shadow: inset 3px 3px 0 0 rgba(20,0,0,0.9), inset -3px -3px 0 0 rgba(255,0,0,0.4) !important; }
+  #wtab-chat { width:100%; padding:0 16px; box-sizing:border-box; }
+  /* Chat widget cards — matches Widgets tab card style */
   .chat-widget-card {
     background: #0d1b2e;
     border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 0;
     overflow: hidden;
+    transition: opacity 0.2s;
   }
   .chat-widget-header {
     display: flex; align-items: center; gap: 8px;
     padding: 8px 10px; cursor: pointer; user-select: none;
     border-bottom: 1px solid transparent;
   }
-  .chat-widget-header:hover { background: rgba(255,255,255,0.03); }
+  .chat-widget-header:hover { background: rgba(255,255,255,0.04); }
   .chat-widget-arrow { font-size:9px; color:rgba(255,255,255,0.4); flex-shrink:0; }
   .chat-widget-body {
     padding: 14px; display: flex; flex-direction: column; gap: 12px;
@@ -647,22 +650,51 @@
   /* command rows */
   .cmd-row { display: flex; gap: 6px; align-items: center; }
   .cmd-row input { flex: 1; }
-  /* poll character grid */
-  .poll-char-grid {
-    display: flex; flex-wrap: wrap; gap: 6px; max-height: 180px; overflow-y: auto;
-  }
-  .poll-char-item {
-    display: flex; flex-direction: column; align-items: center; gap: 3px;
-    padding: 4px; border: 2px solid rgba(58,159,200,0.2); cursor: pointer;
-    width: 60px;
-  }
-  .poll-char-item:hover { border-color: rgba(58,159,200,0.6); }
-  .poll-char-item.selected { border-color: #3a9fc8; background: rgba(58,159,200,0.15); }
-  .poll-char-item img { width: 36px; height: 36px; object-fit: contain; image-rendering: pixelated; }
-  .poll-char-item span { font-family: 'MMRock9', monospace; font-size: 6px; color: #aaa; text-align: center; word-break: break-all; }
   .poll-toggle-wrap { display: flex; gap: 0; }
   .poll-toggle-wrap .px-btn { flex: 1; }
   .poll-toggle-wrap .px-btn.active { background: rgba(58,159,200,0.25); border-color: #3a9fc8; color: #5bc8f5; }
+  /* PFP searchable dropdown */
+  .pfp-dropdown { position: relative; }
+  .pfp-dd-trigger {
+    display: flex; align-items: center; gap: 6px; padding: 5px 7px;
+    border: 2px solid rgba(58,159,200,0.3); background: #050d1a; cursor: pointer;
+    font-family: 'MMRock9', monospace; font-size: 8px; color: #fff; min-height: 34px;
+  }
+  .pfp-dd-trigger:hover { border-color: rgba(58,159,200,0.6); }
+  .pfp-dd-thumb { width: 24px; height: 24px; background: #1a1a2e; flex-shrink: 0; overflow: hidden; }
+  .pfp-dd-thumb img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; display: none; }
+  .pfp-dd-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 7px; color: rgba(255,255,255,0.6); }
+  .pfp-dd-arrow { font-size: 6px; color: rgba(255,255,255,0.4); flex-shrink: 0; }
+  .pfp-dd-panel {
+    display: none; position: absolute; left: 0; right: 0; top: 100%; z-index: 200;
+    background: #0a1628; border: 2px solid #3a9fc8; border-top: none;
+    flex-direction: column; max-height: 220px;
+  }
+  .pfp-dd-panel.open { display: flex; }
+  .pfp-dd-search {
+    padding: 5px 7px; border: none; border-bottom: 1px solid rgba(58,159,200,0.3);
+    background: #050d1a; color: #fff; font-family: 'MMRock9', monospace; font-size: 7px;
+    outline: none; flex-shrink: 0;
+  }
+  .pfp-dd-list { flex: 1; overflow-y: auto; }
+  .pfp-dd-item {
+    display: flex; align-items: center; gap: 6px; padding: 4px 7px;
+    cursor: pointer; font-family: 'MMRock9', monospace; font-size: 7px; color: #ccc;
+  }
+  .pfp-dd-item:hover { background: rgba(58,159,200,0.15); color: #fff; }
+  .pfp-dd-item.selected { background: rgba(58,159,200,0.25); color: #5bc8f5; }
+  .pfp-dd-item img { width: 24px; height: 24px; object-fit: cover; image-rendering: pixelated; flex-shrink: 0; }
+  .pfp-dd-item .pfp-dd-no-img { width: 24px; height: 24px; background: #1a1a2e; flex-shrink: 0; }
+  .pfp-dd-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  input[type=color] {
+    width: 36px; height: 22px;
+    border: 3px solid #000;
+    box-shadow: inset 2px 2px 0 rgba(255,255,255,0.12), inset -2px -2px 0 rgba(0,0,0,0.5);
+    padding: 1px; background: #000; cursor: pointer; flex-shrink: 0;
+  }
+  input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
+  input[type=color]::-webkit-color-swatch { border: none; }
 
   /* ── Protect range inputs from pixel box system ── */
   input[type=range] {
@@ -762,6 +794,47 @@
   }
   #bsky-modal-close-btn:hover { color:#fff; border-color:#fff; }
 
+  /* ── Tab organize ── */
+  @keyframes tabWobble {
+    0%   { transform: rotate(-2.5deg); }
+    50%  { transform: rotate(2.5deg);  }
+    100% { transform: rotate(-2.5deg); }
+  }
+  .tab-wobbling {
+    animation: tabWobble 0.38s ease-in-out infinite;
+    transform-origin: center bottom;
+    cursor: grab !important;
+  }
+  #tab-organize-btn {
+    flex: 0 0 32px !important;
+    padding: 0 !important;
+    align-self: stretch;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.25);
+    border-color: rgba(58,159,200,0.2) !important;
+  }
+  #tab-organize-btn.active {
+    color: #3a9fc8 !important;
+    background: #040d18 !important;
+    border-color: #3a9fc8 !important;
+    box-shadow: inset 3px 3px 0 rgba(0,0,0,0.7), inset -3px -3px 0 rgba(58,159,200,0.15) !important;
+  }
+  .wslide-entry { border-left: 3px solid #3a9fc8; }
+
+  /* ── Pinned widgets ── */
+  #pinned-container { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9500; }
+  .pinned-widget-wrap { pointer-events:all; position:absolute; min-width:280px; border:3px solid #3a9fc8; background:#071422; box-shadow:inset 2px 2px 0 rgba(91,200,245,0.35),inset -2px -2px 0 #020e1c; display:flex; flex-direction:column; overflow:hidden; }
+  .pinned-widget-bar { background:#0a1c2e; padding:5px 8px; display:flex; align-items:center; gap:6px; cursor:move; border-bottom:2px solid #000; user-select:none; flex-shrink:0; }
+  .pinned-widget-bar-title { font-family:'MMRock9',monospace; font-size:8px; color:#3a9fc8; letter-spacing:0.1em; flex:1; }
+  .pinned-widget-close { background:none; border:none; color:rgba(255,255,255,0.35); font-size:13px; cursor:pointer; padding:0 2px; line-height:1; font-family:monospace; }
+  .pinned-widget-close:hover { color:#f87171; }
+  .pinned-widget-inner { overflow-y:auto; flex:1; min-height:60px; }
+  .pinned-widget-resize { position:absolute; right:0; bottom:0; width:12px; height:12px; cursor:se-resize; z-index:10; background: repeating-linear-gradient(-45deg, transparent, transparent 2px, #3a9fc8 2px, #3a9fc8 3px); opacity:0.4; }
+  .pinned-widget-resize:hover { opacity:1; }
+  .pin-btn { background:none; border:none; cursor:pointer; padding:0 2px; line-height:1; flex-shrink:0; opacity:0.25; transition:opacity 0.15s; }
+  .pin-btn:hover { opacity:0.7; }
+  .pin-btn.active { opacity:1; filter:none; }
+
 </style>
 </head>
 <body>
@@ -786,13 +859,11 @@
   </div>
 
   <!-- Tab bar -->
-  <div style="display:flex;gap:8px;width:100%;max-width:960px;padding:0 20px;box-sizing:border-box;">
-    <button class="btn active px-btn" id="wtab-general-btn" onclick="showWidgetTab('general',this)" style="flex:1;padding:10px;">GENERAL</button>
-    <button class="btn px-btn" id="wtab-music-btn" onclick="showWidgetTab('music',this)" style="flex:1;padding:10px;">MUSIC</button>
-    <button class="btn px-btn" id="wtab-widgets-btn" onclick="showWidgetTab('widgets',this)" style="flex:1;padding:10px;">WIDGETS</button>
-    <button class="btn px-btn" id="wtab-discord-btn" onclick="showWidgetTab('discord',this)" style="flex:1;padding:10px;position:relative;">DISCORD<span id="discord-tab-dot" style="position:absolute;top:5px;right:7px;width:6px;height:6px;border-radius:50%;background:#23a55a;box-shadow:0 0 5px #23a55a;display:none;"></span></button>
-    <button class="btn px-btn" id="wtab-chat-btn" onclick="showWidgetTab('chat',this)" style="flex:1;padding:10px;">CHAT</button>
-    <button class="btn px-btn" id="wtab-preview-btn" onclick="showWidgetTab('preview',this)" style="flex:1;padding:10px;">PREVIEW</button>
+  <div id="tab-bar-outer" style="display:flex;align-items:stretch;gap:8px;width:100%;max-width:960px;padding:0 20px;box-sizing:border-box;">
+    <div id="tab-bar" style="display:flex;flex:1;gap:8px;"></div>
+    <button id="tab-organize-btn" class="px-btn" onclick="toggleTabOrganize()" title="Rearrange tabs">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><rect x="0" y="0" width="5" height="5"/><rect x="7" y="0" width="5" height="5"/><rect x="0" y="7" width="5" height="5"/><rect x="7" y="7" width="5" height="5"/></svg>
+    </button>
   </div>
 
   <!-- ── GENERAL TAB ── -->
@@ -874,6 +945,28 @@
       <div class="section-label">WIDGET VISIBILITY</div>
       <div style="font-size:7px;color:rgba(255,255,255,0.25);margin-bottom:10px;">Toggle widgets on/off. Disabled widgets are hidden from the layout.</div>
       <div id="widget-enable-toggles"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">CHAT WIDGET VISIBILITY</div>
+      <div style="font-size:7px;color:rgba(255,255,255,0.25);margin-bottom:10px;">Toggle chat widgets on/off.</div>
+      <div id="chat-widget-enable-toggles"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">STREAM QUEUE</div>
+      <div style="font-size:7px;color:rgba(255,255,255,0.25);margin-bottom:10px;">Polls the Start.gg stream queue every 30s. When a new set reaches the top, the Next Match overlay updates automatically.</div>
+      <div class="check-row">
+        <label class="toggle-wrap">
+          <input type="checkbox" id="autoSyncStreamQueue" onchange="autoSyncStreamQueueChanged(this.checked)">
+          <span class="toggle-track"></span><span class="toggle-thumb"></span>
+        </label>
+        <label for="autoSyncStreamQueue" style="cursor:pointer;">Auto-sync Next Match from stream queue</label>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+        <button class="save-btn px-btn" onclick="streamQueueSyncNow()" style="font-size:7px;padding:5px 10px;">SYNC NOW</button>
+        <span id="sqSyncStatus" style="font-size:7px;color:rgba(255,255,255,0.35);letter-spacing:0.05em;"></span>
+      </div>
     </div>
 
     <div class="section">
@@ -1242,7 +1335,7 @@
       </div>
 
       <div class="preview-card">
-        <div class="preview-label">BRB SLIDESHOW</div>
+        <div class="preview-label">SLIDESHOW</div>
         <div class="preview-box"><iframe src="http://localhost:7777/brb" scrolling="no"></iframe></div>
         <a class="preview-open" href="http://localhost:7777/brb" target="_blank">↗ Open full</a>
         <div class="preview-url" onclick="copyUrl('http://localhost:7777/brb','copy-brb-prev')">
@@ -1307,208 +1400,96 @@
         <div class="copy-flash" id="copy-discord-prev"></div>
       </div>
 
+      <div class="preview-card">
+        <div class="preview-label" style="color:#5ab4ff;">LIVE POLL</div>
+        <div class="preview-box"><iframe src="http://127.0.0.1:7777/poll-overlay" scrolling="no"></iframe></div>
+        <a class="preview-open" href="http://127.0.0.1:7777/poll-overlay" target="_blank">↗ Open full</a>
+        <div class="preview-url" onclick="copyUrl('http://127.0.0.1:7777/poll-overlay','copy-poll-prev')">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#5ab4ff" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          <span>127.0.0.1:7777/poll-overlay</span>
+        </div>
+        <div class="copy-flash" id="copy-poll-prev"></div>
+      </div>
+
     </div>
   </div><!-- /preview tab -->
 
   <!-- ── CHAT TAB ── -->
-  <div id="wtab-chat" style="display:none;width:480px;">
+  <div id="wtab-chat" style="display:none;">
 
-    <!-- YouTube Account (collapsible dropdown — same pattern as Discord account) -->
-    <div style="background:#000d22;border:1px solid rgba(0,133,255,0.35);margin-bottom:14px;box-shadow:inset 2px 2px 0 0 rgba(0,133,255,0.15),inset -2px -2px 0 0 rgba(0,6,26,0.8);">
-      <button class="px-btn" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:8px 10px;" onclick="ytAccountToggle()">
-        <span style="font-size:9px;letter-spacing:0.1em;color:#5ab4ff;">YOUTUBE ACCOUNT</span>
-        <span style="display:flex;align-items:center;gap:10px;">
-          <span id="yt-account-indicator" style="font-size:7px;letter-spacing:0.06em;color:rgba(255,255,255,0.25);">● NOT CONNECTED</span>
-          <span id="yt-account-arrow" style="font-size:10px;color:rgba(255,255,255,0.5);">▶</span>
-        </span>
-      </button>
-      <div id="yt-account-section" style="max-height:0;overflow:hidden;transition:max-height 0.4s ease;">
-        <div style="padding:10px;display:flex;flex-direction:column;gap:8px;">
-          <div>
-            <div class="section-label">GOOGLE CLIENT ID</div>
-            <input class="file-input" type="text" id="ytClientId" placeholder="xxxx.apps.googleusercontent.com" style="width:100%;" oninput="autoSave()">
+    <!-- Account dropdowns — centered, constrained width -->
+    <div style="display:flex;gap:10px;justify-content:center;margin-bottom:14px;">
+
+      <!-- YouTube Account -->
+      <div style="width:300px;flex-shrink:0;background:#000d22;border:1px solid rgba(0,133,255,0.35);box-shadow:inset 2px 2px 0 0 rgba(0,133,255,0.15),inset -2px -2px 0 0 rgba(0,6,26,0.8);">
+        <div style="display:flex;align-items:stretch;">
+          <button class="px-btn" style="flex:1;display:flex;align-items:center;justify-content:space-between;padding:8px 10px;" onclick="ytAccountToggle()">
+            <span style="font-size:9px;letter-spacing:0.1em;color:#5ab4ff;">YOUTUBE ACCOUNT</span>
+            <span style="display:flex;align-items:center;gap:10px;">
+              <span id="yt-account-indicator" style="font-size:7px;letter-spacing:0.06em;color:rgba(255,255,255,0.25);">● NOT CONNECTED</span>
+              <span id="yt-account-arrow" style="font-size:10px;color:rgba(255,255,255,0.5);">▶</span>
+            </span>
+          </button>
+          <button class="px-btn" id="ytSaveBtn" style="padding:8px 14px;font-size:7px;border-left:1px solid rgba(0,133,255,0.2);color:#5ab4ff;" onclick="ytSaveCredentials()">SAVE</button>
+        </div>
+        <div id="yt-account-section" style="max-height:0;overflow:hidden;transition:max-height 0.4s ease;">
+          <div style="padding:10px;display:flex;flex-direction:column;gap:8px;">
+            <div>
+              <div class="section-label">GOOGLE CLIENT ID</div>
+              <input class="file-input" type="text" id="ytClientId" placeholder="xxxx.apps.googleusercontent.com" style="width:100%;" oninput="autoSave()">
+            </div>
+            <div>
+              <div class="section-label">GOOGLE CLIENT SECRET</div>
+              <input class="file-input" type="password" id="ytClientSecret" placeholder="GOCSPX-..." style="width:100%;" oninput="autoSave()">
+            </div>
+            <div style="font-size:7px;color:rgba(255,255,255,0.2);line-height:2;letter-spacing:0.04em;">
+              console.cloud.google.com → APIs → YouTube Data API v3<br>
+              Credentials → OAuth client → Redirect: http://127.0.0.1:7777/youtube-callback
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="px-btn" style="flex:1;padding:7px;font-size:7px;" onclick="ytSaveAndConnect()">CONNECT YOUTUBE</button>
+              <button class="px-btn" style="flex:1;padding:7px;font-size:7px;" onclick="ytFindBroadcast()">FIND BROADCAST</button>
+              <button class="px-btn" style="padding:7px 10px;font-size:7px;color:#f87171;" onclick="ytDisconnect()">DISCONNECT</button>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:6px;">
+              <input class="file-input" type="text" id="ytManualBroadcast" placeholder="Paste YouTube URL or video ID..." style="flex:1;font-size:7px;">
+              <button class="px-btn" style="padding:7px 10px;font-size:7px;" onclick="ytSetManualBroadcast()">SET</button>
+            </div>
+            <div class="file-status" id="ytStatus">Not connected</div>
           </div>
-          <div>
-            <div class="section-label">GOOGLE CLIENT SECRET</div>
-            <input class="file-input" type="password" id="ytClientSecret" placeholder="GOCSPX-..." style="width:100%;" oninput="autoSave()">
-          </div>
-          <div style="font-size:7px;color:rgba(255,255,255,0.2);line-height:2;letter-spacing:0.04em;">
-            console.cloud.google.com → APIs → YouTube Data API v3<br>
-            Credentials → OAuth client → Redirect: http://127.0.0.1:7777/youtube-callback
-          </div>
-          <div style="display:flex;gap:6px;">
-            <button class="px-btn" style="flex:1;padding:7px;font-size:7px;" onclick="ytSaveAndConnect()">CONNECT YOUTUBE</button>
-            <button class="px-btn" style="flex:1;padding:7px;font-size:7px;" onclick="ytFindBroadcast()">FIND BROADCAST</button>
-            <button class="px-btn" style="padding:7px 10px;font-size:7px;color:#f87171;" onclick="ytDisconnect()">DISCONNECT</button>
-          </div>
-          <div class="file-status" id="ytStatus">Not connected</div>
         </div>
       </div>
+
+      <!-- Start.gg Account -->
+      <div style="width:300px;flex-shrink:0;background:#0a0010;border:1px solid rgba(255,102,148,0.35);box-shadow:inset 2px 2px 0 0 rgba(255,102,148,0.15),inset -2px -2px 0 0 rgba(58,0,24,0.8);">
+        <div style="display:flex;align-items:stretch;">
+          <button class="px-btn" style="flex:1;display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#0a0010 !important;border-color:#6b0028 !important;box-shadow:none !important;" onclick="startggChatToggle()">
+            <span style="font-size:9px;letter-spacing:0.1em;color:#ff6694;">START.GG ACCOUNT</span>
+            <span id="startgg-chat-arrow" style="font-size:10px;color:rgba(255,255,255,0.5);">&#9658;</span>
+          </button>
+        </div>
+        <div id="startgg-chat-section" style="max-height:0;overflow:hidden;transition:max-height 0.4s ease;">
+          <div style="padding:10px;display:flex;flex-direction:column;gap:8px;">
+            <div>
+              <div class="section-label" style="color:#ff6694;">API TOKEN</div>
+              <input class="file-input" type="password" id="startggToken-c" placeholder="Paste your start.gg token" style="width:100%;" oninput="syncStartggFromChat()">
+              <div style="font-size:7px;color:rgba(255,255,255,0.2);margin-top:3px;">start.gg/admin/profile/developer &#8594; Personal Access Tokens</div>
+            </div>
+            <div>
+              <div class="section-label" style="color:#ff6694;">TOURNAMENT URL</div>
+              <div style="display:flex;gap:6px;">
+                <input class="file-input" type="text" id="startggTourneyUrl-c" placeholder="start.gg/tournament/my-tourney" style="flex:1;" oninput="syncStartggFromChat()">
+                <button class="px-btn" style="padding:7px 10px;font-size:7px;background:#0a0010 !important;border-color:#6b0028 !important;box-shadow:inset 3px 3px 0 0 #ff6694,inset -3px -3px 0 0 #3a0018 !important;" onclick="startggFetchTourney()">FETCH</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
-    <!-- Chat widget cards (same visual style as WIDGETS tab) -->
-    <div style="display:flex;flex-direction:column;gap:12px;">
-
-      <!-- Bitly Download Counter -->
-      <div class="chat-widget-card">
-        <div class="chat-widget-header" onclick="chatWidgetToggle(this)">
-          <span class="section-label" style="margin:0;flex:1;color:#5bc8f5;">BITLY DOWNLOAD COUNTER</span>
-          <span class="chat-widget-arrow">▾</span>
-        </div>
-        <div class="chat-widget-body">
-          <div>
-            <div class="section-label">BITLY API TOKEN</div>
-            <input class="file-input" type="password" id="bitlyToken" placeholder="Bearer token" style="width:100%;" oninput="autoSave()">
-          </div>
-          <div>
-            <div class="section-label">BITLY LINK</div>
-            <input class="file-input" type="text" id="bitlyLink" placeholder="bit.ly/xxxxxx" style="width:100%;" oninput="autoSave()">
-          </div>
-          <div>
-            <div class="section-label">OVERLAY LABEL</div>
-            <select class="file-input" id="bitlyLabel" style="width:100%;" onchange="autoSave()">
-              <option value="DOWNLOADS">DOWNLOADS</option>
-              <option value="CLICKS">CLICKS</option>
-              <option value="VIEWS">VIEWS</option>
-            </select>
-          </div>
-          <div style="display:flex;gap:6px;">
-            <button class="px-btn" style="flex:1;padding:7px;font-size:7px;" onclick="fetchBitlyCount()">TEST FETCH</button>
-          </div>
-          <div class="file-status" id="bitlyStatus"></div>
-          <div>
-            <div class="section-label" style="margin-bottom:4px;">OBS OVERLAY URL</div>
-            <div class="preview-url" style="font-size:7px;" onclick="copyUrl('http://127.0.0.1:7777/bitly-overlay','copy-bitly-url')">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#3a9fc8" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-              <span>127.0.0.1:7777/bitly-overlay</span>
-            </div>
-            <div class="copy-flash" id="copy-bitly-url"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Chat Commands -->
-      <div class="chat-widget-card">
-        <div class="chat-widget-header" onclick="chatWidgetToggle(this)">
-          <span class="section-label" style="margin:0;flex:1;color:#5bc8f5;">CHAT COMMANDS</span>
-          <span class="chat-widget-arrow">▾</span>
-        </div>
-        <div class="chat-widget-body">
-          <div style="font-size:7px;color:rgba(255,255,255,0.3);letter-spacing:0.08em;line-height:1.6;">Bot replies in YouTube live chat when a viewer types the command.</div>
-          <div style="display:flex;gap:6px;align-items:center;">
-            <span class="section-label" style="flex:0 0 110px;margin:0;">COMMAND</span>
-            <span class="section-label" style="flex:1;margin:0;">RESPONSE</span>
-          </div>
-          <div id="cmdList" style="display:flex;flex-direction:column;gap:4px;"></div>
-          <div style="display:flex;gap:6px;">
-            <button class="px-btn" style="flex:1;padding:7px;font-size:7px;" onclick="addChatCommand()">+ ADD COMMAND</button>
-            <button class="px-btn" style="flex:1;padding:7px;font-size:7px;" onclick="saveChatCommands()">SAVE</button>
-          </div>
-          <div class="file-status" id="cmdStatus"></div>
-        </div>
-      </div>
-
-      <!-- Live Poll -->
-      <div class="chat-widget-card">
-        <div class="chat-widget-header" onclick="chatWidgetToggle(this)">
-          <span class="section-label" style="margin:0;flex:1;color:#5bc8f5;">LIVE POLL — WHO WINS?</span>
-          <span class="chat-widget-arrow">▾</span>
-        </div>
-        <div class="chat-widget-body">
-
-          <!-- Mock preview at top -->
-          <div>
-            <div class="section-label">LIVE PREVIEW</div>
-            <div style="background:#030c1c;border:3px solid #000;box-shadow:inset 2px 2px 0 #0a1628;padding:12px;display:flex;gap:12px;height:160px;">
-              <!-- P1 column -->
-              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:0;">
-                <div style="flex:1;width:100%;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;">
-                  <div id="mock-fill1" style="width:100%;height:0%;background:#3a9fc8;transition:height 0.6s ease;min-height:2px;opacity:0.2;"></div>
-                </div>
-                <div id="mock-portrait1" style="width:44px;height:44px;background:#0d1b2e;border:2px solid rgba(58,159,200,0.3);overflow:hidden;flex-shrink:0;">
-                  <img id="mock-portrait1-img" style="display:none;width:100%;height:100%;object-fit:cover;image-rendering:pixelated;" alt="">
-                </div>
-                <div id="mock-pct1" style="font-family:'MMRock9',monospace;font-size:10px;color:#3a9fc8;text-shadow:1px 1px 0 #000;margin-top:3px;">0%</div>
-                <div id="mock-votes1" style="font-family:'MMRock9',monospace;font-size:7px;color:rgba(58,159,200,0.6);">0 votes</div>
-              </div>
-              <!-- P2 column -->
-              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:0;">
-                <div style="flex:1;width:100%;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;">
-                  <div id="mock-fill2" style="width:100%;height:0%;background:#ff6694;transition:height 0.6s ease;min-height:2px;opacity:0.2;"></div>
-                </div>
-                <div id="mock-portrait2" style="width:44px;height:44px;background:#0d1b2e;border:2px solid rgba(255,102,148,0.3);overflow:hidden;flex-shrink:0;">
-                  <img id="mock-portrait2-img" style="display:none;width:100%;height:100%;object-fit:cover;image-rendering:pixelated;" alt="">
-                </div>
-                <div id="mock-pct2" style="font-family:'MMRock9',monospace;font-size:10px;color:#ff6694;text-shadow:1px 1px 0 #000;margin-top:3px;">0%</div>
-                <div id="mock-votes2" style="font-family:'MMRock9',monospace;font-size:7px;color:rgba(255,102,148,0.6);">0 votes</div>
-              </div>
-            </div>
-            <div id="pollLiveStatus" style="font-family:'MMRock9',monospace;font-size:7px;color:rgba(255,255,255,0.4);letter-spacing:0.06em;margin-top:4px;min-height:12px;text-align:center;"></div>
-          </div>
-
-          <!-- Poll controls -->
-          <div style="display:flex;gap:6px;">
-            <button class="px-btn" style="flex:1;padding:8px;font-size:7px;color:#4ade80;" onclick="pollOpenPoll()">OPEN POLL</button>
-            <button class="px-btn" style="flex:1;padding:8px;font-size:7px;color:#f87171;" onclick="pollClosePoll()">CLOSE POLL</button>
-          </div>
-
-          <!-- Mode toggle -->
-          <div>
-            <div class="section-label">PORTRAIT MODE</div>
-            <div class="poll-toggle-wrap">
-              <button class="px-btn active" id="poll-mode-char" onclick="pollToggleMode('char')" style="padding:7px;font-size:7px;">CHARACTER</button>
-              <button class="px-btn" id="poll-mode-avatar" onclick="pollToggleMode('avatar')" style="padding:7px;font-size:7px;">AVATAR</button>
-            </div>
-          </div>
-
-          <!-- Character mode -->
-          <div id="poll-char-section">
-            <button class="px-btn" style="width:100%;padding:7px;font-size:7px;margin-bottom:6px;" onclick="pollLoadCharacters()">LOAD CHARACTERS FROM TOURNEY</button>
-            <div class="file-status" id="pollCharStatus"></div>
-            <div style="display:flex;gap:8px;">
-              <div style="flex:1;">
-                <div class="section-label" style="color:#3a9fc8;">P1 CHARACTER</div>
-                <div class="poll-char-grid" id="pollCharGrid1"></div>
-                <div id="pollCharSelected1" style="font-family:'MMRock9',monospace;font-size:6px;color:#3a9fc8;margin-top:4px;min-height:12px;"></div>
-              </div>
-              <div style="flex:1;">
-                <div class="section-label" style="color:#ff6694;">P2 CHARACTER</div>
-                <div class="poll-char-grid" id="pollCharGrid2"></div>
-                <div id="pollCharSelected2" style="font-family:'MMRock9',monospace;font-size:6px;color:#ff6694;margin-top:4px;min-height:12px;"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Avatar mode -->
-          <div id="poll-avatar-section" style="display:none;">
-            <div style="display:flex;gap:6px;">
-              <div style="flex:1;">
-                <div class="section-label">P1 NAME</div>
-                <input class="file-input" type="text" id="pollP1Name" placeholder="Player 1 tag" style="width:100%;">
-              </div>
-              <div style="flex:1;">
-                <div class="section-label">P2 NAME</div>
-                <input class="file-input" type="text" id="pollP2Name" placeholder="Player 2 tag" style="width:100%;">
-              </div>
-            </div>
-            <button class="px-btn" style="width:100%;padding:7px;font-size:7px;margin-top:6px;" onclick="pollFetchAvatars()">FETCH AVATARS</button>
-            <div class="file-status" id="pollAvatarStatus"></div>
-          </div>
-
-          <!-- OBS URL -->
-          <div>
-            <div class="section-label" style="margin-bottom:4px;">OBS OVERLAY URL</div>
-            <div class="preview-url" style="font-size:7px;" onclick="copyUrl('http://127.0.0.1:7777/poll-overlay','copy-poll-url')">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#3a9fc8" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-              <span>127.0.0.1:7777/poll-overlay</span>
-            </div>
-            <div class="copy-flash" id="copy-poll-url"></div>
-          </div>
-
-        </div>
-      </div>
-
-    </div><!-- /chat widget cards -->
+    <!-- Chat widget column grid — drag/resize same as Widgets tab -->
+    <div id="chat-grid" style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:flex-start;min-height:100px;"></div>
 
   </div><!-- /chat tab -->
 
@@ -1589,7 +1570,7 @@
   </details>
 
   <details class="howto-details">
-    <summary style="color:#fc5c7c;">BRB SLIDESHOW</summary>
+    <summary style="color:#fc5c7c;">SLIDESHOW</summary>
     <div class="howto-details-body">
       <p><span class="hl-brb">BRB Slideshow</span> — a cycling display shown during your break.</p>
       <ul>
@@ -1978,37 +1959,72 @@
   // Widget HTML content templates
   const WIDGET_TEMPLATES = {
     brb: {
-      label: 'BRB SLIDESHOW',
+      label: 'SLIDESHOW',
       html: `
-        <div><div class="section-label">PREVIEW</div>
-          <div class="preview-box" style="width:100%;"><iframe src="http://localhost:7777/brb" scrolling="no"></iframe></div>
-          <a class="preview-open" href="http://localhost:7777/brb" target="_blank">↗ Open fullscreen</a></div>
-        <div><div class="section-label">FOLDER</div>
-          <input type="text" class="file-input" id="brbFolder" placeholder="C:\\path\\to\\brb_display" style="margin-bottom:6px;" />
-          <button class="save-btn px-btn" style="width:100%;" onclick="saveBrbFolder()">Save</button>
-          <div class="file-status" id="brbFolderStatus"></div></div>
-        <div><div style="display:flex;align-items:center;justify-content:space-between;"><div class="section-label" style="margin-bottom:0">FILES</div><button class="refresh-btn px-btn" onclick="refreshFileList()">↺ REFRESH</button></div>
-          <div id="fileListWrap"><div class="file-list"><div class="file-empty">Loading...</div></div></div></div>
-        <div><div class="section-label">MANUAL LINKS</div>
-          <div class="overrides-list" id="brbLinksList" style="max-height:120px;"></div>
-          <button class="add-btn px-btn" onclick="addBrbLink()">+ Add File</button>
-          <button class="save-overrides-btn px-btn" onclick="saveBrbLinks()">Save Links</button>
-          <div class="ov-status" id="brbLinksStatus"></div></div>
-        <div><div class="section-label">TIMING</div>
-          <div class="row"><label>Image/GIF</label><input type="range" min="2" max="120" step="1" id="brbImageDuration" oninput="updateVal('brbImageDuration','brbImageDurationVal',v=>v+'s')" onchange="saveBrbTiming()" /><span class="val" id="brbImageDurationVal">10s</span></div>
-          <div class="row"><label>Video max</label><input type="range" min="0" max="120" step="1" id="brbVideoDuration" oninput="updateVal('brbVideoDuration','brbVideoDurationVal',v=>v==0?'Full':v+'s')" onchange="saveBrbTiming()" /><span class="val" id="brbVideoDurationVal">Full</span></div>
-          <div class="row"><label>Fade</label><input type="range" min="0.1" max="5" step="0.1" id="brbFade" oninput="updateVal('brbFade','brbFadeVal',v=>parseFloat(v).toFixed(1)+'s')" onchange="saveBrbTiming()" /><span class="val" id="brbFadeVal">1.0s</span></div></div>
-        <div><div class="section-label">PLAYBACK</div>
-          <div class="check-row"><input type="checkbox" id="brbRandomize" onchange="saveBrbTiming()" /><label for="brbRandomize">Randomize</label></div>
-          <div class="section-label" style="margin-top:10px;">TRANSITION</div>
-          <div class="grid"><button class="btn px-btn" data-trans="fade" onclick="setTransition(this)">Fade</button><button class="btn px-btn" data-trans="slide" onclick="setTransition(this)">Slide</button><button class="btn px-btn" data-trans="zoom" onclick="setTransition(this)">Zoom</button><button class="btn px-btn" data-trans="wipe" onclick="setTransition(this)">Wipe</button></div></div>
-        <div><div class="section-label">TSH ROOT</div>
-          <input type="text" class="file-input" id="tshRoot" placeholder="C:\\path\\to\\TSH" style="margin-bottom:6px;" />
-          <button class="save-btn px-btn" style="width:100%;" onclick="saveTshRoot()">Save</button>
-          <div class="file-status" id="tshRootStatus"></div></div>
-        <div class="status" id="brb-status">Loading...</div>
-        <div class="preview-url" onclick="copyUrl('http://localhost:7777/brb','copy-brb-widget')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#3a9fc8" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg><span>localhost:7777/brb</span></div>
-        <div class="copy-flash" id="copy-brb-widget"></div>`
+        <div style="display:flex;gap:0;margin-bottom:10px;">
+          <button id="brb-tab-btn-brb" onclick="switchBrbTab('brb')" style="flex:1;padding:6px 8px;font-family:'MMRock9',monospace;font-size:8px;letter-spacing:0.08em;cursor:pointer;border:none;background:#001a30;color:#3a9fc8;border-bottom:2px solid #3a9fc8;">SLIDESHOW</button>
+          <button id="brb-tab-btn-info" onclick="switchBrbTab('info')" style="flex:1;padding:6px 8px;font-family:'MMRock9',monospace;font-size:8px;letter-spacing:0.08em;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,0.3);border-bottom:2px solid rgba(58,159,200,0.15);">INFORMATION</button>
+        </div>
+
+        <div id="brb-tab-brb">
+          <div><div class="section-label">PREVIEW</div>
+            <div class="preview-box" style="width:100%;"><iframe src="http://localhost:7777/brb" scrolling="no"></iframe></div>
+            <a class="preview-open" href="http://localhost:7777/brb" target="_blank">↗ Open fullscreen</a></div>
+          <div><div class="section-label">FOLDER</div>
+            <input type="text" class="file-input" id="brbFolder" placeholder="C:\\path\\to\\brb_display" style="margin-bottom:6px;" />
+            <button class="save-btn px-btn" style="width:100%;" onclick="saveBrbFolder()">Save</button>
+            <div class="file-status" id="brbFolderStatus"></div></div>
+          <div><div style="display:flex;align-items:center;justify-content:space-between;"><div class="section-label" style="margin-bottom:0">FILES</div><button class="refresh-btn px-btn" onclick="refreshFileList()">↺ REFRESH</button></div>
+            <div id="fileListWrap"><div class="file-list"><div class="file-empty">Loading...</div></div></div></div>
+          <div><div class="section-label">MANUAL LINKS</div>
+            <div class="overrides-list" id="brbLinksList" style="max-height:120px;"></div>
+            <button class="add-btn px-btn" onclick="addSlideshowLink('brb')">+ Add File</button>
+            <button class="save-overrides-btn px-btn" onclick="saveSlideshowLinks('brbLinksStatus')">Save Links</button>
+            <div class="ov-status" id="brbLinksStatus"></div></div>
+          <div><div class="section-label">TIMING</div>
+            <div class="row"><label>Image/GIF</label><input type="range" min="2" max="120" step="1" id="brbImageDuration" oninput="updateVal('brbImageDuration','brbImageDurationVal',v=>v+'s')" onchange="saveBrbTiming()" /><span class="val" id="brbImageDurationVal">10s</span></div>
+            <div class="row"><label>Video max</label><input type="range" min="0" max="120" step="1" id="brbVideoDuration" oninput="updateVal('brbVideoDuration','brbVideoDurationVal',v=>v==0?'Full':v+'s')" onchange="saveBrbTiming()" /><span class="val" id="brbVideoDurationVal">Full</span></div>
+            <div class="row"><label>Fade</label><input type="range" min="0.1" max="5" step="0.1" id="brbFade" oninput="updateVal('brbFade','brbFadeVal',v=>parseFloat(v).toFixed(1)+'s')" onchange="saveBrbTiming()" /><span class="val" id="brbFadeVal">1.0s</span></div></div>
+          <div><div class="section-label">PLAYBACK</div>
+            <div class="check-row"><input type="checkbox" id="brbRandomize" onchange="saveBrbTiming()" /><label for="brbRandomize">Randomize</label></div>
+            <div class="section-label" style="margin-top:10px;">TRANSITION</div>
+            <div class="grid"><button class="btn px-btn" data-trans="fade" onclick="setTransition(this)">Fade</button><button class="btn px-btn" data-trans="slide" onclick="setTransition(this)">Slide</button><button class="btn px-btn" data-trans="zoom" onclick="setTransition(this)">Zoom</button><button class="btn px-btn" data-trans="wipe" onclick="setTransition(this)">Wipe</button></div></div>
+          <div><div class="section-label">TSH ROOT</div>
+            <input type="text" class="file-input" id="tshRoot" placeholder="C:\\path\\to\\TSH" style="margin-bottom:6px;" />
+            <button class="save-btn px-btn" style="width:100%;" onclick="saveTshRoot()">Save</button>
+            <div class="file-status" id="tshRootStatus"></div></div>
+          <div class="status" id="brb-status">Loading...</div>
+          <div class="preview-url" onclick="copyUrl('http://localhost:7777/brb','copy-brb-widget')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#3a9fc8" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg><span>localhost:7777/brb</span></div>
+          <div class="copy-flash" id="copy-brb-widget"></div>
+        </div>
+
+        <div id="brb-tab-info" style="display:none;">
+          <div><div class="section-label">PREVIEW</div>
+            <div class="preview-box" style="width:100%;"><iframe src="http://localhost:7777/info-overlay" scrolling="no"></iframe></div>
+            <a class="preview-open" href="http://localhost:7777/info-overlay" target="_blank">↗ Open fullscreen</a></div>
+          <div><div class="section-label">FOLDER</div>
+            <input type="text" class="file-input" id="infoFolder" placeholder="C:\\path\\to\\info_display" style="margin-bottom:6px;" />
+            <button class="save-btn px-btn" style="width:100%;" onclick="saveInfoFolder()">Save</button>
+            <div class="file-status" id="infoFolderStatus"></div></div>
+          <div><div style="display:flex;align-items:center;justify-content:space-between;"><div class="section-label" style="margin-bottom:0">FILES</div><button class="refresh-btn px-btn" onclick="refreshInfoFileList()">↺ REFRESH</button></div>
+            <div id="infoFileListWrap"><div class="file-list"><div class="file-empty">Loading...</div></div></div></div>
+          <div><div class="section-label">MANUAL LINKS</div>
+            <div class="overrides-list" id="infoLinksList" style="max-height:120px;"></div>
+            <button class="add-btn px-btn" onclick="addSlideshowLink('info')">+ Add File</button>
+            <button class="save-overrides-btn px-btn" onclick="saveSlideshowLinks('infoLinksStatus')">Save Links</button>
+            <div class="ov-status" id="infoLinksStatus"></div></div>
+          <div><div class="section-label">TIMING</div>
+            <div class="row"><label>Image/GIF</label><input type="range" min="2" max="120" step="1" id="infoImageDuration" oninput="updateVal('infoImageDuration','infoImageDurationVal',v=>v+'s')" onchange="saveInfoTiming()" /><span class="val" id="infoImageDurationVal">10s</span></div>
+            <div class="row"><label>Video max</label><input type="range" min="0" max="120" step="1" id="infoVideoDuration" oninput="updateVal('infoVideoDuration','infoVideoDurationVal',v=>v==0?'Full':v+'s')" onchange="saveInfoTiming()" /><span class="val" id="infoVideoDurationVal">Full</span></div>
+            <div class="row"><label>Fade</label><input type="range" min="0.1" max="5" step="0.1" id="infoFade" oninput="updateVal('infoFade','infoFadeVal',v=>parseFloat(v).toFixed(1)+'s')" onchange="saveInfoTiming()" /><span class="val" id="infoFadeVal">1.0s</span></div></div>
+          <div><div class="section-label">PLAYBACK</div>
+            <div class="check-row"><input type="checkbox" id="infoRandomize" onchange="saveInfoTiming()" /><label for="infoRandomize">Randomize</label></div>
+            <div class="section-label" style="margin-top:10px;">TRANSITION</div>
+            <div class="grid"><button class="btn px-btn" data-info-trans="fade" onclick="setInfoTransition(this)">Fade</button><button class="btn px-btn" data-info-trans="slide" onclick="setInfoTransition(this)">Slide</button><button class="btn px-btn" data-info-trans="zoom" onclick="setInfoTransition(this)">Zoom</button><button class="btn px-btn" data-info-trans="wipe" onclick="setInfoTransition(this)">Wipe</button></div></div>
+          <div class="status" id="info-status">Ready</div>
+          <div class="preview-url" onclick="copyUrl('http://127.0.0.1:7777/info-overlay','copy-info-widget')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#3a9fc8" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg><span>127.0.0.1:7777/info-overlay</span></div>
+          <div class="copy-flash" id="copy-info-widget"></div>
+        </div>`
     },
     countdown: {
       label: 'COUNTDOWN',
@@ -2016,7 +2032,7 @@
         <div><div class="section-label">PREVIEW</div>
           <div class="preview-box" style="width:100%;"><iframe id="countdown-preview" src="http://localhost:7777/countdown" scrolling="no"></iframe></div>
           <a class="preview-open" href="http://localhost:7777/countdown" target="_blank">↗ Open fullscreen</a></div>
-        <div class="check-row"><input type="checkbox" id="countdownInSlideshow" onchange="saveCountdown()" /><label for="countdownInSlideshow">Include in BRB</label></div>
+        <div class="check-row" style="align-items:center;"><label style="font-size:9px;color:rgba(255,255,255,0.5);flex-shrink:0;min-width:90px;">ADD TO SLIDESHOW</label><select id="countdownSlideshow" onchange="saveCountdown()" style="flex:1;background:#0d1b2a;color:#e0e8f0;border:1px solid #1a2535;padding:3px 5px;font-family:'MMRock9',monospace;font-size:7px;letter-spacing:0.06em;"><option value="none">None</option><option value="brb">BRB Slideshow</option><option value="info">Info Slideshow</option><option value="both">Both</option></select></div>
         <div style="margin-bottom:8px;">
           <div class="section-label" style="cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center;" onclick="var _p=document.getElementById('cdShadowPanel'),_open=_p.style.display!=='block';_p.style.display=_open?'block':'none';if(_open){initShadowKnob('cdShadowKnob','cdShadowAngleVal',saveCountdown);drawShadowKnob('cdShadowKnob','cdShadowAngleVal');}">DROP SHADOW <span style="font-size:8px;opacity:0.4;">▶</span></div>
           <div id="cdShadowPanel" style="display:none;padding-top:4px;">
@@ -2051,7 +2067,7 @@
         <div><div class="section-label">PREVIEW</div>
           <div class="preview-box" style="width:100%;"><iframe id="clock-preview" src="http://localhost:7777/clock" scrolling="no"></iframe></div>
           <a class="preview-open" href="http://localhost:7777/clock" target="_blank">↗ Open fullscreen</a></div>
-        <div class="check-row"><input type="checkbox" id="clockInSlideshow" onchange="saveClock()" /><label for="clockInSlideshow">Include in BRB</label></div>
+        <div class="check-row" style="align-items:center;"><label style="font-size:9px;color:rgba(255,255,255,0.5);flex-shrink:0;min-width:90px;">ADD TO SLIDESHOW</label><select id="clockSlideshow" onchange="saveClock()" style="flex:1;background:#0d1b2a;color:#e0e8f0;border:1px solid #1a2535;padding:3px 5px;font-family:'MMRock9',monospace;font-size:7px;letter-spacing:0.06em;"><option value="none">None</option><option value="brb">BRB Slideshow</option><option value="info">Info Slideshow</option><option value="both">Both</option></select></div>
         <div style="margin-bottom:8px;">
           <div class="section-label" style="cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center;" onclick="var _p=document.getElementById('clockShadowPanel'),_open=_p.style.display!=='block';_p.style.display=_open?'block':'none';if(_open){initShadowKnob('clockShadowKnob','clockShadowAngleVal',saveClock);drawShadowKnob('clockShadowKnob','clockShadowAngleVal');}">DROP SHADOW <span style="font-size:8px;opacity:0.4;">▶</span></div>
           <div id="clockShadowPanel" style="display:none;padding-top:4px;">
@@ -2079,7 +2095,7 @@
         <div><div class="section-label">PREVIEW</div>
           <div class="preview-box" style="width:100%;"><iframe id="social-preview" src="http://localhost:7777/social" scrolling="no"></iframe></div>
           <a class="preview-open" href="http://localhost:7777/social" target="_blank">↗ Open fullscreen</a></div>
-        <div class="check-row"><input type="checkbox" id="socialInSlideshow" onchange="saveSocial()" /><label for="socialInSlideshow">Include in BRB</label></div>
+        <div class="check-row" style="align-items:center;"><label style="font-size:9px;color:rgba(255,255,255,0.5);flex-shrink:0;min-width:90px;">ADD TO SLIDESHOW</label><select id="socialSlideshow" onchange="saveSocial()" style="flex:1;background:#0d1b2a;color:#e0e8f0;border:1px solid #1a2535;padding:3px 5px;font-family:'MMRock9',monospace;font-size:7px;letter-spacing:0.06em;"><option value="none">None</option><option value="brb">BRB Slideshow</option><option value="info">Info Slideshow</option><option value="both">Both</option></select></div>
         <div class="row"><label>Message</label><input type="text" class="file-input" id="socialMessage" placeholder="Follow for more!" onblur="saveSocial()" /></div>
         <div class="row"><label>Twitch</label><input type="text" class="file-input" id="socialTwitch" placeholder="@yourhandle" onblur="saveSocial()" /></div>
         <div class="row"><label>Twitter</label><input type="text" class="file-input" id="socialTwitter" placeholder="@yourhandle" onblur="saveSocial()" /></div>
@@ -2280,7 +2296,7 @@
         <div><div class="section-label">PREVIEW</div>
           <div class="preview-box" style="width:100%;"><iframe id="nextmatch-preview" src="http://localhost:7777/nextmatch" scrolling="no"></iframe></div>
           <a class="preview-open" href="http://localhost:7777/nextmatch" target="_blank">↗ Open fullscreen</a></div>
-        <div class="check-row"><input type="checkbox" id="nextMatchInSlideshow" onchange="saveNextMatch()" /><label for="nextMatchInSlideshow">Include in BRB</label></div>
+        <div class="check-row" style="align-items:center;"><label style="font-size:9px;color:rgba(255,255,255,0.5);flex-shrink:0;min-width:90px;">ADD TO SLIDESHOW</label><select id="nextMatchSlideshow" onchange="saveNextMatch()" style="flex:1;background:#0d1b2a;color:#e0e8f0;border:1px solid #1a2535;padding:3px 5px;font-family:'MMRock9',monospace;font-size:7px;letter-spacing:0.06em;"><option value="none">None</option><option value="brb">BRB Slideshow</option><option value="info">Info Slideshow</option><option value="both">Both</option></select></div>
         <div style="margin-bottom:8px;">
           <div class="section-label" style="cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center;" onclick="var _p=document.getElementById('nmShadowPanel'),_open=_p.style.display!=='block';_p.style.display=_open?'block':'none';if(_open){initShadowKnob('nmShadowKnob','nmShadowAngleVal',saveNextMatch);drawShadowKnob('nmShadowKnob','nmShadowAngleVal');}">DROP SHADOW <span style="font-size:8px;opacity:0.4;">▶</span></div>
           <div id="nmShadowPanel" style="display:none;padding-top:4px;">
@@ -2292,6 +2308,10 @@
             <div class="row"><label>Color</label><input type="color" id="nmShadowColor" value="#000000" oninput="saveNextMatch()" style="width:36px;height:26px;padding:1px;border:1px solid rgba(255,255,255,0.2);background:#0d1b2e;cursor:pointer;" /></div>
             <div class="row" style="justify-content:flex-end;"><button class="save-btn px-btn" onclick="resetShadow('nm',saveNextMatch)" style="font-size:7px;">Reset to Default</button></div>
           </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <span id="sqAutoIndicator" style="font-size:7px;color:rgba(255,255,255,0.25);letter-spacing:0.05em;">● Manual</span>
+          <button class="px-btn" style="font-size:7px;padding:3px 10px;" onclick="syncNextMatchFromQueue()">SYNC FROM QUEUE</button>
         </div>
         <div class="row"><label>Player 1</label><input type="text" class="file-input" id="nextMatchP1" placeholder="Player 1" oninput="saveNextMatch()" /></div>
         <div class="row"><label>Player 2</label><input type="text" class="file-input" id="nextMatchP2" placeholder="Player 2" oninput="saveNextMatch()" /></div>
@@ -2557,10 +2577,382 @@
         </div>`
   };
 
+  const CHAT_WIDGET_TEMPLATES = {
+    bitly: {
+      label: 'BITLY DOWNLOAD COUNTER',
+      html: `<div>
+            <div class="section-label">OVERLAY PREVIEW</div>
+            <div class="preview-box" style="width:100%;"><iframe src="http://127.0.0.1:7777/bitly-overlay" scrolling="no" id="bitly-preview-iframe"></iframe></div>
+            <a class="preview-open" href="http://127.0.0.1:7777/bitly-overlay" target="_blank">&#8599; Open fullscreen</a>
+          </div>
+          <div>
+            <button onclick="bitlyAccountToggle()" class="px-btn" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:8px 10px;margin-bottom:2px;">
+              <span style="font-family:'MMRock9',monospace;font-size:8px;letter-spacing:0.1em;color:#3a9fc8;">ACCOUNT</span>
+              <span style="display:flex;align-items:center;gap:8px;">
+                <span id="bitly-login-indicator" style="font-size:7px;letter-spacing:0.06em;color:rgba(255,255,255,0.25);">● NOT CONNECTED</span>
+                <span id="bitly-account-arrow" style="font-size:10px;color:rgba(255,255,255,0.5);">▸</span>
+              </span>
+            </button>
+            <div id="bitly-account-body" style="display:none;flex-direction:column;gap:8px;padding:10px 0 12px;border-bottom:1px solid rgba(58,159,200,0.15);margin-bottom:8px;">
+              <div style="font-size:7px;color:rgba(255,255,255,0.3);letter-spacing:0.06em;line-height:1.8;">bitly.com &#8594; Account Settings &#8594; Developer &#8594; API &#8594; Generate Token<br>Link must be a short link from your Bitly account.</div>
+              <div>
+                <div class="section-label">BITLY API TOKEN</div>
+                <input class="file-input" type="password" id="bitlyToken" placeholder="Bearer token" style="width:100%;" oninput="autoSave()">
+              </div>
+              <div>
+                <div class="section-label">BITLY LINK</div>
+                <input class="file-input" type="text" id="bitlyLink" placeholder="bit.ly/xxxxxx" style="width:100%;" oninput="autoSave()">
+              </div>
+              <button class="px-btn" style="width:100%;padding:7px;font-size:7px;" onclick="bitlyVerify()">LOG IN</button>
+              <div class="file-status" id="bitlyLoginStatus"></div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:center;margin-bottom:2px;">
+            <div id="bitly-mock-root" style="display:inline-flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 20px 12px;background:rgba(4,13,26,0.88);border:3px solid #000;box-shadow:inset 2px 2px 0 #3a9fc8,inset -2px -2px 0 #164a5c;min-width:110px;">
+              <div id="bitly-mock-label" style="font-family:MMRock9,monospace;font-size:8px;color:#3a9fc8;text-shadow:1px 1px 0 #000;letter-spacing:2px;text-align:center;">DOWNLOADS</div>
+              <div id="bitly-mock-count" style="font-family:MMRock9,monospace;font-size:24px;color:#fff;text-shadow:2px 2px 0 #000;text-align:center;min-width:4ch;letter-spacing:1px;">1,234</div>
+            </div>
+          </div>
+          <div>
+            <div class="section-label">OVERLAY LABEL</div>
+            <input class="file-input" type="text" id="bitlyLabel" placeholder="DOWNLOADS" style="width:100%;" oninput="autoSave();bitlyApplyPreview()">
+          </div>
+          <div>
+            <div class="section-label">STAT</div>
+            <select id="bitlyStat" class="file-input" style="width:100%;background:#0d1b2a;color:#e0e8f0;border:1px solid #1a2535;padding:4px 6px;font-family:'MMRock9',monospace;font-size:8px;letter-spacing:0.06em;" onchange="autoSave();bitlyToggleCountStart()">
+              <option value="alltime">All Time</option>
+              <option value="month">This Month</option>
+              <option value="week7">Last 7 Days</option>
+              <option value="today">Today</option>
+            </select>
+          </div>
+          <div>
+            <div class="section-label" style="margin-bottom:3px;">COUNTER SIZE</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <input type="range" min="20" max="96" step="2" id="bitlyCountFontSize" value="48" style="flex:1;" oninput="autoSave();bitlyApplyPreview()">
+              <span class="val" id="bitlyCountFontSizeVal" style="min-width:24px;">48</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <div style="flex:1;">
+              <div class="section-label" style="margin-bottom:3px;">LABEL COLOR</div>
+              <input type="color" id="bitlyLabelColor" value="#3a9fc8" style="width:100%;height:22px;padding:1px 2px;border:2px solid #1a2535;background:#0d1b2a;cursor:pointer;" oninput="autoSave();bitlyApplyPreview()">
+            </div>
+            <div style="flex:1;">
+              <div class="section-label" style="margin-bottom:3px;">COUNT COLOR</div>
+              <input type="color" id="bitlyCountColor" value="#ffffff" style="width:100%;height:22px;padding:1px 2px;border:2px solid #1a2535;background:#0d1b2a;cursor:pointer;" oninput="autoSave();bitlyApplyPreview()">
+            </div>
+          </div>
+          <div class="check-row" style="align-items:center;"><label style="font-size:9px;color:rgba(255,255,255,0.5);flex-shrink:0;min-width:90px;">ADD TO SLIDESHOW</label><select id="bitlySlideshow" onchange="saveBitlySlideshow()" style="flex:1;background:#0d1b2a;color:#e0e8f0;border:1px solid #1a2535;padding:3px 5px;font-family:'MMRock9',monospace;font-size:7px;letter-spacing:0.06em;"><option value="none">None</option><option value="brb">BRB Slideshow</option><option value="info">Info Slideshow</option><option value="both">Both</option></select></div>
+          <div id="bitlyCountStartSection">
+            <div class="section-label" style="margin-bottom:3px;">COUNT START</div>
+            <div style="font-size:7px;color:rgba(255,255,255,0.35);margin-bottom:4px;line-height:1.5;" id="bitlyCountSinceDisplay">Not set — showing all-time clicks</div>
+            <button class="px-btn" style="width:100%;padding:7px;font-size:7px;" onclick="bitlyResetCount()">START COUNT FROM NOW</button>
+          </div>
+          <div>
+            <div class="section-label" style="margin-bottom:3px;">POSITION</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;margin-bottom:6px;">
+              <button class="px-btn" id="btPos-top-left"      onclick="bitlySetPos(this)" data-val="top-left"      style="padding:5px 2px;font-size:6px;">TOP LEFT</button>
+              <button class="px-btn" id="btPos-top-center"    onclick="bitlySetPos(this)" data-val="top-center"    style="padding:5px 2px;font-size:6px;">TOP CTR</button>
+              <button class="px-btn" id="btPos-top-right"     onclick="bitlySetPos(this)" data-val="top-right"     style="padding:5px 2px;font-size:6px;">TOP RIGHT</button>
+              <button class="px-btn" id="btPos-mid-left"      onclick="bitlySetPos(this)" data-val="mid-left"      style="padding:5px 2px;font-size:6px;">MID LEFT</button>
+              <button class="px-btn" id="btPos-mid-center"    onclick="bitlySetPos(this)" data-val="mid-center"    style="padding:5px 2px;font-size:6px;">MID CTR</button>
+              <button class="px-btn" id="btPos-mid-right"     onclick="bitlySetPos(this)" data-val="mid-right"     style="padding:5px 2px;font-size:6px;">MID RIGHT</button>
+              <button class="px-btn" id="btPos-bottom-left"   onclick="bitlySetPos(this)" data-val="bottom-left"   style="padding:5px 2px;font-size:6px;">BTM LEFT</button>
+              <button class="px-btn" id="btPos-bottom-center" onclick="bitlySetPos(this)" data-val="bottom-center" style="padding:5px 2px;font-size:6px;">BTM CTR</button>
+              <button class="px-btn" id="btPos-bottom-right"  onclick="bitlySetPos(this)" data-val="bottom-right"  style="padding:5px 2px;font-size:6px;">BTM RIGHT</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="px-btn" style="flex:1;padding:7px;font-size:7px;" onclick="fetchBitlyCount()">TEST FETCH</button>
+          </div>
+          <div class="file-status" id="bitlyStatus"></div>
+          <div>
+            <div class="section-label" style="margin-bottom:4px;">OBS OVERLAY URL</div>
+            <div class="preview-url" style="font-size:7px;" onclick="copyUrl('http://127.0.0.1:7777/bitly-overlay','copy-bitly-url')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#3a9fc8" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              <span>127.0.0.1:7777/bitly-overlay</span>
+            </div>
+            <div class="copy-flash" id="copy-bitly-url"></div>
+          </div>`
+    },
+    chatcmds: {
+      label: 'CHAT COMMANDS',
+      html: `<div style="font-size:7px;color:rgba(255,255,255,0.3);letter-spacing:0.08em;line-height:1.6;">Bot replies in YouTube live chat when a viewer types the command.</div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <span class="section-label" style="flex:0 0 110px;margin:0;">COMMAND</span>
+            <span class="section-label" style="flex:1;margin:0;">RESPONSE</span>
+          </div>
+          <div id="cmdList" style="display:flex;flex-direction:column;gap:4px;"></div>
+          <div style="display:flex;gap:6px;">
+            <button class="px-btn" style="flex:1;padding:7px;font-size:7px;" onclick="addChatCommand()">+ ADD COMMAND</button>
+            <button class="px-btn" style="flex:1;padding:7px;font-size:7px;" onclick="saveChatCommands()">SAVE</button>
+          </div>
+          <div class="file-status" id="cmdStatus"></div>
+          <div>
+            <div class="section-label">!HELP AUTO-REPLY</div>
+            <div class="check-row">
+              <label class="toggle-wrap">
+                <input type="checkbox" id="helpEnabled" onchange="saveHelpSettings()">
+                <span class="toggle-track"></span><span class="toggle-thumb"></span>
+              </label>
+              <label for="helpEnabled" style="cursor:pointer;">Reply to !help with command list</label>
+            </div>
+            <div id="helpExtras" style="display:none;flex-direction:column;gap:8px;padding-left:4px;">
+              <div class="poll-toggle-wrap">
+                <button class="px-btn" id="help-fmt-verbose" onclick="setHelpFormat('verbose')" style="padding:7px;font-size:7px;">VERBOSE</button>
+                <button class="px-btn" id="help-fmt-compact" onclick="setHelpFormat('compact')" style="padding:7px;font-size:7px;">COMPACT</button>
+              </div>
+              <div style="font-size:7px;color:rgba(255,255,255,0.3);letter-spacing:0.06em;" id="helpFormatDesc">Verbose: !bracket → link.com | !rules → check bio</div>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <span class="section-label" style="margin:0;min-width:70px;">SEPARATOR</span>
+                <input class="file-input" type="text" id="helpSeparator" value=" | " style="flex:1;" oninput="saveHelpSettings()">
+              </div>
+            </div>
+          </div>`
+    },
+    poll: {
+      label: 'LIVE POLL — WHO WINS?',
+      html: `<div>
+            <div class="section-label">OVERLAY PREVIEW</div>
+            <div class="preview-box" style="width:100%;"><iframe src="http://127.0.0.1:7777/poll-overlay" scrolling="no"></iframe></div>
+            <a class="preview-open" href="http://127.0.0.1:7777/poll-overlay" target="_blank">&#8599; Open fullscreen</a>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="px-btn" id="pollOpenBtn" style="flex:1;padding:8px;font-size:7px;color:#4ade80;" onclick="pollOpenPoll()">OPEN POLL</button>
+            <button class="px-btn" id="pollCloseBtn" style="flex:1;padding:8px;font-size:7px;color:#f87171;display:none;" onclick="pollClosePoll()">CLOSE POLL</button>
+            <button class="px-btn" id="pollNewBtn" style="flex:1;padding:8px;font-size:7px;color:#facc15;display:none;" onclick="pollOpenNew()">OPEN NEW</button>
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+              <div class="section-label" style="margin:0;">MOCK PREVIEW</div>
+              <div style="display:flex;gap:0;">
+                <button id="poll-orient-btn-v" onclick="switchPollOrientationTab('v')" style="padding:4px 8px;font-family:'MMRock9',monospace;font-size:7px;letter-spacing:0.08em;cursor:pointer;border:none;background:#001a30;color:#3a9fc8;border-bottom:2px solid #3a9fc8;">VERTICAL</button>
+                <button id="poll-orient-btn-h" onclick="switchPollOrientationTab('h')" style="padding:4px 8px;font-family:'MMRock9',monospace;font-size:7px;letter-spacing:0.08em;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,0.3);border-bottom:2px solid rgba(58,159,200,0.15);">HORIZONTAL</button>
+              </div>
+            </div>
+
+            <div id="poll-orient-v" style="display:flex;justify-content:center;">
+              <div id="poll-preview-box" style="position:relative;background:transparent;border:3px solid #000;box-shadow:inset 2px 2px 0 #0a1628;padding:12px;display:flex;justify-content:center;align-items:flex-end;gap:12px;height:280px;width:160px;overflow:hidden;">
+                <div id="mock-bg" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:80%;height:80%;background:transparent;border-radius:0;z-index:0;pointer-events:none;"></div>
+                <div id="mock-col1" style="width:44px;display:flex;flex-direction:column;align-items:center;gap:0;position:relative;z-index:1;">
+                  <div id="mock-bar-wrap1" style="width:40px;flex:1;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;">
+                    <div id="mock-fill1" style="width:100%;height:60%;background:#3a9fc8;transition:height 0.6s ease;min-height:2px;"></div>
+                  </div>
+                  <div id="mock-portrait1" style="width:24px;height:24px;background:#0d1b2e;border:2px solid rgba(58,159,200,0.3);overflow:hidden;flex-shrink:0;">
+                    <img id="mock-portrait1-img" style="display:none;width:100%;height:100%;object-fit:cover;image-rendering:pixelated;" alt="">
+                  </div>
+                  <div id="mock-pct1" style="font-family:'MMRock9',monospace;font-size:10px;color:#3a9fc8;text-shadow:1px 1px 0 #000;margin-top:3px;">60%</div>
+                  <div id="mock-votes1" style="font-family:'MMRock9',monospace;font-size:7px;color:rgba(58,159,200,0.6);">6 votes</div>
+                </div>
+                <div id="mock-col2" style="width:44px;display:flex;flex-direction:column;align-items:center;gap:0;position:relative;z-index:1;">
+                  <div id="mock-bar-wrap2" style="width:40px;flex:1;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;">
+                    <div id="mock-fill2" style="width:100%;height:40%;background:#ff6694;transition:height 0.6s ease;min-height:2px;"></div>
+                  </div>
+                  <div id="mock-portrait2" style="width:24px;height:24px;background:#0d1b2e;border:2px solid rgba(255,102,148,0.3);overflow:hidden;flex-shrink:0;">
+                    <img id="mock-portrait2-img" style="display:none;width:100%;height:100%;object-fit:cover;image-rendering:pixelated;" alt="">
+                  </div>
+                  <div id="mock-pct2" style="font-family:'MMRock9',monospace;font-size:10px;color:#ff6694;text-shadow:1px 1px 0 #000;margin-top:3px;">40%</div>
+                  <div id="mock-votes2" style="font-family:'MMRock9',monospace;font-size:7px;color:rgba(255,102,148,0.6);">4 votes</div>
+                </div>
+              </div>
+            </div>
+
+            <div id="poll-orient-h" style="display:none;justify-content:center;">
+              <div id="poll-h-preview-box" style="position:relative;background:transparent;border:3px solid #000;box-shadow:inset 2px 2px 0 #0a1628;padding:10px;display:flex;flex-direction:column;justify-content:center;gap:14px;height:140px;width:100%;overflow:hidden;">
+                <div id="mock-h-bg" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:80%;height:80%;background:transparent;border-radius:0;z-index:0;pointer-events:none;"></div>
+                <div id="mock-h-row1" style="display:flex;align-items:center;gap:5px;position:relative;z-index:1;">
+                  <div id="mock-h-pfp1" style="width:24px;height:24px;background:#0d1b2e;border:2px solid rgba(58,159,200,0.3);overflow:hidden;flex-shrink:0;"><img id="mock-h-pfp1-img" style="display:none;width:100%;height:100%;object-fit:cover;image-rendering:pixelated;" alt=""></div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:1px;overflow:visible;">
+                    <div id="mock-h-track1" style="width:100%;height:16px;background:rgba(255,255,255,0.05);position:relative;overflow:visible;">
+                      <div id="mock-h-fill1" style="height:100%;width:60%;background:#3a9fc8;transition:width 0.6s ease;position:relative;min-width:2px;">
+                        <span id="mock-h-pct1" style="position:absolute;left:calc(100% + 3px);top:50%;transform:translateY(-50%);font-family:'MMRock9',monospace;font-size:8px;color:#3a9fc8;white-space:nowrap;text-shadow:1px 1px 0 #000;">60%</span>
+                      </div>
+                    </div>
+                    <div id="mock-h-votes1" style="font-family:'MMRock9',monospace;font-size:6px;color:rgba(58,159,200,0.6);">6 votes</div>
+                  </div>
+                </div>
+                <div id="mock-h-row2" style="display:flex;align-items:center;gap:5px;position:relative;z-index:1;">
+                  <div id="mock-h-pfp2" style="width:24px;height:24px;background:#0d1b2e;border:2px solid rgba(255,102,148,0.3);overflow:hidden;flex-shrink:0;"><img id="mock-h-pfp2-img" style="display:none;width:100%;height:100%;object-fit:cover;image-rendering:pixelated;" alt=""></div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:1px;overflow:visible;">
+                    <div id="mock-h-track2" style="width:100%;height:16px;background:rgba(255,255,255,0.05);position:relative;overflow:visible;">
+                      <div id="mock-h-fill2" style="height:100%;width:40%;background:#ff6694;transition:width 0.6s ease;position:relative;min-width:2px;">
+                        <span id="mock-h-pct2" style="position:absolute;left:calc(100% + 3px);top:50%;transform:translateY(-50%);font-family:'MMRock9',monospace;font-size:8px;color:#ff6694;white-space:nowrap;text-shadow:1px 1px 0 #000;">40%</span>
+                      </div>
+                    </div>
+                    <div id="mock-h-votes2" style="font-family:'MMRock9',monospace;font-size:6px;color:rgba(255,102,148,0.6);">4 votes</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="pollLiveStatus" style="font-family:'MMRock9',monospace;font-size:7px;color:rgba(255,255,255,0.4);letter-spacing:0.06em;margin-top:4px;min-height:12px;text-align:center;"></div>
+          </div>
+          <div>
+            <div class="section-label">POLL TYPE</div>
+            <div class="poll-toggle-wrap">
+              <button class="px-btn active" id="poll-type-vs" onclick="setPollType('vs')" style="padding:7px;font-size:7px;">VS POLL</button>
+              <button class="px-btn" id="poll-type-other" onclick="setPollType('other')" style="padding:7px;font-size:7px;">OTHER POLL</button>
+            </div>
+          </div>
+          <div id="poll-other-content" style="display:none;font-family:'MMRock9',monospace;font-size:10px;color:rgba(58,159,200,0.7);text-align:center;padding:18px 8px;border:1px solid rgba(58,159,200,0.2);">FEATURE COMING SOON</div>
+          <div id="poll-vs-content">
+            <div style="border:1px solid rgba(255,255,255,0.1);">
+              <div class="chat-widget-header" onclick="chatWidgetToggle(this)" style="padding:8px 10px;">
+                <span class="section-label" style="margin:0;flex:1;">CUSTOMIZATION</span>
+                <span class="chat-widget-arrow">&#9662;</span>
+              </div>
+              <div class="chat-widget-body hidden" style="gap:8px;">
+                <div class="row" style="margin-bottom:8px;">
+                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">P1 COLOR</label>
+                  <input type="color" id="pollP1Color" value="#3a9fc8" oninput="pollApplySettings()">
+                </div>
+                <div class="row" style="margin-bottom:8px;">
+                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">P2 COLOR</label>
+                  <input type="color" id="pollP2Color" value="#ff6694" oninput="pollApplySettings()">
+                </div>
+                <div class="row" style="margin-bottom:8px;">
+                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">PFP SHAPE</label>
+                  <div class="poll-toggle-wrap" style="flex:1;">
+                    <button class="px-btn active" id="poll-pfp-square" onclick="setPfpShape('square')" style="padding:6px;font-size:7px;">SQUARE</button>
+                    <button class="px-btn" id="poll-pfp-modern" onclick="setPfpShape('modern')" style="padding:6px;font-size:7px;">MODERN</button>
+                  </div>
+                </div>
+                <div class="row">
+                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">BAR WIDTH</label>
+                  <input type="range" min="10" max="120" step="2" id="pollBarWidth" value="40" oninput="pollApplySettings()">
+                  <span class="val" id="pollBarWidthVal">40px</span>
+                </div>
+                <div class="row">
+                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">BAR GAP</label>
+                  <input type="range" min="0" max="80" step="2" id="pollBarGap" value="12" oninput="pollApplySettings()">
+                  <span class="val" id="pollBarGapVal">12px</span>
+                </div>
+                <div class="row">
+                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">BG OPACITY</label>
+                  <input type="range" min="0" max="1" step="0.05" id="pollBgOpacity" value="0" oninput="pollApplySettings()">
+                  <span class="val" id="pollBgOpacityVal">0</span>
+                </div>
+                <div class="row">
+                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">BG RADIUS</label>
+                  <input type="range" min="0" max="30" step="1" id="pollBgRadius" value="0" oninput="pollApplySettings()">
+                  <span class="val" id="pollBgRadiusVal">0px</span>
+                </div>
+                <div class="row">
+                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">BG WIDTH</label>
+                  <input type="range" min="10" max="200" step="5" id="pollBgWidth" value="100" oninput="pollApplySettings()">
+                  <span class="val" id="pollBgWidthVal">100%</span>
+                </div>
+                <div class="row">
+                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">BG HEIGHT</label>
+                  <input type="range" min="10" max="200" step="5" id="pollBgHeight" value="100" oninput="pollApplySettings()">
+                  <span class="val" id="pollBgHeightVal">100%</span>
+                </div>
+                <div class="row">
+                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">BAR RADIUS</label>
+                  <input type="range" min="0" max="50" step="1" id="pollBarRadius" value="0" oninput="pollApplySettings()">
+                  <span class="val" id="pollBarRadiusVal">0px</span>
+                </div>
+                <div class="row">
+                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">MAX HEIGHT</label>
+                  <label class="toggle-wrap" style="flex-shrink:0;" onclick="event.stopPropagation()">
+                    <input type="checkbox" id="pollMaxHeightEnabled" onchange="pollApplySettings()">
+                    <span class="toggle-track"></span><span class="toggle-thumb"></span>
+                  </label>
+                  <input type="range" min="50" max="800" step="10" id="pollMaxHeight" value="300" oninput="pollApplySettings()" style="flex:1;">
+                  <span class="val" id="pollMaxHeightVal">300px</span>
+                </div>
+                <div class="row">
+                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">% SIZE</label>
+                  <input type="range" min="8" max="60" step="1" id="pollPctSize" value="18" oninput="pollApplySettings()">
+                  <span class="val" id="pollPctSizeVal">18px</span>
+                </div>
+                <div class="row">
+                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">VOTE SIZE</label>
+                  <input type="range" min="6" max="36" step="1" id="pollVoteSize" value="12" oninput="pollApplySettings()">
+                  <span class="val" id="pollVoteSizeVal">12px</span>
+                </div>
+                <div class="row">
+                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">PFP SIZE</label>
+                  <input type="range" min="20" max="200" step="4" id="pollPfpSize" value="80" oninput="pollApplySettings()">
+                  <span class="val" id="pollPfpSizeVal">80px</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="border:1px solid rgba(255,255,255,0.1);">
+            <div class="chat-widget-header" onclick="chatWidgetToggle(this)" style="padding:8px 10px;">
+              <span class="section-label" style="margin:0;flex:1;">PLAYER SELECTION</span>
+              <span class="chat-widget-arrow">&#9662;</span>
+            </div>
+            <div class="chat-widget-body" style="gap:8px;">
+              <div class="check-row" style="align-items:center;gap:8px;">
+                <label class="toggle-wrap">
+                  <input type="checkbox" id="poll-pfp-mode-toggle" onchange="setPfpModeFromToggle(this.checked)">
+                  <span class="toggle-track"></span><span class="toggle-thumb"></span>
+                </label>
+                <label for="poll-pfp-mode-toggle" id="poll-pfp-mode-label" style="cursor:pointer;font-size:8px;letter-spacing:0.05em;">PLAYER AVATAR</label>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <div style="flex:1;min-width:0;">
+                  <div class="section-label" style="color:#3a9fc8;margin-bottom:4px;">P1 PFP</div>
+                  <div class="pfp-dropdown" id="pfp-dd1">
+                    <div class="pfp-dd-trigger" onclick="togglePfpDropdown(1)">
+                      <div class="pfp-dd-thumb" id="pfp-thumb1"><img id="pfp-thumb1-img" src="" alt=""></div>
+                      <span class="pfp-dd-label" id="pfp-label1">Select...</span>
+                      <span class="pfp-dd-arrow">&#9662;</span>
+                    </div>
+                    <div class="pfp-dd-panel" id="pfp-panel1">
+                      <input class="pfp-dd-search" type="text" placeholder="Search..." oninput="filterPfpDropdown(1,this.value)">
+                      <div class="pfp-dd-list" id="pfp-list1"></div>
+                    </div>
+                  </div>
+                </div>
+                <div style="flex:1;min-width:0;">
+                  <div class="section-label" style="color:#ff6694;margin-bottom:4px;">P2 PFP</div>
+                  <div class="pfp-dropdown" id="pfp-dd2">
+                    <div class="pfp-dd-trigger" onclick="togglePfpDropdown(2)">
+                      <div class="pfp-dd-thumb" id="pfp-thumb2"><img id="pfp-thumb2-img" src="" alt=""></div>
+                      <span class="pfp-dd-label" id="pfp-label2">Select...</span>
+                      <span class="pfp-dd-arrow">&#9662;</span>
+                    </div>
+                    <div class="pfp-dd-panel" id="pfp-panel2">
+                      <input class="pfp-dd-search" type="text" placeholder="Search..." oninput="filterPfpDropdown(2,this.value)">
+                      <div class="pfp-dd-list" id="pfp-list2"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button class="px-btn" style="flex:1;padding:7px;font-size:6px;" onclick="pollLoadPfpList()">PULL LIST FROM START.GG WIDGET</button>
+                <button class="px-btn" style="flex:1;padding:7px;font-size:7px;" onclick="pollLoadCurrentMatch()">PULL CURRENT MATCH</button>
+              </div>
+              <div class="file-status" id="pfpLoadStatus"></div>
+            </div>
+          </div>
+          <div>
+            <div class="section-label" style="margin-bottom:4px;">OBS OVERLAY URL</div>
+            <div class="preview-url" id="poll-obs-url-wrap" style="font-size:7px;" onclick="copyUrl('http://127.0.0.1:7777/poll-overlay','copy-poll-url')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#3a9fc8" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              <span id="poll-obs-url-span">127.0.0.1:7777/poll-overlay</span>
+            </div>
+            <div class="copy-flash" id="copy-poll-url"></div>
+          </div>`
+    }
+  };
+
   // Layout: array of slots, each slot is array of widget ids
   // e.g. [['brb'], ['countdown','social'], ['clock'], ['nextmatch']]
   let widgetLayout = [['brb'], ['countdown'], ['clock'], ['social'], ['nextmatch'], ['startgg'], ['bluesky']];
   let widgetEnabled = { brb: true, countdown: true, clock: true, social: true, nextmatch: true, startgg: true, bluesky: true }
+  let chatWidgetEnabled = { bitly: true, chatcmds: true, poll: true };
+  const DEFAULT_CHAT_ENABLED = { bitly: true, chatcmds: true, poll: true };
+  const CW_LABELS = { bitly: 'BITLY COUNTER', chatcmds: 'CHAT COMMANDS', poll: 'LIVE POLL' };
+  let chatLayout = [['bitly'], ['chatcmds'], ['poll']];
+  let chatWidgetOpen = { bitly: true, chatcmds: true, poll: true };
+  const DEFAULT_CHAT_LAYOUT = [['bitly'], ['chatcmds'], ['poll']];
+  const DEFAULT_CHAT_OPEN   = { bitly: true, chatcmds: true, poll: true };
+  let chatDragSrc = null;
   let widgetOpen = { brb: true, countdown: true, clock: true, social: true, nextmatch: true, startgg: true, bluesky: true }
 
   let dragSrc = null; // { slotIdx, wid }
@@ -2629,10 +3021,41 @@
   function renderWidgetGrid() {
     const grid = document.getElementById('widget-grid');
     grid.innerHTML = '';
+    grid.style.gap = '0';
 
     const activeSlots = widgetLayout.filter(slot =>
       slot.some(wid => widgetEnabled[wid])
     );
+
+    function makeGapZone(insertAfterActiveIdx) {
+      const zone = document.createElement('div');
+      zone.style.cssText = 'width:12px;align-self:stretch;min-height:60px;flex-shrink:0;display:flex;align-items:center;justify-content:center;';
+      const bar = document.createElement('div');
+      bar.style.cssText = 'width:2px;height:80%;min-height:30px;background:rgba(58,159,200,0.1);pointer-events:none;transition:background 0.1s,box-shadow 0.1s;';
+      zone.appendChild(bar);
+      let ec = 0;
+      const on  = () => { bar.style.background = '#3a9fc8'; bar.style.boxShadow = '0 0 6px #3a9fc8'; };
+      const off = () => { bar.style.background = 'rgba(58,159,200,0.1)'; bar.style.boxShadow = ''; };
+      zone.addEventListener('dragenter', e => { e.preventDefault(); if (++ec === 1) on(); });
+      zone.addEventListener('dragover',  e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+      zone.addEventListener('dragleave', () => { if (--ec <= 0) { ec = 0; off(); } });
+      zone.addEventListener('drop', e => {
+        e.preventDefault(); ec = 0; off();
+        if (!dragSrc) return;
+        const targetRef = insertAfterActiveIdx >= 0 ? activeSlots[insertAfterActiveIdx] : null;
+        widgetLayout[dragSrc.slotIdx] = widgetLayout[dragSrc.slotIdx].filter(w => w !== dragSrc.wid);
+        widgetLayout = widgetLayout.filter(s => s.length > 0);
+        if (targetRef) {
+          const pos = widgetLayout.indexOf(targetRef);
+          widgetLayout.splice(pos >= 0 ? pos + 1 : widgetLayout.length, 0, [dragSrc.wid]);
+        } else {
+          widgetLayout.unshift([dragSrc.wid]);
+        }
+        dragSrc = null;
+        saveLayout(); renderWidgetGrid(); loadSaveData();
+      });
+      return zone;
+    }
 
     activeSlots.forEach((slot, slotIdx) => {
       const realSlotIdx = widgetLayout.indexOf(slot);
@@ -2684,6 +3107,7 @@
       });
 
       slot.filter(wid => widgetEnabled[wid]).forEach((wid, widIdx) => {
+        if (_pinned[wid]) return; // already floating — skip
         const tmpl = WIDGET_TEMPLATES[wid];
         if (!tmpl) return;
 
@@ -2721,16 +3145,24 @@
         if (wid === 'discord')  titleEl.classList.add('discord-card-title');
         titleEl.textContent = tmpl.label;
 
+        const pinBtn = document.createElement('button');
+        pinBtn.className = 'pin-btn';
+        pinBtn.title = 'Pin widget';
+        pinBtn.innerHTML = '<svg width="10" height="13" viewBox="0 0 10 13" fill="currentColor"><rect x="3" y="0" width="4" height="1"/><rect x="1" y="1" width="8" height="5"/><rect x="4" y="6" width="2" height="7"/><rect x="3" y="1" width="1" height="4" fill="rgba(0,0,0,0.25)"/></svg>';
+        pinBtn.style.color = '#3a9fc8';
+        pinBtn.addEventListener('click', e => { e.stopPropagation(); togglePin(wid, card, pinBtn, 'widgets'); });
+
         const arrow = document.createElement('span');
         arrow.style.cssText = 'font-size:9px;color:rgba(255,255,255,0.4);';
         arrow.textContent = widgetOpen[wid] ? '▾' : '▸';
 
         header.appendChild(dragHandle);
         header.appendChild(titleEl);
+        header.appendChild(pinBtn);
         header.appendChild(arrow);
 
         header.addEventListener('click', e => {
-          if (e.target === dragHandle) return;
+          if (e.target === dragHandle || e.target.closest('.pin-btn')) return;
           widgetOpen[wid] = !widgetOpen[wid];
           arrow.textContent = widgetOpen[wid] ? '▾' : '▸';
           body.style.display = widgetOpen[wid] ? 'flex' : 'none';
@@ -2751,8 +3183,8 @@
         slotEl.appendChild(card);
       });
 
-      // Empty slot drop target (between slots)
       grid.appendChild(slotEl);
+      grid.appendChild(makeGapZone(slotIdx));
     });
 
     // New slot drop zone at the end
@@ -2776,6 +3208,189 @@
     grid.appendChild(newSlot);
   }
 
+  function renderChatGrid() {
+    const grid = document.getElementById('chat-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    grid.style.gap = '0';
+
+    const activeSlots = chatLayout.filter(slot =>
+      slot.some(wid => chatWidgetEnabled[wid])
+    );
+
+    function makeGapZone(insertAfterActiveIdx) {
+      const zone = document.createElement('div');
+      zone.style.cssText = 'width:12px;align-self:stretch;min-height:60px;flex-shrink:0;display:flex;align-items:center;justify-content:center;';
+      const bar = document.createElement('div');
+      bar.style.cssText = 'width:2px;height:80%;min-height:30px;background:rgba(58,159,200,0.1);pointer-events:none;transition:background 0.1s,box-shadow 0.1s;';
+      zone.appendChild(bar);
+      let ec = 0;
+      const on  = () => { bar.style.background = '#3a9fc8'; bar.style.boxShadow = '0 0 6px #3a9fc8'; };
+      const off = () => { bar.style.background = 'rgba(58,159,200,0.1)'; bar.style.boxShadow = ''; };
+      zone.addEventListener('dragenter', e => { e.preventDefault(); if (++ec === 1) on(); });
+      zone.addEventListener('dragover',  e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+      zone.addEventListener('dragleave', () => { if (--ec <= 0) { ec = 0; off(); } });
+      zone.addEventListener('drop', e => {
+        e.preventDefault(); ec = 0; off();
+        if (!chatDragSrc) return;
+        const targetRef = insertAfterActiveIdx >= 0 ? activeSlots[insertAfterActiveIdx] : null;
+        chatLayout[chatDragSrc.slotIdx] = chatLayout[chatDragSrc.slotIdx].filter(w => w !== chatDragSrc.wid);
+        chatLayout = chatLayout.filter(s => s.length > 0);
+        if (targetRef) {
+          const pos = chatLayout.indexOf(targetRef);
+          chatLayout.splice(pos >= 0 ? pos + 1 : chatLayout.length, 0, [chatDragSrc.wid]);
+        } else {
+          chatLayout.unshift([chatDragSrc.wid]);
+        }
+        chatDragSrc = null;
+        saveChatLayout(); renderChatGrid(); loadSaveData();
+      });
+      return zone;
+    }
+
+    activeSlots.forEach((slot, slotIdx) => {
+      const realSlotIdx = chatLayout.indexOf(slot);
+      const slotEl = document.createElement('div');
+      slotEl.className = 'widget-slot';
+      slotEl.style.cssText = 'min-width:200px;flex:1;display:flex;flex-direction:column;gap:6px;position:relative;';
+
+      const rHandle = document.createElement('div');
+      rHandle.style.cssText = 'position:absolute;right:-4px;top:0;bottom:0;width:8px;cursor:col-resize;z-index:20;background:rgba(58,159,200,0.08);border-left:2px solid rgba(58,159,200,0.2);';
+      rHandle.title = 'Drag to resize';
+      rHandle.addEventListener('mouseenter', () => rHandle.style.background = 'rgba(58,159,200,0.3)');
+      rHandle.addEventListener('mouseleave', () => { if (!_resizing) rHandle.style.background = 'rgba(58,159,200,0.08)'; });
+      rHandle.addEventListener('mousedown', e => {
+        _resizing = true; _resizeSlot = slotEl; _resizeHandle = rHandle;
+        _resizeStartX = e.clientX; _resizeStartW = slotEl.offsetWidth;
+        document.body.style.cursor = 'col-resize'; e.preventDefault();
+      });
+      slotEl.appendChild(rHandle);
+      slotEl.dataset.slot = realSlotIdx;
+
+      slotEl.addEventListener('dragover', e => { e.preventDefault(); slotEl.style.outline = '2px dashed rgba(58,159,200,0.5)'; });
+      slotEl.addEventListener('dragleave', () => { slotEl.style.outline = ''; });
+      slotEl.addEventListener('drop', e => {
+        e.preventDefault();
+        slotEl.style.outline = '';
+        if (!chatDragSrc) return;
+        const targetSlotIdx = parseInt(slotEl.dataset.slot);
+        if (chatDragSrc.slotIdx === targetSlotIdx) return;
+        chatLayout[chatDragSrc.slotIdx] = chatLayout[chatDragSrc.slotIdx].filter(w => w !== chatDragSrc.wid);
+        if (chatLayout[targetSlotIdx]) {
+          chatLayout[targetSlotIdx].push(chatDragSrc.wid);
+        } else {
+          chatLayout.push([chatDragSrc.wid]);
+        }
+        chatLayout = chatLayout.filter(s => s.length > 0);
+        chatDragSrc = null;
+        saveChatLayout();
+        renderChatGrid();
+        loadSaveData();
+      });
+
+      slot.filter(wid => chatWidgetEnabled[wid]).forEach(wid => {
+        if (_pinned[wid]) return; // already floating — skip
+        const tmpl = CHAT_WIDGET_TEMPLATES[wid];
+        if (!tmpl) return;
+
+        const card = document.createElement('div');
+        card.style.cssText = 'background:#0d1b2e;border:1px solid rgba(255,255,255,0.15);border-radius:0;overflow:hidden;';
+        card.dataset.wid = wid;
+
+        const header = document.createElement('div');
+        header.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 6px;cursor:pointer;user-select:none;border-bottom:1px solid transparent;';
+        header.draggable = true;
+
+        header.addEventListener('dragstart', e => {
+          chatDragSrc = { slotIdx: realSlotIdx, wid };
+          _suppressBskySave = true;
+          setTimeout(() => { _suppressBskySave = false; }, 3000);
+          e.dataTransfer.effectAllowed = 'move';
+          setTimeout(() => { card.style.opacity = '0.5'; }, 0);
+        });
+        header.addEventListener('dragend', () => {
+          card.style.opacity = '';
+          chatDragSrc = null;
+          setTimeout(() => { _suppressBskySave = false; }, 600);
+        });
+
+        const dragHandle = document.createElement('span');
+        dragHandle.textContent = '⠿';
+        dragHandle.style.cssText = 'font-size:12px;color:rgba(255,255,255,0.2);flex-shrink:0;cursor:grab;';
+
+        const titleEl = document.createElement('div');
+        titleEl.className = 'section-label';
+        titleEl.style.cssText = 'color:#5bc8f5;margin:0;flex:1;';
+        titleEl.textContent = tmpl.label;
+
+        const pinBtn = document.createElement('button');
+        pinBtn.className = 'pin-btn';
+        pinBtn.title = 'Pin widget';
+        pinBtn.innerHTML = '<svg width="10" height="13" viewBox="0 0 10 13" fill="currentColor"><rect x="3" y="0" width="4" height="1"/><rect x="1" y="1" width="8" height="5"/><rect x="4" y="6" width="2" height="7"/><rect x="3" y="1" width="1" height="4" fill="rgba(0,0,0,0.25)"/></svg>';
+        pinBtn.style.color = '#3a9fc8';
+        pinBtn.addEventListener('click', e => { e.stopPropagation(); togglePin(wid, card, pinBtn, 'chat'); });
+
+        const arrow = document.createElement('span');
+        arrow.style.cssText = 'font-size:9px;color:rgba(255,255,255,0.4);';
+        arrow.textContent = chatWidgetOpen[wid] ? '▾' : '▸';
+
+        header.appendChild(dragHandle);
+        header.appendChild(titleEl);
+        header.appendChild(pinBtn);
+        header.appendChild(arrow);
+
+        const body = document.createElement('div');
+        body.style.cssText = 'padding:14px;display:' + (chatWidgetOpen[wid] ? 'flex' : 'none') + ';flex-direction:column;gap:12px;';
+        body.innerHTML = tmpl.html;
+
+        if (chatWidgetOpen[wid]) header.style.borderBottom = '1px solid rgba(255,255,255,0.08)';
+
+        header.addEventListener('click', e => {
+          if (e.target === dragHandle || e.target.closest('.pin-btn')) return;
+          chatWidgetOpen[wid] = !chatWidgetOpen[wid];
+          arrow.textContent = chatWidgetOpen[wid] ? '▾' : '▸';
+          body.style.display = chatWidgetOpen[wid] ? 'flex' : 'none';
+          header.style.borderBottom = chatWidgetOpen[wid] ? '1px solid rgba(255,255,255,0.08)' : '1px solid transparent';
+          saveChatLayout();
+        });
+
+        card.appendChild(header);
+        card.appendChild(body);
+        slotEl.appendChild(card);
+      });
+
+      grid.appendChild(slotEl);
+      grid.appendChild(makeGapZone(slotIdx));
+    });
+
+    const newSlot = document.createElement('div');
+    newSlot.style.cssText = 'min-width:80px;max-width:100px;flex:0;border:2px dashed rgba(255,255,255,0.08);border-radius:0;display:flex;align-items:center;justify-content:center;min-height:60px;';
+    newSlot.innerHTML = '<span style="font-size:8px;color:rgba(255,255,255,0.2);letter-spacing:0.08em;">+ NEW SLOT</span>';
+    newSlot.addEventListener('dragover', e => { e.preventDefault(); newSlot.style.borderColor = 'rgba(58,159,200,0.5)'; });
+    newSlot.addEventListener('dragleave', () => { newSlot.style.borderColor = 'rgba(255,255,255,0.08)'; });
+    newSlot.addEventListener('drop', e => {
+      e.preventDefault();
+      newSlot.style.borderColor = 'rgba(255,255,255,0.08)';
+      if (!chatDragSrc) return;
+      chatLayout[chatDragSrc.slotIdx] = chatLayout[chatDragSrc.slotIdx].filter(w => w !== chatDragSrc.wid);
+      chatLayout = chatLayout.filter(s => s.length > 0);
+      chatLayout.push([chatDragSrc.wid]);
+      chatDragSrc = null;
+      saveChatLayout();
+      renderChatGrid();
+      loadSaveData();
+    });
+    grid.appendChild(newSlot);
+  }
+
+  function saveChatLayout() {
+    fetch('/save-settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chatLayout, chatWidgetEnabled, chatWidgetOpen })
+    }).catch(() => {});
+  }
+
   function restoreWidgetValues() {
     _suppressBskySave = true;
     // Hard guarantee: always release the flag within 3s no matter what
@@ -2786,6 +3401,74 @@
       loadSpotifySettings();
       loadBskySettings().finally(() => { setTimeout(releaseFlag, 400); });
     });
+  }
+
+  function renderChatWidgetToggles() {
+    const container = document.getElementById('chat-widget-enable-toggles');
+    if (!container) return;
+    container.innerHTML = '';
+    Object.keys(CW_LABELS).forEach(wid => {
+      const enabled = !!chatWidgetEnabled[wid];
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);';
+      const label = document.createElement('span');
+      label.style.cssText = 'font-size:8px;color:rgba(255,255,255,0.6);letter-spacing:0.08em;';
+      label.textContent = CW_LABELS[wid];
+      const toggleWrap = document.createElement('label');
+      toggleWrap.style.cssText = 'position:relative;display:inline-block;width:32px;height:18px;cursor:pointer;flex-shrink:0;';
+      const inp = document.createElement('input');
+      inp.type = 'checkbox'; inp.id = 'cw-gen-' + wid; inp.checked = enabled;
+      inp.style.cssText = 'opacity:0;width:0;height:0;position:absolute;';
+      const track = document.createElement('span');
+      track.style.cssText = 'position:absolute;inset:0;border-radius:18px;transition:background 0.2s;background:' + (enabled ? '#3a9fc8' : 'rgba(255,255,255,0.1)') + ';';
+      const thumb = document.createElement('span');
+      thumb.style.cssText = 'position:absolute;top:2px;left:' + (enabled ? '16px' : '2px') + ';width:14px;height:14px;background:#fff;border-radius:50%;transition:left 0.2s;';
+      inp.addEventListener('change', () => {
+        const on = inp.checked;
+        track.style.background = on ? '#3a9fc8' : 'rgba(255,255,255,0.1)';
+        thumb.style.left = on ? '16px' : '2px';
+        chatWidgetSetEnabled(wid, on);
+      });
+      toggleWrap.appendChild(inp); toggleWrap.appendChild(track); toggleWrap.appendChild(thumb);
+      row.appendChild(label); row.appendChild(toggleWrap);
+      container.appendChild(row);
+    });
+  }
+
+  function applyChatWidgetEnabled() {
+    renderChatGrid();
+  }
+
+  function chatWidgetSetEnabled(wid, on) {
+    chatWidgetEnabled[wid] = on;
+    const genChk = document.getElementById('cw-gen-' + wid);
+    if (genChk) genChk.checked = on;
+    saveChatLayout();
+    renderChatGrid();
+    if (on) loadSaveData();
+  }
+
+  function saveHelpSettings() {
+    const enabled = !!document.getElementById('helpEnabled')?.checked;
+    const isVerbose = document.getElementById('help-fmt-verbose')?.classList.contains('active');
+    const fmt = isVerbose === false ? 'compact' : 'verbose';
+    const separator = document.getElementById('helpSeparator')?.value || ' | ';
+    const extras = document.getElementById('helpExtras');
+    if (extras) extras.style.display = enabled ? 'flex' : 'none';
+    fetch('/save-settings', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ helpSettings: { enabled, format: fmt, separator } })
+    }).catch(() => {});
+  }
+
+  function setHelpFormat(fmt) {
+    document.getElementById('help-fmt-verbose')?.classList.toggle('active', fmt === 'verbose');
+    document.getElementById('help-fmt-compact')?.classList.toggle('active', fmt === 'compact');
+    const desc = document.getElementById('helpFormatDesc');
+    if (desc) desc.textContent = fmt === 'verbose'
+      ? 'Verbose: !bracket → link.com | !rules → check bio'
+      : 'Compact: !bracket !rules !discord';
+    saveHelpSettings();
   }
 
   function renderWidgetEnableToggles() {
@@ -2841,17 +3524,21 @@
 
 
   function showWidgetTab(tab, btn) {
-    ['general','music','widgets','discord','chat','preview'].forEach(t => {
+    _activeTab = tab;
+    _ALL_TABS.forEach(t => {
       document.getElementById('wtab-'+t).style.display = t===tab ? 'block' : 'none';
       const b = document.getElementById('wtab-'+t+'-btn');
       if(b) b.classList.toggle('active', t===tab);
     });
-    if(tab==='general') { renderWidgetEnableToggles(); }
+    if(tab==='general') { renderWidgetEnableToggles(); renderChatWidgetToggles(); }
     if(tab==='widgets') {
       if (!document.querySelector('#widget-grid .widget-slot')) renderWidgetGrid();
       refreshFileList();
     }
-    if(tab==='chat') { ytCheckStatus(); pollRefreshStatus(); }
+    if(tab==='chat') {
+      if (!document.querySelector('#chat-grid .widget-slot')) renderChatGrid();
+      ytCheckStatus(); pollRefreshStatus();
+    }
   }
 
   function toggleCol(header) {
@@ -2862,8 +3549,167 @@
     if(arrow) arrow.textContent = collapsed ? '▾' : '▸';
   }
 
+  // ── Tab ordering ────────────────────────────────────────────────────────────
+  const _ALL_TABS = ['general','music','widgets','discord','chat','preview'];
+  const _TAB_LABELS = { general:'GENERAL', music:'MUSIC', widgets:'WIDGETS', discord:'DISCORD', chat:'CHAT', preview:'PREVIEW' };
+  let tabOrder = [..._ALL_TABS];
+  let _tabOrganizing = false;
+  let _activeTab = 'general';
+  let _tabDragSrc = null;
+  let _wSlideshowState = { clock:{slideshow:'none',duration:null}, countdown:{slideshow:'none',duration:null}, social:{slideshow:'none',duration:null}, nextMatch:{slideshow:'none',duration:null}, bitly:{slideshow:'none',duration:null} };
+
+  function renderTabBar() {
+    const bar = document.getElementById('tab-bar');
+    if (!bar) return;
+    bar.innerHTML = '';
+    tabOrder.forEach((tab, idx) => {
+      const btn = document.createElement('button');
+      btn.id = 'wtab-' + tab + '-btn';
+      btn.className = 'btn px-btn' + (_tabOrganizing ? ' tab-wobbling' : '');
+      btn.style.cssText = 'flex:1;padding:10px;';
+      if (_tabOrganizing) {
+        btn.style.animationDelay = (idx * 0.06) + 's';
+        btn.draggable = true;
+        btn.addEventListener('dragstart', e => {
+          _tabDragSrc = tab;
+          e.dataTransfer.effectAllowed = 'move';
+          setTimeout(() => { btn.style.opacity = '0.45'; }, 0);
+        });
+        btn.addEventListener('dragend', () => { btn.style.opacity = ''; _tabDragSrc = null; });
+        btn.addEventListener('dragover', e => { e.preventDefault(); btn.style.outline = '2px dashed rgba(58,159,200,0.7)'; });
+        btn.addEventListener('dragleave', () => { btn.style.outline = ''; });
+        btn.addEventListener('drop', e => {
+          e.preventDefault(); btn.style.outline = '';
+          if (!_tabDragSrc || _tabDragSrc === tab) return;
+          const fi = tabOrder.indexOf(_tabDragSrc), ti = tabOrder.indexOf(tab);
+          tabOrder.splice(fi, 1); tabOrder.splice(ti, 0, _tabDragSrc);
+          _tabDragSrc = null;
+          renderTabBar(); saveTabOrder();
+        });
+      } else {
+        btn.addEventListener('click', () => showWidgetTab(tab, btn));
+      }
+      btn.textContent = _TAB_LABELS[tab] || tab.toUpperCase();
+      if (tab === 'discord') {
+        btn.style.position = 'relative';
+        const dot = document.createElement('span');
+        dot.id = 'discord-tab-dot';
+        dot.style.cssText = 'position:absolute;top:5px;right:7px;width:6px;height:6px;border-radius:50%;background:#23a55a;box-shadow:0 0 5px #23a55a;display:none;';
+        btn.appendChild(dot);
+      }
+      if (tab === _activeTab) btn.classList.add('active');
+      bar.appendChild(btn);
+    });
+    const orgBtn = document.getElementById('tab-organize-btn');
+    if (orgBtn) orgBtn.classList.toggle('active', _tabOrganizing);
+  }
+
+  function toggleTabOrganize() {
+    _tabOrganizing = !_tabOrganizing;
+    renderTabBar();
+  }
+
+  function saveTabOrder() {
+    fetch('/save-settings', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ tabOrder }) }).catch(() => {});
+  }
+
+  // ── Pinned widgets ──────────────────────────────────────────────────────────
+  const _pinned = {}; // wid -> { card, wrap, source }
+
+  function makeDraggable(el, handle) {
+    let mx = 0, my = 0;
+    handle.addEventListener('mousedown', e => {
+      if (e.button !== 0) return;
+      mx = e.clientX; my = e.clientY;
+      function onMove(e) {
+        const dx = e.clientX - mx, dy = e.clientY - my;
+        mx = e.clientX; my = e.clientY;
+        el.style.left = (el.offsetLeft + dx) + 'px';
+        el.style.top  = (el.offsetTop  + dy) + 'px';
+      }
+      function onUp() {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+      }
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+      e.preventDefault();
+    });
+  }
+
+  function makeResizable(el) {
+    const handle = document.createElement('div');
+    handle.className = 'pinned-widget-resize';
+    el.appendChild(handle);
+    handle.addEventListener('mousedown', e => {
+      if (e.button !== 0) return;
+      const startX = e.clientX, startY = e.clientY;
+      const startW = el.offsetWidth, startH = el.offsetHeight;
+      function onMove(e) {
+        const w = Math.max(280, startW + (e.clientX - startX));
+        const h = Math.max(100, startH + (e.clientY - startY));
+        el.style.width = w + 'px';
+        el.style.height = h + 'px';
+      }
+      function onUp() {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+      }
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+      e.preventDefault();
+      e.stopPropagation();
+    });
+  }
+
+  function togglePin(wid, card, pinBtn, source) {
+    if (_pinned[wid]) {
+      // Unpin: remove wrapper, re-render the correct grid
+      _pinned[wid].wrap.remove();
+      delete _pinned[wid];
+      if (source === 'chat') { renderChatGrid(); } else { renderWidgetGrid(); }
+      loadSaveData();
+    } else {
+      // Pin: build floating wrapper around the card
+      const container = document.getElementById('pinned-container');
+      const idx = Object.keys(_pinned).length;
+      const x = 20 + idx * 28, y = 60 + idx * 28;
+
+      const wrap = document.createElement('div');
+      wrap.className = 'pinned-widget-wrap';
+      wrap.style.left = x + 'px'; wrap.style.top = y + 'px';
+
+      const bar = document.createElement('div');
+      bar.className = 'pinned-widget-bar';
+      const barTitle = document.createElement('span');
+      barTitle.className = 'pinned-widget-bar-title';
+      const tmplLabel = (window.WIDGET_TEMPLATES && WIDGET_TEMPLATES[wid] && WIDGET_TEMPLATES[wid].label)
+        || (window.CHAT_WIDGET_TEMPLATES && CHAT_WIDGET_TEMPLATES[wid] && CHAT_WIDGET_TEMPLATES[wid].label)
+        || wid.toUpperCase();
+      barTitle.textContent = tmplLabel;
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'pinned-widget-close';
+      closeBtn.textContent = '✕';
+      closeBtn.title = 'Unpin';
+      closeBtn.addEventListener('click', () => togglePin(wid, card, pinBtn, source));
+      bar.appendChild(barTitle); bar.appendChild(closeBtn);
+      makeDraggable(wrap, bar);
+      makeResizable(wrap);
+
+      const inner = document.createElement('div');
+      inner.className = 'pinned-widget-inner';
+      inner.appendChild(card);
+
+      wrap.appendChild(bar); wrap.appendChild(inner);
+      container.appendChild(wrap);
+
+      _pinned[wid] = { card, wrap, source };
+      if (pinBtn) pinBtn.classList.add('active');
+    }
+  }
+
   // ── Shared helpers ──────────────────────────────────────────────────────────
-  let currentPos='bottom-right', overrides=[], brbLinks=[];
+  let currentPos='bottom-right', overrides=[], brbLinks=[], slideshowLinks=[];
 
   function updateVal(inputId, valId, fmt) {
     var el = document.getElementById(valId);
@@ -3157,12 +4003,24 @@
       overrides = d.overrides || [];
       renderOverrides();
 
+      // Tab order
+      if (Array.isArray(d.tabOrder)) {
+        const filtered = d.tabOrder.filter(t => _ALL_TABS.includes(t));
+        const missing  = _ALL_TABS.filter(t => !filtered.includes(t));
+        tabOrder = [...filtered, ...missing];
+      }
+      renderTabBar();
+
       // Render widget grid first — it recreates all widget card DOM elements
       if(d.widgetLayout) widgetLayout = d.widgetLayout.map(s => s.filter(w => WIDGET_TEMPLATES[w])).filter(s => s.length > 0);
       if(d.widgetEnabled) widgetEnabled = Object.assign({}, DEFAULT_ENABLED, d.widgetEnabled);
       if(d.widgetOpen) widgetOpen = Object.assign({}, DEFAULT_OPEN, d.widgetOpen);
       renderWidgetGrid();
       renderWidgetEnableToggles();
+      if(d.chatLayout) chatLayout = d.chatLayout.map(s => s.filter(w => CHAT_WIDGET_TEMPLATES[w])).filter(s => s.length > 0);
+      if(d.chatWidgetOpen) chatWidgetOpen = Object.assign({}, DEFAULT_CHAT_OPEN, d.chatWidgetOpen);
+      if(d.chatWidgetEnabled) chatWidgetEnabled = Object.assign({}, DEFAULT_CHAT_ENABLED, d.chatWidgetEnabled);
+      renderChatGrid();
 
       // Populate widget card fields AFTER renderWidgetGrid() so they land on the live DOM
       const setEl  = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.value = val; };
@@ -3188,8 +4046,13 @@
         setTxt('brbFadeVal',          (d.brb.fadeTime||1).toFixed(1)+'s');
         setChk('brbRandomize',        d.brb.randomize !== false);
         highlightTransition(d.brb.transition || 'fade');
-        brbLinks = d.brb.links || [];
-        renderBrbLinks();
+        if (d.slideshowLinks && d.slideshowLinks.length > 0) {
+          slideshowLinks = d.slideshowLinks;
+        } else {
+          const ob = (d.brb?.links||[]).map(l=>typeof l==='string'?{src:l,slideshow:'brb'}:{...l,slideshow:'brb'});
+          const oi = (d.info?.links||[]).map(l=>typeof l==='string'?{src:l,slideshow:'info'}:{...l,slideshow:'info'});
+          slideshowLinks = [...ob,...oi];
+        }
         flash('brb-status','Connected <span>✓</span>','status');
 
         // Widget card fields
@@ -3200,15 +4063,15 @@
         loadPreviewBg();
         setEl ('clockLabel',       (w.clock && w.clock.label)  || 'Be Right Back');
         highlightClockFmt((w.clock && w.clock.format) || '12h');
-        setChk('clockInSlideshow', w.clock && w.clock.inSlideshow);
+        setEl('clockSlideshow', w.clock?.slideshow || (w.clock?.inSlideshow ? 'brb' : 'none'));
         setEl ('countdownMinutes', (w.countdown && w.countdown.minutes) || 5);
         setTxt('countdownMinutesVal', ((w.countdown&&w.countdown.minutes)||5)+'m 00s');
         setEl ('countdownTimeInput',  formatMmSs((w.countdown && w.countdown.minutes || 5) * 60));
-        setChk('countdownInSlideshow', w.countdown && w.countdown.inSlideshow);
+        setEl('countdownSlideshow', w.countdown?.slideshow || (w.countdown?.inSlideshow ? 'brb' : 'none'));
         setEl ('countdownLabel',      (w.countdown && w.countdown.label)      || 'Back in...');
         setEl ('countdownLabelColor', (w.countdown && w.countdown.labelColor) || '#aaaaaa');
         setEl ('countdownTimeColor',  (w.countdown && w.countdown.timeColor)  || '#ffffff');
-        setChk('socialInSlideshow', w.social && w.social.inSlideshow);
+        setEl('socialSlideshow', w.social?.slideshow || (w.social?.inSlideshow ? 'brb' : 'none'));
         setEl ('socialMessage',     (w.social && w.social.message) || 'Follow for more!');
         setEl ('socialTwitch',      (w.social && w.social.twitch)  || '');
         setEl ('socialTwitter',     (w.social && w.social.twitter) || '');
@@ -3216,13 +4079,23 @@
 
         // Next Match
         const nm = w.nextMatch || {};
-        setChk('nextMatchInSlideshow', nm.inSlideshow);
+        setEl('nextMatchSlideshow', nm.slideshow || (nm.inSlideshow ? 'brb' : 'none'));
         setEl ('nextMatchP1',       nm.p1       || '');
         setEl ('nextMatchP2',       nm.p2       || '');
         setEl ('nextMatchRound',    nm.round    || '');
         setEl ('nextMatchSublabel', nm.sublabel || '');
         setEl ('nextMatchDuration', nm.duration || 15);
         setTxt('nextMatchDurationVal', (nm.duration || 15) + 's');
+
+        // Populate widget slideshow state for manual links list
+        _wSlideshowState = {
+          clock:     { slideshow: w.clock?.slideshow     || (w.clock?.inSlideshow     ? 'brb' : 'none'), duration: w.clock?.slideDuration     || null },
+          countdown: { slideshow: w.countdown?.slideshow || (w.countdown?.inSlideshow ? 'brb' : 'none'), duration: w.countdown?.slideDuration || null },
+          social:    { slideshow: w.social?.slideshow    || (w.social?.inSlideshow    ? 'brb' : 'none'), duration: w.social?.slideDuration    || null },
+          nextMatch: { slideshow: nm.slideshow           || (nm.inSlideshow           ? 'brb' : 'none'), duration: nm.slideDuration           || null },
+          bitly:     { slideshow: d.bitlySlideshow       || (d.bitlyInSlideshow       ? 'brb' : 'none'), duration: d.bitlySlideDuration       || null },
+        };
+        renderSlideshowLinks();
       }
       initSliderVals(); // wire editable inputs onto freshly rendered slider DOM
 
@@ -3231,6 +4104,9 @@
       // Start.gg
       setEl('startggToken',    d.startggToken    || '');
       setEl('startggTourneyUrl', d.startggTourneyUrl || '');
+      // Mirror to Chat tab
+      setEl('startggToken-c',      d.startggToken    || '');
+      setEl('startggTourneyUrl-c', d.startggTourneyUrl || '');
 
       // Bluesky
       setEl('bskyHandle',        d.bskyHandleSaved || d.bskyHandle || '');
@@ -3243,28 +4119,130 @@
       setEl('bskyFilterKeyword', d.bskyFilterKeyword || 'Replay');
       previewBskyTitle();
 
+      // Discord credentials
+      setEl('discordClientId',     d.discordClientId     || '');
+      setEl('discordClientSecret', d.discordClientSecret || '');
+
       // Discord overlay settings
       if (d.discordOverlay)     discordOverlayCfg  = Object.assign({}, discordOverlayCfg,  d.discordOverlay);
       if (d.discordOverlay2)    discordOverlay2Cfg  = Object.assign({}, discordOverlay2Cfg,  d.discordOverlay2);
       if (d.discordOverlaySolo) discordSoloCfg      = Object.assign({}, discordSoloCfg,      d.discordOverlaySolo);
       discordLoadCfg(getActiveCfg());
+      discordStartStatusPoll();
 
       // Chat Engagement fields
       setEl('ytClientId',     d.ytClientId     || '');
       setEl('ytClientSecret', d.ytClientSecret || '');
-      setEl('bitlyToken',     d.bitlyToken     || '');
-      setEl('bitlyLink',      d.bitlyLink      || '');
-      const bitlyLabelEl = document.getElementById('bitlyLabel');
-      if (bitlyLabelEl && d.bitlyLabel) bitlyLabelEl.value = d.bitlyLabel;
+      setEl('bitlyToken',         d.bitlyToken     || '');
+      setEl('bitlyLink',          d.bitlyLink      || '');
+      setEl('bitlyLabel',         d.bitlyLabel     || 'DOWNLOADS');
+      setEl('bitlyCountFontSize', d.bitlyCountFontSize != null ? d.bitlyCountFontSize : 48);
+      const bitlyLabelColorEl = document.getElementById('bitlyLabelColor');
+      if (bitlyLabelColorEl) bitlyLabelColorEl.value = d.bitlyLabelColor || '#3a9fc8';
+      const bitlyCountColorEl = document.getElementById('bitlyCountColor');
+      if (bitlyCountColorEl) bitlyCountColorEl.value = d.bitlyCountColor || '#ffffff';
+      const bitlyCountSinceEl = document.getElementById('bitlyCountSinceDisplay');
+      if (bitlyCountSinceEl) bitlyCountSinceEl.textContent = d.bitlyCountSince ? 'Counting since ' + new Date(d.bitlyCountSince).toLocaleString() : 'Not set — showing all-time clicks';
+      const bitlySlideEl = document.getElementById('bitlySlideshow');
+      if (bitlySlideEl) bitlySlideEl.value = d.bitlySlideshow || (d.bitlyInSlideshow ? 'brb' : 'none');
+      const bitlyStatEl = document.getElementById('bitlyStat');
+      if (bitlyStatEl) bitlyStatEl.value = d.bitlyStat || 'alltime';
+      bitlyToggleCountStart();
+      bitlyApplyPreview();
+      const bitlyPosVal = d.bitlyPosition || 'bottom-right';
+      document.querySelectorAll('[id^="btPos-"]').forEach(b => b.classList.toggle('active', b.dataset.val === bitlyPosVal));
+      // Info slideshow
+      if (d.info) {
+        setEl('infoFolder',        d.info.folder        || '');
+        setEl('infoImageDuration', d.info.imageDuration || 10);
+        setTxt('infoImageDurationVal', (d.info.imageDuration||10)+'s');
+        setEl('infoVideoDuration', d.info.videoDuration || 0);
+        setTxt('infoVideoDurationVal', d.info.videoDuration ? d.info.videoDuration+'s' : 'Full');
+        setEl('infoFade',          d.info.fadeTime      || 1);
+        setTxt('infoFadeVal',      (d.info.fadeTime||1).toFixed(1)+'s');
+        setChk('infoRandomize',    d.info.randomize !== false);
+        highlightInfoTransition(d.info.transition || 'fade');
+        // slideshowLinks already loaded above from brb block
+        flash('info-status','Ready','status');
+      }
       if (Array.isArray(d.chatCommands)) { _chatCommands = d.chatCommands.map(c => Object.assign({}, c)); renderChatCommands(); }
       ytCheckStatus();
+
+      // Poll settings
+      if (d.poll) {
+        const p = d.poll;
+        const _s = (id, v) => { const e = document.getElementById(id); if (e && v != null) e.value = v; };
+        _s('pollP1Color',  p.p1Color);
+        _s('pollP2Color',  p.p2Color);
+        _s('pollBarWidth', p.barWidth);
+        _s('pollBarGap',   p.barGap);
+        _s('pollBgOpacity',p.bgOpacity);
+        _s('pollBgRadius', p.bgRadius);
+        _s('pollBgWidth',  p.bgWidth  > 200 ? '100' : p.bgWidth);
+        _s('pollBgHeight', p.bgHeight > 200 ? '100' : p.bgHeight);
+        _s('pollBarRadius',p.barRadius);
+        _s('pollMaxHeight',p.maxHeight);
+        _s('pollPctSize',  p.pctSize);
+        _s('pollVoteSize', p.voteSize);
+        _s('pollPfpSize',  p.pfpSize);
+        const mhe = document.getElementById('pollMaxHeightEnabled'); if (mhe) mhe.checked = !!p.maxHeightEnabled;
+        if (p.pfpShape) {
+          _pfpShape = p.pfpShape;
+          const sqBtn = document.getElementById('poll-pfp-square'); if (sqBtn) sqBtn.classList.toggle('active', p.pfpShape === 'square');
+          const moBtn = document.getElementById('poll-pfp-modern'); if (moBtn) moBtn.classList.toggle('active', p.pfpShape === 'modern');
+        }
+        if (p.pollType) {
+          _pollType = p.pollType;
+          document.getElementById('poll-type-vs').classList.toggle('active', p.pollType === 'vs');
+          document.getElementById('poll-type-other').classList.toggle('active', p.pollType === 'other');
+          const vsEl = document.getElementById('poll-vs-content');
+          const otherEl = document.getElementById('poll-other-content');
+          if (vsEl) vsEl.style.display = p.pollType === 'other' ? 'none' : '';
+          if (otherEl) otherEl.style.display = p.pollType === 'other' ? '' : 'none';
+        }
+      }
+      pollRefreshStatus();
+      pollApplySettings();
+
+      // Help settings
+      if (d.helpSettings) {
+        const hs = d.helpSettings;
+        const helpEl = document.getElementById('helpEnabled');
+        if (helpEl) helpEl.checked = hs.enabled !== false;
+        const extras = document.getElementById('helpExtras');
+        if (extras) extras.style.display = (hs.enabled !== false) ? 'flex' : 'none';
+        const fmtV = document.getElementById('help-fmt-verbose');
+        const fmtC = document.getElementById('help-fmt-compact');
+        const fmt = hs.format || 'verbose';
+        if (fmtV) fmtV.classList.toggle('active', fmt === 'verbose');
+        if (fmtC) fmtC.classList.toggle('active', fmt === 'compact');
+        const desc = document.getElementById('helpFormatDesc');
+        if (desc) desc.textContent = fmt === 'verbose' ? 'Verbose: !bracket → link.com | !rules → check bio' : 'Compact: !bracket !rules !discord';
+        const sepEl = document.getElementById('helpSeparator');
+        if (sepEl && hs.separator != null) sepEl.value = hs.separator;
+      }
+
+      renderChatWidgetToggles();
+
+      // Stream queue auto-sync toggle
+      const sqEl = document.getElementById('autoSyncStreamQueue');
+      if (sqEl) sqEl.checked = !!d.autoSyncStreamQueue;
+      updateSqAutoIndicator();
+      if (d.autoSyncStreamQueue) _initSqClientPoll();
 
       // Auto-actions after fields are set
       if (d.startggToken && d.startggTourneyUrl) {
         setTimeout(startggFetchTourney, 400); // auto-fetch bracket
+        setTimeout(refreshStreamQueue, 800);  // populate stream queue display
       }
       if (d.bskyReplaysFolder) {
         loadReplayFiles(); // scan replay folder
+      }
+      // Auto-login Bluesky if credentials saved and not yet authenticated
+      if (d.bskyHandleSaved && d.bskyAppPassword) {
+        fetch('/bluesky-status').then(r => r.json()).then(sd => {
+          if (!sd.loggedIn) bskyLogin();
+        }).catch(() => {});
       }
       loadStreamNotes();
     } catch(e) { flash('music-status','Error loading settings','status'); }
@@ -4005,12 +4983,26 @@
     clearTimeout(_autoSaveTimer);
     _autoSaveTimer = setTimeout(doAutoSave, 700);
   }
+  function syncStartggFromChat() {
+    const token = document.getElementById('startggToken-c')?.value;
+    const url   = document.getElementById('startggTourneyUrl-c')?.value;
+    const wToken = document.getElementById('startggToken');
+    const wUrl   = document.getElementById('startggTourneyUrl');
+    if (wToken && token !== undefined) wToken.value = token;
+    if (wUrl   && url   !== undefined) wUrl.value   = url;
+    autoSave();
+  }
   async function doAutoSave() {
     const get = id => { const el = document.getElementById(id); return el ? el.value : null; };
     const body = {};
     const add  = (k, v) => { if (v !== null) body[k] = v; };
     add('startggToken',      get('startggToken'));
     add('startggTourneyUrl', get('startggTourneyUrl'));
+    // Keep chat mirror inputs in sync with widget inputs
+    const cToken = document.getElementById('startggToken-c');
+    if (cToken && get('startggToken') !== null) cToken.value = get('startggToken') || '';
+    const cUrl = document.getElementById('startggTourneyUrl-c');
+    if (cUrl && get('startggTourneyUrl') !== null) cUrl.value = get('startggTourneyUrl') || '';
     add('bskyHandleSaved',   get('bskyHandle'));
     add('bskyAppPassword',   get('bskyPassword'));
     add('bskyReplaysFolder',  get('bskyReplaysFolder'));
@@ -4022,9 +5014,16 @@
     add('discordClientSecret', get('discordClientSecret'));
     add('ytClientId',     get('ytClientId'));
     add('ytClientSecret', get('ytClientSecret'));
-    add('bitlyToken',     get('bitlyToken'));
-    add('bitlyLink',      get('bitlyLink'));
-    add('bitlyLabel',     get('bitlyLabel'));
+    add('bitlyToken',         get('bitlyToken'));
+    add('bitlyLink',          get('bitlyLink'));
+    add('bitlyLabel',         get('bitlyLabel'));
+    add('bitlyCountFontSize', parseInt(get('bitlyCountFontSize')) || 48);
+    add('bitlyLabelColor',    get('bitlyLabelColor') || '#3a9fc8');
+    add('bitlyCountColor',    get('bitlyCountColor') || '#ffffff');
+    add('bitlyStat',          get('bitlyStat') || 'alltime');
+    const bitlyPosActive = document.querySelector('[id^="btPos-"].active');
+    if (bitlyPosActive) add('bitlyPosition', bitlyPosActive.dataset.val);
+    add('autoSyncStreamQueue', document.getElementById('autoSyncStreamQueue')?.checked ?? null);
     if (!Object.keys(body).length) return;
     await fetch('/save-settings', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -4254,48 +5253,34 @@
 
   async function startggRefreshStreamQueue() {
     const list = document.getElementById('startgg-queue-list');
-    if (!startggCurrentSlug) {
-      if (list) list.innerHTML = '<div style="font-size:7px;color:rgba(255,255,255,0.3);padding:4px;">Fetch tournament first</div>';
-      return;
-    }
-    const query = `query StreamQueue($slug: String!) {
-      tournament(slug: $slug) {
-        streamQueue {
-          sets {
-            id fullRoundText state
-            slots { entrant { name } }
-          }
-        }
-      }
-    }`;
-    try {
-      const data = await startggGQL(query, { slug: startggCurrentSlug });
-      startggQueueSets = (data.data?.tournament?.streamQueue || []).flatMap(sq => sq.sets || []);
-      startggRenderStreamQueue();
-    } catch(e) {
-      if (list) list.innerHTML = '<div style="font-size:7px;color:rgba(255,255,255,0.3);padding:4px;">Error: ' + e.message + '</div>';
-    }
+    if (list) list.innerHTML = '<div style="font-size:7px;color:rgba(255,255,255,0.3);padding:4px;">Syncing...</div>';
+    try { await fetch('/stream-queue-poll', { method: 'POST' }); } catch(e) {}
+    await refreshStreamQueue();
   }
 
   function startggRenderStreamQueue() {
     const list = document.getElementById('startgg-queue-list');
     if (!list) return;
-    if (!startggQueueSets.length) {
+    const sets = (_sqData && _sqData.sets) ? _sqData.sets : [];
+    if (!sets.length) {
       list.innerHTML = '<div style="font-size:7px;color:rgba(255,255,255,0.3);text-align:center;padding:6px;">No sets on stream</div>';
       return;
     }
     list.innerHTML = '';
-    startggQueueSets.forEach(set => {
-      const p1 = set.slots?.[0]?.entrant?.name || 'TBD';
-      const p2 = set.slots?.[1]?.entrant?.name || 'TBD';
-      const round = set.fullRoundText || '';
+    sets.forEach((set, idx) => {
+      const isTop = idx === 0;
+      const p1 = set.p1?.name || 'TBD';
+      const p2 = set.p2?.name || 'TBD';
+      const round = set.round || '';
       const row = document.createElement('div');
-      row.style.cssText = 'background:rgba(255,102,148,0.08);border:1px solid rgba(255,102,148,0.3);padding:8px 10px;cursor:pointer;';
-      row.innerHTML = `<div style="font-size:7px;color:rgba(255,102,148,0.8);letter-spacing:0.08em;margin-bottom:3px;">${round}</div>
-        <div style="font-size:9px;color:#fff;letter-spacing:0.05em;">${p1} <span style="color:rgba(255,255,255,0.3);">vs</span> ${p2}</div>`;
-      row.addEventListener('mouseenter', () => row.style.borderColor = 'rgba(255,102,148,0.7)');
-      row.addEventListener('mouseleave', () => row.style.borderColor = 'rgba(255,102,148,0.3)');
-      row.addEventListener('click', () => startggApplyQueueSet(set));
+      row.style.cssText = 'background:rgba(255,102,148,0.08);border:1px solid rgba(255,102,148,0.3);padding:8px 10px;margin-bottom:2px;';
+      row.innerHTML =
+        '<div style="font-size:7px;color:rgba(255,102,148,0.8);letter-spacing:0.08em;margin-bottom:3px;">' + (isTop ? '&#9733; ' : '') + round + '</div>' +
+        '<div style="font-size:9px;color:#fff;letter-spacing:0.05em;margin-bottom:6px;">' + p1 + ' <span style="color:rgba(255,255,255,0.3);">vs</span> ' + p2 + '</div>' +
+        '<div style="display:flex;gap:4px;">' +
+          '<button class="px-btn" style="flex:1;font-size:7px;padding:3px 6px;" onclick="streamQueueSetCurrent(\'' + set.id + '\')">SET AS NEXT MATCH</button>' +
+          (isTop ? '<button class="px-btn" style="font-size:7px;padding:3px 8px;" onclick="pollLoadCurrentMatch()">POLL</button>' : '') +
+        '</div>';
       list.appendChild(row);
     });
   }
@@ -4318,8 +5303,216 @@
 
   async function startggPullStreamQueue() {
     await startggRefreshStreamQueue();
-    if (!startggQueueSets.length) { flashEl('startggSetsStatus', 'No sets on stream', 'file-status'); return; }
-    await startggApplyQueueSet(startggQueueSets[0]);
+    if (!_sqData?.sets?.length) { flashEl('startggSetsStatus', 'No sets on stream', 'file-status'); return; }
+    await streamQueueSetCurrent(_sqData.sets[0].id);
+  }
+
+  // ── Stream Queue Sync ────────────────────────────────────────────────────────
+
+  let _sqData = null;
+  let _sqClientLastTopId = null;
+  let _sqAutoSyncTimer = null;
+
+  async function refreshStreamQueue() {
+    try {
+      const r = await fetch('/stream-queue-status');
+      _sqData = await r.json();
+      startggRenderStreamQueue();
+      const statusEl = document.getElementById('sqSyncStatus');
+      if (statusEl) {
+        if (_sqData.error) {
+          statusEl.textContent = 'Error: ' + _sqData.error;
+          statusEl.style.color = '#ff6694';
+        } else if (_sqData.lastFetch) {
+          const ago = Math.round((Date.now() - _sqData.lastFetch) / 1000);
+          statusEl.textContent = ago < 10 ? '● LIVE' : 'Synced ' + ago + 's ago';
+          statusEl.style.color = ago < 10 ? '#00e676' : 'rgba(255,255,255,0.35)';
+        } else {
+          statusEl.textContent = 'Not synced yet';
+          statusEl.style.color = 'rgba(255,255,255,0.35)';
+        }
+      }
+    } catch(e) {}
+  }
+
+  function _startSqClientPoll() {
+    if (_sqAutoSyncTimer) clearInterval(_sqAutoSyncTimer);
+    _sqAutoSyncTimer = setInterval(_sqClientPollTick, 20000);
+  }
+  function _stopSqClientPoll() {
+    if (_sqAutoSyncTimer) { clearInterval(_sqAutoSyncTimer); _sqAutoSyncTimer = null; }
+  }
+  async function _initSqClientPoll() {
+    // Snapshot the current top without triggering match detection
+    try {
+      const r = await fetch('/stream-queue-status');
+      const data = await r.json();
+      const top = data.sets?.[0];
+      if (top) _sqClientLastTopId = String(top.id);
+    } catch(e) {}
+    _startSqClientPoll();
+  }
+  async function _sqClientPollTick() {
+    try {
+      await refreshStreamQueue();
+      const top = _sqData?.sets?.[0];
+      const topId = top ? String(top.id) : null;
+      if (topId && _sqClientLastTopId !== null && topId !== _sqClientLastTopId) {
+        _sqClientLastTopId = topId;
+        await _onNewMatchDetected(top);
+      } else if (topId) {
+        _sqClientLastTopId = topId;
+      } else {
+        _sqClientLastTopId = null;
+      }
+    } catch(e) {}
+  }
+  async function _onNewMatchDetected(top) {
+    const p1El = document.getElementById('nextMatchP1');
+    const p2El = document.getElementById('nextMatchP2');
+    const roundEl = document.getElementById('nextMatchRound');
+    if (p1El) p1El.value = top.p1?.name || '';
+    if (p2El) p2El.value = top.p2?.name || '';
+    if (roundEl) roundEl.value = top.round || '';
+    await saveNextMatch();
+    const preview = document.getElementById('nextmatch-preview');
+    if (preview) { try { preview.contentWindow.location.reload(); } catch(e) {} }
+    flashEl('nextMatchStatus', 'Auto: ' + (top.p1?.name || 'P1') + ' vs ' + (top.p2?.name || 'P2'), 'file-status ok');
+    // Reload poll pfps with the new match's players
+    const items = [
+      { name: top.p1?.name || 'P1', imageUrl: top.p1?.pfpUrl || '' },
+      { name: top.p2?.name || 'P2', imageUrl: top.p2?.pfpUrl || '' }
+    ];
+    setPfpMode('player');
+    _pfpItems = items;
+    _pfpFiltered1 = [...items];
+    _pfpFiltered2 = [...items];
+    _renderPfpDropdown(1);
+    _renderPfpDropdown(2);
+    _selectPfpItem(0, 1);
+    _selectPfpItem(1, 2);
+    pollApplySettings();
+  }
+
+  async function streamQueueSyncNow() {
+    const statusEl = document.getElementById('sqSyncStatus');
+    if (statusEl) { statusEl.textContent = 'Syncing...'; statusEl.style.color = 'rgba(255,255,255,0.35)'; }
+    try { await fetch('/stream-queue-poll', { method: 'POST' }); } catch(e) {}
+    await refreshStreamQueue();
+    if (document.getElementById('autoSyncStreamQueue')?.checked) syncNextMatchFromQueue();
+  }
+
+  function autoSyncStreamQueueChanged(checked) {
+    doAutoSave();
+    if (checked) {
+      _initSqClientPoll();
+    } else {
+      _stopSqClientPoll();
+      _sqClientLastTopId = null;
+      const statusEl = document.getElementById('sqSyncStatus');
+      if (statusEl) statusEl.textContent = '';
+    }
+    updateSqAutoIndicator();
+  }
+
+  function updateSqAutoIndicator() {
+    const el = document.getElementById('sqAutoIndicator');
+    const checked = document.getElementById('autoSyncStreamQueue')?.checked;
+    if (el) {
+      el.textContent = checked ? '● Auto-sync ON' : '● Manual';
+      el.style.color = checked ? '#00e676' : 'rgba(255,255,255,0.25)';
+    }
+  }
+
+  async function syncNextMatchFromQueue() {
+    try {
+      const r = await fetch('/stream-queue-status');
+      const data = await r.json();
+      const top = data.sets?.[0];
+      if (!top) return;
+      const p1El = document.getElementById('nextMatchP1');
+      const p2El = document.getElementById('nextMatchP2');
+      const roundEl = document.getElementById('nextMatchRound');
+      if (p1El) p1El.value = top.p1?.name || '';
+      if (p2El) p2El.value = top.p2?.name || '';
+      if (roundEl) roundEl.value = top.round || '';
+      await saveNextMatch();
+      flashEl('nextMatchStatus', 'Synced from queue ✓', 'file-status ok');
+    } catch(e) {}
+  }
+
+  async function pollLoadCurrentMatch() {
+    try {
+      // 1. Get current match names from stream queue or Next Match fields
+      const r = await fetch('/stream-queue-status');
+      const data = await r.json();
+      const top = data.sets?.[0];
+      let p1Name, p2Name, source;
+
+      if (top && (top.p1?.name || top.p2?.name)) {
+        p1Name = top.p1?.name || 'P1'; p2Name = top.p2?.name || 'P2';
+        source = 'stream queue';
+      } else {
+        const f1 = document.getElementById('nextMatchP1')?.value.trim() || '';
+        const f2 = document.getElementById('nextMatchP2')?.value.trim() || '';
+        if (!f1 && !f2) { flashChatStatus('pfpLoadStatus', 'No stream queue data and Next Match fields are empty', true); return; }
+        p1Name = f1 || 'P1'; p2Name = f2 || 'P2';
+        source = 'Next Match';
+      }
+
+      setPfpMode('player');
+
+      // 2. If participant list not loaded yet, fetch it now (same as PULL LIST)
+      if (!_pfpItems || _pfpItems.length === 0) {
+        flashChatStatus('pfpLoadStatus', 'Loading participant list...', false);
+        const urlOverride = document.getElementById('pollStartggUrl')?.value.trim() || '';
+        const qs = urlOverride ? '?url=' + encodeURIComponent(urlOverride) : '';
+        const lr = await fetch('/startgg-participants' + qs);
+        const ld = await lr.json();
+        if (!ld.participants || !ld.participants.length) {
+          flashChatStatus('pfpLoadStatus', 'No participants found — check tournament URL', true);
+          return;
+        }
+        _pfpItems = ld.participants.map(p => ({ name: p.name, imageUrl: p.imageUrl || '' }));
+      }
+
+      // 3. Auto-select by name match
+      const findIdx = (name) => {
+        const lower = name.toLowerCase();
+        let i = _pfpItems.findIndex(it => it.name.toLowerCase() === lower);
+        if (i >= 0) return i;
+        return _pfpItems.findIndex(it => it.name.toLowerCase().includes(lower) || lower.includes(it.name.toLowerCase()));
+      };
+      _pfpFiltered1 = [..._pfpItems]; _pfpFiltered2 = [..._pfpItems];
+      _renderPfpDropdown(1); _renderPfpDropdown(2);
+      const i1 = findIdx(p1Name); const i2 = findIdx(p2Name);
+      if (i1 >= 0) _selectPfpItem(i1, 1);
+      if (i2 >= 0) _selectPfpItem(i2, 2);
+      pollApplySettings();
+      const miss = (i1 < 0 ? p1Name : '') + (i1 < 0 && i2 < 0 ? ', ' : '') + (i2 < 0 ? p2Name : '');
+      flashChatStatus('pfpLoadStatus', miss ? 'Loaded — not in list: ' + miss : 'Loaded from ' + source + ' ✓', i1 < 0 || i2 < 0);
+    } catch(e) { flashChatStatus('pfpLoadStatus', 'Error: ' + e.message, true); }
+  }
+
+  async function streamQueueSetCurrent(setId) {
+    try {
+      const r = await fetch('/stream-queue-set-current', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ setId })
+      });
+      const data = await r.json();
+      if (data.error) { flashEl('nextMatchStatus', 'Error: ' + data.error, 'file-status'); return; }
+      const set = data.set;
+      const p1El = document.getElementById('nextMatchP1');
+      const p2El = document.getElementById('nextMatchP2');
+      const roundEl = document.getElementById('nextMatchRound');
+      if (p1El) p1El.value = set.p1?.name || '';
+      if (p2El) p2El.value = set.p2?.name || '';
+      if (roundEl) roundEl.value = set.round || '';
+      await saveNextMatch();
+      flashEl('nextMatchStatus', 'Next Match updated ✓', 'file-status ok');
+      await refreshStreamQueue();
+    } catch(e) {}
   }
 
   // ══════════ END START.GG ════════════════════════════════════════════════════
@@ -4945,9 +6138,11 @@
   // ══════════ END BLUESKY UPLOAD PROGRESS ═════════════════════════════════════
 
     async function saveNextMatch() {
+    const sw = document.getElementById('nextMatchSlideshow')?.value || 'none';
+    _wSlideshowState.nextMatch.slideshow = sw; renderSlideshowLinks();
     try {
       await fetch('/save-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brb:{widgets:{nextMatch:{
-        inSlideshow: document.getElementById('nextMatchInSlideshow')?.checked,
+        slideshow: sw,
         p1:          document.getElementById('nextMatchP1')?.value.trim(),
         p2:          document.getElementById('nextMatchP2')?.value.trim(),
         round:       document.getElementById('nextMatchRound')?.value.trim(),
@@ -5247,37 +6442,79 @@
     } catch(e){flashEl('tshRootStatus','Error','file-status err');}
   }
 
-  function renderBrbLinks() {
-    const list=document.getElementById('brbLinksList'); list.innerHTML='';
-    brbLinks.forEach((link,i)=>{
-      const src = typeof link === 'string' ? link : (link.src || '');
-      const dur = typeof link === 'object' ? (link.duration || '') : '';
-      const ext=(src.split('.').pop()||'').toLowerCase();
-      const isHtml=['html','htm'].includes(ext);
-      const isVid=['mp4','webm','mov'].includes(ext);
-      const typeLabel=isHtml?'HTML FILE':isVid?'VIDEO FILE':'IMAGE FILE';
-      const row=document.createElement('div'); row.className='override-row';
-      row.innerHTML='<div class="override-fields"><div class="ov-label">'+typeLabel+' PATH</div>'
-        +'<div style="display:flex;gap:6px;align-items:center;"><input class="ov-input ov-src" data-i="'+i+'" value="'+esc(src)+'" placeholder="C:\\path\\to\\file" style="flex:1;"/>'
-        +'<button class="browse-btn px-btn" style="padding:5px 8px;font-size:10px;" onclick="browseFileIntoOvInput('+i+')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></button></div>'
-        +'<div class="ov-label" style="margin-top:4px;">DURATION (seconds, blank = global)</div>'
-        +'<input class="ov-input ov-dur" data-i="'+i+'" value="'+esc(String(dur))+'" placeholder="Use global setting" style="width:80px;"/>'
-        +'</div><button class="del-btn" onclick="deleteBrbLink('+i+')">✕</button>';
-      list.appendChild(row);
-    });
-    list.querySelectorAll('.ov-src').forEach(inp=>{ inp.addEventListener('input',()=>{ const l=brbLinks[inp.dataset.i]; brbLinks[inp.dataset.i]= typeof l==='object'?{...l,src:inp.value}:inp.value; }); });
-    list.querySelectorAll('.ov-dur').forEach(inp=>{ inp.addEventListener('input',()=>{ const i=inp.dataset.i; const src=typeof brbLinks[i]==='string'?brbLinks[i]:(brbLinks[i].src||''); const dur=parseFloat(inp.value)||null; brbLinks[i]=dur?{src,duration:dur}:src; }); });
+  const _swOpts = '<option value="brb">BRB Slideshow</option><option value="info">Info Slideshow</option><option value="both">Both</option>';
+  const _swStyle = 'background:#0d1b2a;color:#e0e8f0;border:1px solid #1a2535;padding:2px 4px;font-family:\'MMRock9\',monospace;font-size:6px;letter-spacing:0.06em;';
+
+  const _WSLIDE_LABELS = { clock:'CLOCK WIDGET', countdown:'COUNTDOWN WIDGET', social:'SOCIAL WIDGET', nextMatch:'NEXT MATCH WIDGET', bitly:'BITLY WIDGET' };
+
+  async function saveWidgetSlideDuration(type, dur) {
+    const val = dur || null;
+    const body = type === 'bitly'
+      ? { bitlySlideDuration: val }
+      : { brb: { widgets: { [type]: { slideDuration: val } } } };
+    try { await fetch('/save-settings', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }); } catch(e) {}
   }
-  function addBrbLink() { brbLinks.push(''); renderBrbLinks(); document.getElementById('brbLinksList').scrollTop=999999; }
-  function deleteBrbLink(i) { brbLinks.splice(i,1); renderBrbLinks(); }
-  async function saveBrbLinks() {
+
+  function renderSlideshowLinks() {
+    ['brbLinksList','infoLinksList'].forEach(listId => {
+      const list = document.getElementById(listId); if (!list) return; list.innerHTML = '';
+      const targetSw = listId === 'brbLinksList' ? ['brb','both'] : ['info','both'];
+
+      // Widget entries (pinned to top)
+      Object.entries(_wSlideshowState).forEach(([type, state]) => {
+        if (!targetSw.includes(state.slideshow)) return;
+        const wrow = document.createElement('div');
+        wrow.className = 'override-row wslide-entry';
+        wrow.innerHTML = '<div class="override-fields">'
+          + '<div class="ov-label" style="color:#3a9fc8;">' + (_WSLIDE_LABELS[type] || type.toUpperCase()) + '</div>'
+          + '<div style="display:flex;gap:6px;align-items:flex-end;margin-top:4px;">'
+          + '<div><div class="ov-label">DURATION (sec, blank=global)</div>'
+          + '<input class="ov-input ov-wdur" data-wtype="' + type + '" value="' + (state.duration || '') + '" placeholder="Global" style="width:80px;"/></div>'
+          + '</div></div>';
+        list.appendChild(wrow);
+        wrow.querySelector('.ov-wdur').addEventListener('change', async function() {
+          const dur = parseFloat(this.value) || null;
+          _wSlideshowState[type].duration = dur;
+          await saveWidgetSlideDuration(type, dur);
+        });
+      });
+
+      slideshowLinks.forEach((link, i) => {
+        const src = typeof link === 'string' ? link : (link.src || '');
+        const dur = typeof link === 'object' ? (link.duration || '') : '';
+        const sw  = typeof link === 'object' ? (link.slideshow || 'brb') : 'brb';
+        const ext = (src.split('.').pop()||'').toLowerCase();
+        const typeLabel = ['html','htm'].includes(ext) ? 'HTML FILE' : ['mp4','webm','mov'].includes(ext) ? 'VIDEO FILE' : 'IMAGE FILE';
+        const row = document.createElement('div'); row.className = 'override-row';
+        row.innerHTML = '<div class="override-fields"><div class="ov-label">'+typeLabel+' PATH</div>'
+          +'<div style="display:flex;gap:6px;align-items:center;"><input class="ov-input ov-src" data-i="'+i+'" value="'+esc(src)+'" placeholder="C:\\path\\to\\file" style="flex:1;"/>'
+          +'<button class="browse-btn px-btn" style="padding:5px 8px;font-size:10px;" onclick="browseSlideshowFile('+i+')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></button></div>'
+          +'<div style="display:flex;gap:6px;align-items:flex-end;margin-top:4px;">'
+          +'<div><div class="ov-label">DURATION (sec, blank=global)</div><input class="ov-input ov-dur" data-i="'+i+'" value="'+esc(String(dur))+'" placeholder="Global" style="width:80px;"/></div>'
+          +'<div style="flex:1;"><div class="ov-label">SLIDESHOW</div><select class="ov-input ov-sw" data-i="'+i+'" style="'+_swStyle+'width:100%;">'+_swOpts+'</select></div>'
+          +'</div></div><button class="del-btn" onclick="deleteSlideshowLink('+i+')">✕</button>';
+        list.appendChild(row);
+        list.querySelector('.ov-sw[data-i="'+i+'"]').value = sw;
+      });
+      list.querySelectorAll('.ov-src').forEach(inp => { inp.addEventListener('input', () => { const l=slideshowLinks[inp.dataset.i]; slideshowLinks[inp.dataset.i]={src:inp.value,slideshow:(typeof l==='object'?l.slideshow:'brb'),duration:(typeof l==='object'?l.duration:null)||undefined}; }); });
+      list.querySelectorAll('.ov-dur').forEach(inp => { inp.addEventListener('input', () => { const i=inp.dataset.i; const l=slideshowLinks[i]; const dur=parseFloat(inp.value)||null; slideshowLinks[i]={src:(typeof l==='string'?l:(l.src||'')),slideshow:(typeof l==='object'?l.slideshow:'brb'),...(dur?{duration:dur}:{})}; }); });
+      list.querySelectorAll('.ov-sw').forEach(sel => { sel.addEventListener('change', () => { const i=sel.dataset.i; const l=slideshowLinks[i]; slideshowLinks[i]={src:(typeof l==='string'?l:(l.src||'')),slideshow:sel.value,...(l.duration?{duration:l.duration}:{})}; }); });
+    });
+  }
+  function addSlideshowLink(sw) { slideshowLinks.push({src:'',slideshow:sw||'brb'}); renderSlideshowLinks(); }
+  function deleteSlideshowLink(i) { slideshowLinks.splice(i,1); renderSlideshowLinks(); }
+  async function saveSlideshowLinks(statusId) {
     try {
-      const r=await fetch('/save-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brb:{links:brbLinks.filter(l=>l.trim())}})});
-      const d=await r.json();
-      const el=document.getElementById('brbLinksStatus');
-      el.textContent=d.ok?'Saved ✓':'Save failed'; el.className=d.ok?'ov-status ok':'ov-status';
-      if(d.ok){setTimeout(()=>{el.textContent='';el.className='ov-status';},2500);refreshFileList();}
-    } catch(e){document.getElementById('brbLinksStatus').textContent='Error';}
+      const clean = slideshowLinks.filter(l => (typeof l==='string'?l:(l.src||'')).trim());
+      const r = await fetch('/save-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slideshowLinks:clean})});
+      const d = await r.json();
+      ['brbLinksStatus','infoLinksStatus'].forEach(id => {
+        const el = document.getElementById(id); if (!el) return;
+        el.textContent = d.ok ? 'Saved ✓' : 'Save failed'; el.className = d.ok ? 'ov-status ok' : 'ov-status';
+        if (d.ok) setTimeout(() => { el.textContent=''; el.className='ov-status'; }, 2500);
+      });
+      if (d.ok) { refreshFileList(); refreshInfoFileList(); }
+    } catch(e) { const el=document.getElementById(statusId); if(el) el.textContent='Error'; }
   }
 
   async function refreshFileList() {
@@ -5296,11 +6533,13 @@
 
   // ── Countdown ────────────────────────────────────────────────────────────────
   async function saveCountdown() {
+    const sw = document.getElementById('countdownSlideshow')?.value || 'none';
+    _wSlideshowState.countdown.slideshow = sw; renderSlideshowLinks();
     try {
       await fetch('/save-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brb:{widgets:{countdown:{
         minutes:parseFloat(document.getElementById('countdownMinutes').value),
         label:document.getElementById('countdownLabel').value.trim(),
-        inSlideshow:document.getElementById('countdownInSlideshow').checked,
+        slideshow:sw,
         labelColor:document.getElementById('countdownLabelColor').value,
         timeColor:document.getElementById('countdownTimeColor').value,
         shadow:getShadow('cd')
@@ -5317,11 +6556,13 @@
 
   // ── Clock ─────────────────────────────────────────────────────────────────────
   async function saveClock() {
+    const sw = document.getElementById('clockSlideshow')?.value || 'none';
+    _wSlideshowState.clock.slideshow = sw; renderSlideshowLinks();
     try {
       await fetch('/save-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brb:{widgets:{clock:{
         label:document.getElementById('clockLabel').value.trim(),
         format:getClockFmt(),
-        inSlideshow:document.getElementById('clockInSlideshow').checked,
+        slideshow:sw,
         shadow:getShadow('clock')
       }}}})});
       flashEl('clockStatus','Saved ✓','file-status ok');
@@ -5330,8 +6571,10 @@
 
   // ── Social ────────────────────────────────────────────────────────────────────
   async function saveSocial() {
+    const sw = document.getElementById('socialSlideshow')?.value || 'none';
+    _wSlideshowState.social.slideshow = sw; renderSlideshowLinks();
     try {
-      await fetch('/save-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brb:{widgets:{social:{inSlideshow:document.getElementById('socialInSlideshow').checked,message:document.getElementById('socialMessage').value.trim(),twitch:document.getElementById('socialTwitch').value.trim(),twitter:document.getElementById('socialTwitter').value.trim(),discord:document.getElementById('socialDiscord').value.trim()}}}})});
+      await fetch('/save-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brb:{widgets:{social:{slideshow:sw,message:document.getElementById('socialMessage').value.trim(),twitch:document.getElementById('socialTwitch').value.trim(),twitter:document.getElementById('socialTwitter').value.trim(),discord:document.getElementById('socialDiscord').value.trim()}}}})});
       flashEl('socialStatus','Saved ✓','file-status ok');
     } catch(e){}
   }
@@ -5457,7 +6700,7 @@
     input.click();
   }
 
-  function browseFileIntoOvInput(index) {
+  function browseSlideshowFile(index) {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.png,.jpg,.jpeg,.gif,.webp,.mp4,.webm,.html,.htm';
@@ -5465,12 +6708,14 @@
       if (!input.files || !input.files[0]) return;
       const file = input.files[0];
       const fullPath = getFullPath(file);
+      const l = slideshowLinks[index] || {};
+      const sw = typeof l === 'object' ? (l.slideshow || 'brb') : 'brb';
       if (fullPath) {
-        brbLinks[index] = fullPath;
-        renderBrbLinks();
+        slideshowLinks[index] = { src: fullPath, slideshow: sw };
+        renderSlideshowLinks();
       } else {
         const typed = prompt('Selected: ' + file.name + '\n\nPaste the full file path here:');
-        if (typed && typed.trim()) { brbLinks[index] = typed.trim(); renderBrbLinks(); }
+        if (typed && typed.trim()) { slideshowLinks[index] = { src: typed.trim(), slideshow: sw }; renderSlideshowLinks(); }
       }
     };
     input.click();
@@ -5506,6 +6751,14 @@
     if (arrow) arrow.textContent = open ? '▼' : '▶';
   }
 
+  function startggChatToggle() {
+    const sec   = document.getElementById('startgg-chat-section');
+    const arrow = document.getElementById('startgg-chat-arrow');
+    const open  = !sec.style.maxHeight || sec.style.maxHeight === '0px';
+    sec.style.maxHeight = open ? '300px' : '0px';
+    if (arrow) arrow.innerHTML = open ? '&#9660;' : '&#9658;';
+  }
+
   function chatWidgetToggle(header) {
     const body  = header.nextElementSibling;
     const arrow = header.querySelector('.chat-widget-arrow');
@@ -5539,6 +6792,17 @@
     }
   }
 
+  async function ytSaveCredentials() {
+    const id  = document.getElementById('ytClientId')?.value?.trim() || '';
+    const sec = document.getElementById('ytClientSecret')?.value?.trim() || '';
+    const btn = document.getElementById('ytSaveBtn');
+    await fetch('/save-settings', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ytClientId: id, ytClientSecret: sec })
+    }).catch(() => {});
+    if (btn) { const orig = btn.textContent; btn.textContent = 'SAVED'; setTimeout(() => btn.textContent = orig, 1500); }
+  }
+
   async function ytSaveAndConnect() {
     const id  = document.getElementById('ytClientId')?.value?.trim() || '';
     const sec = document.getElementById('ytClientSecret')?.value?.trim() || '';
@@ -5566,6 +6830,45 @@
     } catch(e) { flashChatStatus('ytStatus', 'Error: ' + e.message, true); }
   }
 
+  async function ytSetManualBroadcast() {
+    const input = document.getElementById('ytManualBroadcast');
+    let val = input ? input.value.trim() : '';
+    if (!val) { flashChatStatus('ytStatus', 'Paste a YouTube URL or video ID first', true); return; }
+
+    // Detect and extract video ID from any YouTube URL format
+    const urlPatterns = [
+      /[?&]v=([A-Za-z0-9_-]{11})/,       // youtube.com/watch?v=
+      /youtu\.be\/([A-Za-z0-9_-]{11})/,   // youtu.be/
+      /\/live\/([A-Za-z0-9_-]{11})/,       // youtube.com/live/
+      /\/shorts\/([A-Za-z0-9_-]{11})/,     // youtube.com/shorts/
+    ];
+    for (const pat of urlPatterns) {
+      const m = val.match(pat);
+      if (m) { val = m[1]; break; }
+    }
+
+    if (!/^[A-Za-z0-9_-]{11}$/.test(val)) {
+      flashChatStatus('ytStatus', 'Could not read a video ID from that — paste the full YouTube URL or just the 11-character ID', true);
+      return;
+    }
+
+    flashChatStatus('ytStatus', 'Looking up live chat...', false);
+    try {
+      const r = await fetch('/youtube-set-broadcast', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ videoId: val })
+      });
+      const d = await r.json();
+      if (d.ok) {
+        flashChatStatus('ytStatus', 'Connected: ' + (d.title || val), false);
+        if (input) input.value = '';
+        ytCheckStatus();
+      } else {
+        flashChatStatus('ytStatus', d.error || 'Failed to connect', true);
+      }
+    } catch(e) { flashChatStatus('ytStatus', 'Error: ' + e.message, true); }
+  }
+
   function flashChatStatus(id, msg, isErr) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -5575,7 +6878,126 @@
 
   setInterval(ytCheckStatus, 15000);
 
+  // ── BRB tab ───────────────────────────────────────────────────────────────────
+  function switchBrbTab(tab) {
+    ['brb','info'].forEach(t => {
+      const content = document.getElementById('brb-tab-' + t);
+      const btn     = document.getElementById('brb-tab-btn-' + t);
+      if (!content || !btn) return;
+      const active = t === tab;
+      content.style.display = active ? '' : 'none';
+      btn.style.color       = active ? '#3a9fc8' : 'rgba(255,255,255,0.3)';
+      btn.style.background  = active ? '#001a30' : 'transparent';
+      btn.style.borderBottom= active ? '2px solid #3a9fc8' : '2px solid rgba(58,159,200,0.15)';
+    });
+  }
+
+  // ── Info slideshow ────────────────────────────────────────────────────────────
+  let infoLinks = [];
+  function highlightInfoTransition(val) { document.querySelectorAll('.btn[data-info-trans]').forEach(b=>b.classList.toggle('active',b.dataset.infoTrans===val)); }
+  function getInfoTransition() { const b=document.querySelector('.btn.active[data-info-trans]'); return b?b.dataset.infoTrans:'fade'; }
+  function setInfoTransition(btn) { highlightInfoTransition(btn.dataset.infoTrans); saveInfoTiming(); }
+
+  async function saveInfoFolder() {
+    const val = document.getElementById('infoFolder')?.value.trim();
+    if (!val) { flashEl('infoFolderStatus','Enter a path first.','file-status err'); return; }
+    try {
+      const r = await fetch('/save-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({info:{folder:val}})});
+      const d = await r.json();
+      if (d.ok) { flashEl('infoFolderStatus','Saved ✓','file-status ok'); refreshInfoFileList(); }
+      else flashEl('infoFolderStatus','Save failed','file-status err');
+    } catch(e) { flashEl('infoFolderStatus','Error','file-status err'); }
+  }
+
+  async function saveInfoTiming() {
+    try {
+      await fetch('/save-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({info:{
+        imageDuration: parseFloat(document.getElementById('infoImageDuration')?.value||10),
+        videoDuration: parseFloat(document.getElementById('infoVideoDuration')?.value||0),
+        fadeTime:      parseFloat(document.getElementById('infoFade')?.value||1),
+        randomize:     document.getElementById('infoRandomize')?.checked ?? true,
+        transition:    getInfoTransition()
+      }})});
+    } catch(e) {}
+  }
+
+  // renderSlideshowLinks / addSlideshowLink / deleteSlideshowLink / saveSlideshowLinks defined above (unified)
+
+  async function refreshInfoFileList() {
+    const wrap = document.getElementById('infoFileListWrap'); if (!wrap) return;
+    try {
+      const r = await fetch('/info-config'); const c = await r.json();
+      if (!c.slides||c.slides.length===0) { wrap.innerHTML='<div class="file-list"><div class="file-empty">No supported files found</div></div>'; return; }
+      const items = c.slides.filter(s=>s.src).map(s=>{
+        const name=s.src.split('/').pop();
+        const badge=s.type==='image'?'<span class="badge img">IMG</span>':s.type==='video'?'<span class="badge vid">VID</span>':'<span class="badge html">HTML</span>';
+        return '<div class="file-item">'+badge+'<span>'+name+'</span></div>';
+      }).join('');
+      wrap.innerHTML='<div class="file-list">'+items+'</div>';
+    } catch(e) { wrap.innerHTML='<div class="file-list"><div class="file-empty">Could not scan folder</div></div>'; }
+  }
+
   // ── Bitly ────────────────────────────────────────────────────────────────────
+
+  function bitlyAccountToggle() {
+    const body  = document.getElementById('bitly-account-body');
+    const arrow = document.getElementById('bitly-account-arrow');
+    if (!body) return;
+    const open = body.style.display !== 'flex';
+    body.style.display = open ? 'flex' : 'none';
+    if (arrow) arrow.textContent = open ? '▾' : '▸';
+  }
+
+  async function bitlyVerify() {
+    flashEl('bitlyLoginStatus','Connecting...','file-status');
+    try {
+      const r = await fetch('/bitly-verify');
+      const d = await r.json();
+      const ind = document.getElementById('bitly-login-indicator');
+      if (d.ok) {
+        if (ind) { ind.textContent = '● ' + (d.login || 'CONNECTED'); ind.style.color = '#4ade80'; }
+        flashEl('bitlyLoginStatus','Connected as ' + (d.login || 'user') + ' ✓','file-status ok');
+      } else {
+        if (ind) { ind.textContent = '● NOT CONNECTED'; ind.style.color = 'rgba(255,255,255,0.25)'; }
+        flashEl('bitlyLoginStatus','Error: ' + d.error,'file-status err');
+      }
+    } catch(e) { flashEl('bitlyLoginStatus','Connection failed','file-status err'); }
+  }
+
+  function bitlyToggleCountStart() {
+    const stat = document.getElementById('bitlyStat')?.value || 'alltime';
+    const sec = document.getElementById('bitlyCountStartSection');
+    if (sec) sec.style.display = stat === 'alltime' ? '' : 'none';
+  }
+
+  async function bitlyLiveUpdate() {
+    const mockCount = document.getElementById('bitly-mock-count');
+    if (!mockCount) return;
+    try {
+      const r = await fetch('/bitly-count');
+      const d = await r.json();
+      if (typeof d.count === 'number') mockCount.textContent = d.count.toLocaleString();
+    } catch(e) {}
+  }
+
+  async function saveBitlySlideshow() {
+    const val = document.getElementById('bitlySlideshow')?.value || 'none';
+    _wSlideshowState.bitly.slideshow = val; renderSlideshowLinks();
+    await fetch('/save-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({bitlySlideshow:val})}).catch(()=>{});
+  }
+
+  function bitlyApplyPreview() {
+    const label    = document.getElementById('bitlyLabel')?.value || 'DOWNLOADS';
+    const cntSize  = parseInt(document.getElementById('bitlyCountFontSize')?.value ?? 48);
+    const lblColor = document.getElementById('bitlyLabelColor')?.value || '#3a9fc8';
+    const cntColor = document.getElementById('bitlyCountColor')?.value || '#ffffff';
+    const mockLabel = document.getElementById('bitly-mock-label');
+    const mockCount = document.getElementById('bitly-mock-count');
+    const szEl = document.getElementById('bitlyCountFontSizeVal');
+    if (mockLabel) { mockLabel.textContent = label || 'DOWNLOADS'; mockLabel.style.color = lblColor; }
+    if (mockCount) { mockCount.style.color = cntColor; mockCount.style.fontSize = Math.max(12, Math.round(cntSize * 0.5)) + 'px'; }
+    if (szEl) szEl.textContent = cntSize;
+  }
 
   async function fetchBitlyCount() {
     flashChatStatus('bitlyStatus', 'Fetching...', false);
@@ -5583,8 +7005,29 @@
       const r = await fetch('/bitly-count');
       const d = await r.json();
       if (d.error && !d.count) { flashChatStatus('bitlyStatus', 'Error: ' + d.error, true); return; }
-      flashChatStatus('bitlyStatus', (d.label || 'DOWNLOADS') + ': ' + d.count, false);
+      const sinceEl = document.getElementById('bitlyCountSinceDisplay');
+      if (sinceEl && d.countSince) sinceEl.textContent = 'Counting since ' + new Date(d.countSince).toLocaleString();
+      const display = d.offset > 0 ? d.count + ' (raw: ' + d.rawCount + ')' : d.count;
+      flashChatStatus('bitlyStatus', (d.label || 'DOWNLOADS') + ': ' + display, false);
     } catch(e) { flashChatStatus('bitlyStatus', 'Fetch failed', true); }
+  }
+
+  async function bitlyResetCount() {
+    flashChatStatus('bitlyStatus', 'Setting count start...', false);
+    try {
+      const r = await fetch('/bitly-reset-count', { method: 'POST' });
+      const d = await r.json();
+      if (d.error) { flashChatStatus('bitlyStatus', 'Error: ' + d.error, true); return; }
+      const sinceEl = document.getElementById('bitlyCountSinceDisplay');
+      if (sinceEl && d.countSince) sinceEl.textContent = 'Counting since ' + new Date(d.countSince).toLocaleString();
+      flashChatStatus('bitlyStatus', 'Count reset — now showing 0', false);
+    } catch(e) { flashChatStatus('bitlyStatus', 'Reset failed', true); }
+  }
+
+  function bitlySetPos(btn) {
+    document.querySelectorAll('[id^="btPos-"]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    autoSave();
   }
 
   // ── Chat Commands ─────────────────────────────────────────────────────────────
@@ -5630,97 +7073,201 @@
 
   // ── Live Poll ─────────────────────────────────────────────────────────────────
 
-  let _pollMode = 'char';
+  let _pfpMode = 'player';
+  let _pfpItems = [];
+  let _pfpSel1 = null, _pfpSel2 = null;
+  let _pfpFiltered1 = [], _pfpFiltered2 = [];
   let _pollP1 = { name: '', imageUrl: '' };
   let _pollP2 = { name: '', imageUrl: '' };
-  let _pollChars = [];
-  let _pollSel1 = null, _pollSel2 = null;
   let _pollRefreshTimer = null;
+  let _pfpShape = 'square';
+  let _pollType = 'vs';
+  let _pollActive = false;
 
-  function pollToggleMode(mode) {
-    _pollMode = mode;
-    document.getElementById('poll-mode-char').classList.toggle('active', mode === 'char');
-    document.getElementById('poll-mode-avatar').classList.toggle('active', mode === 'avatar');
-    document.getElementById('poll-char-section').style.display = mode === 'char' ? '' : 'none';
-    document.getElementById('poll-avatar-section').style.display = mode === 'avatar' ? '' : 'none';
+  function setPfpShape(shape) {
+    _pfpShape = shape;
+    document.getElementById('poll-pfp-square').classList.toggle('active', shape === 'square');
+    document.getElementById('poll-pfp-modern').classList.toggle('active', shape === 'modern');
+    pollApplySettings();
   }
 
-  async function pollLoadCharacters() {
-    flashChatStatus('pollCharStatus', 'Loading...', false);
+  function setPollType(type) {
+    _pollType = type;
+    document.getElementById('poll-type-vs').classList.toggle('active', type === 'vs');
+    document.getElementById('poll-type-other').classList.toggle('active', type === 'other');
+    const vsEl = document.getElementById('poll-vs-content');
+    const otherEl = document.getElementById('poll-other-content');
+    if (vsEl) vsEl.style.display = type === 'other' ? 'none' : '';
+    if (otherEl) otherEl.style.display = type === 'other' ? '' : 'none';
+    fetch('/save-settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ poll: { pollType: type } }) }).catch(() => {});
+  }
+
+  function _updatePollBtn() {
+    const openBtn  = document.getElementById('pollOpenBtn');
+    const closeBtn = document.getElementById('pollCloseBtn');
+    const newBtn   = document.getElementById('pollNewBtn');
+    if (openBtn)  openBtn.style.display  = _pollActive ? 'none' : '';
+    if (closeBtn) closeBtn.style.display = _pollActive ? ''     : 'none';
+    if (newBtn)   newBtn.style.display   = _pollActive ? ''     : 'none';
+  }
+
+  function pollToggleActive() {
+    if (_pollActive) pollClosePoll(); else pollOpenPoll();
+  }
+
+  function setPfpMode(mode) {
+    _pfpMode = mode;
+    const tog = document.getElementById('poll-pfp-mode-toggle');
+    const lbl = document.getElementById('poll-pfp-mode-label');
+    if (tog) tog.checked = (mode === 'mugshot');
+    if (lbl) lbl.textContent = mode === 'mugshot' ? 'CHARACTER MUGSHOT' : 'PLAYER AVATAR';
+    _pfpItems = []; _pfpFiltered1 = []; _pfpFiltered2 = [];
+    _pfpSel1 = null; _pfpSel2 = null;
+    _pollP1 = { name: '', imageUrl: '' };
+    _pollP2 = { name: '', imageUrl: '' };
+    _renderPfpDropdown(1); _renderPfpDropdown(2);
+    _clearPfpTrigger(1); _clearPfpTrigger(2);
+    const st = document.getElementById('pfpLoadStatus'); if (st) st.textContent = '';
+  }
+
+  function setPfpModeFromToggle(checked) {
+    setPfpMode(checked ? 'mugshot' : 'player');
+  }
+
+  async function pollOpenNew() {
+    await pollOpenPoll();
+  }
+
+  async function pfpPullUrlFromWidget() {
     try {
-      const r = await fetch('/startgg-characters');
+      const r = await fetch('/settings');
       const d = await r.json();
-      if (!d.characters || !d.characters.length) { flashChatStatus('pollCharStatus', 'No characters found — check tourney URL', true); return; }
-      _pollChars = d.characters;
-      flashChatStatus('pollCharStatus', d.characters.length + ' characters loaded', false);
-      _renderCharGrid('pollCharGrid1', 1);
-      _renderCharGrid('pollCharGrid2', 2);
-    } catch(e) { flashChatStatus('pollCharStatus', 'Error: ' + e.message, true); }
+      const urlEl = document.getElementById('pollStartggUrl');
+      if (urlEl && d.startggTourneyUrl) urlEl.value = d.startggTourneyUrl;
+      else if (urlEl) flashChatStatus('pfpLoadStatus', 'No tournament URL saved in Start.gg widget', true);
+    } catch(e) { flashChatStatus('pfpLoadStatus', 'Error fetching settings', true); }
   }
 
-  function _renderCharGrid(gridId, player) {
-    const grid = document.getElementById(gridId);
-    if (!grid) return;
-    grid.innerHTML = '';
-    const sel = player === 1 ? _pollSel1 : _pollSel2;
-    _pollChars.forEach((ch, i) => {
-      const item = document.createElement('div');
-      item.className = 'poll-char-item' + (sel === i ? ' selected' : '');
-      item.innerHTML = ch.images && ch.images.length
-        ? '<img src="' + ch.images[0].url + '" alt="' + escAttr(ch.name) + '">'
-        : '<div style="width:36px;height:36px;background:#111;"></div>';
-      item.innerHTML += '<span>' + escAttr(ch.name) + '</span>';
-      item.onclick = () => _selectChar(i, player);
-      grid.appendChild(item);
+  async function pollLoadPfpList() {
+    flashChatStatus('pfpLoadStatus', 'Loading...', false);
+    try {
+      let items = [];
+      const urlOverride = document.getElementById('pollStartggUrl')?.value.trim() || '';
+      const qs = urlOverride ? '?url=' + encodeURIComponent(urlOverride) : '';
+      if (_pfpMode === 'mugshot') {
+        const r = await fetch('/startgg-characters' + qs);
+        const d = await r.json();
+        if (!d.characters || !d.characters.length) {
+          const gameHint = d.games?.length ? ' for ' + d.games.join(', ') : '';
+          const reason = d.games?.length ? ' — characters not set up on start.gg for this game' : ' — check tournament URL';
+          flashChatStatus('pfpLoadStatus', 'No characters found' + gameHint + reason, true);
+          return;
+        }
+        items = d.characters.map(c => ({ name: c.name, imageUrl: c.imageUrl || (c.images?.[0]?.url || '') }));
+      } else {
+        const r = await fetch('/startgg-participants' + qs);
+        const d = await r.json();
+        if (!d.participants || !d.participants.length) { flashChatStatus('pfpLoadStatus', 'No participants found — check tournament URL', true); return; }
+        items = d.participants.map(p => ({ name: p.name, imageUrl: p.imageUrl || '' }));
+      }
+      _pfpItems = items;
+      _pfpFiltered1 = [...items];
+      _pfpFiltered2 = [...items];
+      flashChatStatus('pfpLoadStatus', items.length + ' items loaded', false);
+      _renderPfpDropdown(1); _renderPfpDropdown(2);
+    } catch(e) { flashChatStatus('pfpLoadStatus', 'Error: ' + e.message, true); }
+  }
+
+  function _renderPfpDropdown(player) {
+    const items = player === 1 ? _pfpFiltered1 : _pfpFiltered2;
+    const sel   = player === 1 ? _pfpSel1 : _pfpSel2;
+    const list  = document.getElementById('pfp-list' + player);
+    if (!list) return;
+    list.innerHTML = '';
+    items.forEach(item => {
+      const idx = _pfpItems.indexOf(item);
+      const div = document.createElement('div');
+      div.className = 'pfp-dd-item' + (idx === sel ? ' selected' : '');
+      if (item.imageUrl) {
+        const img = document.createElement('img');
+        img.src = item.imageUrl;
+        img.alt = '';
+        div.appendChild(img);
+      } else {
+        const ph = document.createElement('div');
+        ph.className = 'pfp-dd-no-img';
+        div.appendChild(ph);
+      }
+      const span = document.createElement('span');
+      span.textContent = item.name;
+      div.appendChild(span);
+      div.onclick = (e) => { e.stopPropagation(); _selectPfpItem(idx, player); };
+      list.appendChild(div);
     });
   }
 
-  function _selectChar(idx, player) {
-    const ch = _pollChars[idx];
-    if (!ch) return;
-    const imgUrl = (ch.images && ch.images.length) ? ch.images[0].url : '';
-    if (player === 1) {
-      _pollSel1 = idx;
-      _pollP1 = { name: ch.name, imageUrl: imgUrl };
-      const el = document.getElementById('pollCharSelected1');
-      if (el) el.textContent = ch.name;
-    } else {
-      _pollSel2 = idx;
-      _pollP2 = { name: ch.name, imageUrl: imgUrl };
-      const el = document.getElementById('pollCharSelected2');
-      if (el) el.textContent = ch.name;
-    }
-    _renderCharGrid(player === 1 ? 'pollCharGrid1' : 'pollCharGrid2', player);
+  function filterPfpDropdown(player, query) {
+    const q = query.toLowerCase();
+    const filtered = q ? _pfpItems.filter(i => i.name.toLowerCase().includes(q)) : [..._pfpItems];
+    if (player === 1) _pfpFiltered1 = filtered; else _pfpFiltered2 = filtered;
+    _renderPfpDropdown(player);
   }
 
-  async function pollFetchAvatars() {
-    const p1 = document.getElementById('pollP1Name')?.value?.trim() || '';
-    const p2 = document.getElementById('pollP2Name')?.value?.trim() || '';
-    if (!p1 || !p2) { flashChatStatus('pollAvatarStatus', 'Enter both player names', true); return; }
-    flashChatStatus('pollAvatarStatus', 'Fetching avatars...', false);
-    try {
-      const r = await fetch('/startgg-player-avatars', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ p1, p2 })
-      });
-      const d = await r.json();
-      _pollP1 = { name: p1, imageUrl: d.p1 || '' };
-      _pollP2 = { name: p2, imageUrl: d.p2 || '' };
-      flashChatStatus('pollAvatarStatus', 'Avatars loaded', false);
-    } catch(e) { flashChatStatus('pollAvatarStatus', 'Error: ' + e.message, true); }
+  function _selectPfpItem(idx, player) {
+    const item = _pfpItems[idx];
+    if (!item) return;
+    if (player === 1) { _pfpSel1 = idx; _pollP1 = { name: item.name, imageUrl: item.imageUrl || '' }; }
+    else              { _pfpSel2 = idx; _pollP2 = { name: item.name, imageUrl: item.imageUrl || '' }; }
+    _setPfpTrigger(player, item);
+    _closePfpPanel(player);
+    _renderPfpDropdown(player);
   }
+
+  function _setPfpTrigger(player, item) {
+    const img   = document.getElementById('pfp-thumb' + player + '-img');
+    const label = document.getElementById('pfp-label' + player);
+    if (img) { img.src = item.imageUrl || ''; img.style.display = item.imageUrl ? 'block' : 'none'; }
+    if (label) label.textContent = item.name;
+  }
+
+  function _clearPfpTrigger(player) {
+    const img   = document.getElementById('pfp-thumb' + player + '-img');
+    const label = document.getElementById('pfp-label' + player);
+    if (img) { img.src = ''; img.style.display = 'none'; }
+    if (label) label.textContent = 'Select...';
+  }
+
+  function togglePfpDropdown(player) {
+    const panel = document.getElementById('pfp-panel' + player);
+    if (!panel) return;
+    const isOpen = panel.classList.contains('open');
+    document.querySelectorAll('.pfp-dd-panel').forEach(p => p.classList.remove('open'));
+    if (!isOpen) panel.classList.add('open');
+  }
+
+  function _closePfpPanel(player) {
+    const panel = document.getElementById('pfp-panel' + player);
+    if (panel) panel.classList.remove('open');
+  }
+
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.pfp-dropdown')) {
+      document.querySelectorAll('.pfp-dd-panel').forEach(p => p.classList.remove('open'));
+    }
+  });
 
   async function pollOpenPoll() {
-    const p1 = _pollMode === 'char' ? _pollP1 : { name: document.getElementById('pollP1Name')?.value?.trim() || 'P1', imageUrl: _pollP1.imageUrl };
-    const p2 = _pollMode === 'char' ? _pollP2 : { name: document.getElementById('pollP2Name')?.value?.trim() || 'P2', imageUrl: _pollP2.imageUrl };
-    // Mirror selected portraits into mock immediately
-    if (p1.imageUrl) { const img = document.getElementById('mock-portrait1-img'); if (img) { img.src = p1.imageUrl; img.style.display = 'block'; } }
-    if (p2.imageUrl) { const img = document.getElementById('mock-portrait2-img'); if (img) { img.src = p2.imageUrl; img.style.display = 'block'; } }
+    const p1 = Object.assign({}, _pollP1);
+    const p2 = Object.assign({}, _pollP2);
+    if (p1.imageUrl) { const img = document.getElementById('mock-portrait1-img'); if (img) { img.src = p1.imageUrl; img.style.display = 'block'; } const hi = document.getElementById('mock-h-pfp1-img'); if (hi) { hi.src = p1.imageUrl; hi.style.display = 'block'; } }
+    if (p2.imageUrl) { const img = document.getElementById('mock-portrait2-img'); if (img) { img.src = p2.imageUrl; img.style.display = 'block'; } const hi = document.getElementById('mock-h-pfp2-img'); if (hi) { hi.src = p2.imageUrl; hi.style.display = 'block'; } }
     try {
       await fetch('/poll-open', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ p1, p2 })
       });
+      _pollActive = true;
+      _updatePollBtn();
       pollRefreshStatus();
       if (!_pollRefreshTimer) _pollRefreshTimer = setInterval(pollRefreshStatus, 3000);
     } catch(e) {}
@@ -5729,6 +7276,8 @@
   async function pollClosePoll() {
     try {
       await fetch('/poll-close', { method: 'POST' });
+      _pollActive = false;
+      _updatePollBtn();
       if (_pollRefreshTimer) { clearInterval(_pollRefreshTimer); _pollRefreshTimer = null; }
       pollRefreshStatus();
     } catch(e) {}
@@ -5738,6 +7287,16 @@
     try {
       const r = await fetch('/poll-status');
       const d = await r.json();
+
+      if (_pollActive !== d.active) {
+        _pollActive = d.active;
+        _updatePollBtn();
+      }
+      if (d.active && !_pollRefreshTimer) {
+        _pollRefreshTimer = setInterval(pollRefreshStatus, 3000);
+      } else if (!d.active && _pollRefreshTimer) {
+        clearInterval(_pollRefreshTimer); _pollRefreshTimer = null;
+      }
 
       const liveEl = document.getElementById('pollLiveStatus');
       if (liveEl) {
@@ -5766,16 +7325,162 @@
       if (d.p1 && d.p1.imageUrl) {
         const img1 = document.getElementById('mock-portrait1-img');
         if (img1) { img1.src = d.p1.imageUrl; img1.style.display = 'block'; }
+        const hImg1 = document.getElementById('mock-h-pfp1-img');
+        if (hImg1) { hImg1.src = d.p1.imageUrl; hImg1.style.display = 'block'; }
       }
       if (d.p2 && d.p2.imageUrl) {
         const img2 = document.getElementById('mock-portrait2-img');
         if (img2) { img2.src = d.p2.imageUrl; img2.style.display = 'block'; }
+        const hImg2 = document.getElementById('mock-h-pfp2-img');
+        if (hImg2) { hImg2.src = d.p2.imageUrl; hImg2.style.display = 'block'; }
       }
+
+      // Mirror to horizontal mock bars
+      const hFill1 = document.getElementById('mock-h-fill1'); if (hFill1) { hFill1.style.width = p1Pct + '%'; hFill1.style.opacity = d.active ? '1' : '0.25'; }
+      const hFill2 = document.getElementById('mock-h-fill2'); if (hFill2) { hFill2.style.width = p2Pct + '%'; hFill2.style.opacity = d.active ? '1' : '0.25'; }
+      const hPct1el = document.getElementById('mock-h-pct1'); if (hPct1el) hPct1el.textContent = Math.round(p1Pct) + '%';
+      const hPct2el = document.getElementById('mock-h-pct2'); if (hPct2el) hPct2el.textContent = Math.round(p2Pct) + '%';
+      const hmv1 = document.getElementById('mock-h-votes1'); if (hmv1) hmv1.textContent = v1 + (v1 !== 1 ? ' votes' : ' vote');
+      const hmv2 = document.getElementById('mock-h-votes2'); if (hmv2) hmv2.textContent = v2 + (v2 !== 1 ? ' votes' : ' vote');
     } catch(e) {}
+  }
+
+  function pollApplySettings() {
+    const p1Color  = document.getElementById('pollP1Color')?.value || '#3a9fc8';
+    const p2Color  = document.getElementById('pollP2Color')?.value || '#ff6694';
+    const barWidth = parseInt(document.getElementById('pollBarWidth')?.value  ?? 40);
+    const barGap   = parseInt(document.getElementById('pollBarGap')?.value    ?? 12);
+    const bgOpacity        = parseFloat(document.getElementById('pollBgOpacity')?.value  ?? 0);
+    const bgRadius         = parseInt(document.getElementById('pollBgRadius')?.value     ?? 0);
+    const bgWidth          = parseInt(document.getElementById('pollBgWidth')?.value      ?? 200);
+    const bgHeight         = parseInt(document.getElementById('pollBgHeight')?.value     ?? 300);
+    const barRadius        = parseInt(document.getElementById('pollBarRadius')?.value    ?? 0);
+    const maxHeightEnabled = document.getElementById('pollMaxHeightEnabled')?.checked || false;
+    const maxHeight        = parseInt(document.getElementById('pollMaxHeight')?.value    ?? 300);
+    const pctSize          = parseInt(document.getElementById('pollPctSize')?.value      ?? 18);
+    const voteSize         = parseInt(document.getElementById('pollVoteSize')?.value     ?? 12);
+    const pfpSize          = parseInt(document.getElementById('pollPfpSize')?.value      ?? 80);
+    const pfpShape         = _pfpShape || 'square';
+
+    // Val labels
+    const _v = (id, txt) => { const e = document.getElementById(id); if (e) e.textContent = txt; };
+    _v('pollBarWidthVal',  barWidth  + 'px');
+    _v('pollBarGapVal',    barGap    + 'px');
+    _v('pollBgOpacityVal', bgOpacity.toFixed(2));
+    _v('pollBgRadiusVal',  bgRadius  + 'px');
+    _v('pollBgWidthVal',   bgWidth   + '%');
+    _v('pollBgHeightVal',  bgHeight  + '%');
+    _v('pollBarRadiusVal', barRadius + 'px');
+    _v('pollMaxHeightVal', maxHeight + 'px');
+    _v('pollPctSizeVal',   pctSize   + 'px');
+    _v('pollVoteSizeVal',  voteSize  + 'px');
+    _v('pollPfpSizeVal',   pfpSize   + 'px');
+
+    // Preview box gap (bg is handled by #mock-bg)
+    const box = document.getElementById('poll-preview-box');
+    if (box) box.style.gap = barGap + 'px';
+
+    // Mock bg — percentages match the overlay exactly
+    const mockBg = document.getElementById('mock-bg');
+    if (mockBg) {
+      mockBg.style.background   = bgOpacity > 0 ? 'rgba(3,12,28,' + bgOpacity + ')' : 'transparent';
+      mockBg.style.borderRadius = bgRadius + 'px';
+      mockBg.style.width        = bgWidth  + '%';
+      mockBg.style.height       = bgHeight + '%';
+    }
+
+    // Column + bar wrap widths and max-height
+    const colW = Math.max(30, barWidth) + 'px';
+    const col1 = document.getElementById('mock-col1'); if (col1) col1.style.width = colW;
+    const col2 = document.getElementById('mock-col2'); if (col2) col2.style.width = colW;
+    const bw1  = document.getElementById('mock-bar-wrap1');
+    if (bw1) { bw1.style.width = barWidth + 'px'; bw1.style.maxHeight = maxHeightEnabled ? Math.round(maxHeight * 0.467) + 'px' : ''; bw1.style.position = 'relative'; bw1.style.zIndex = '1'; }
+    const bw2  = document.getElementById('mock-bar-wrap2');
+    if (bw2) { bw2.style.width = barWidth + 'px'; bw2.style.maxHeight = maxHeightEnabled ? Math.round(maxHeight * 0.467) + 'px' : ''; bw2.style.position = 'relative'; bw2.style.zIndex = '1'; }
+
+    // Bar fill colors + radius
+    const f1 = document.getElementById('mock-fill1');
+    if (f1) { f1.style.background = p1Color; f1.style.borderRadius = barRadius + 'px ' + barRadius + 'px 0 0'; }
+    const f2 = document.getElementById('mock-fill2');
+    if (f2) { f2.style.background = p2Color; f2.style.borderRadius = barRadius + 'px ' + barRadius + 'px 0 0'; }
+
+    // Pct text colors + sizes (scale font to mock)
+    const mockPctSize  = Math.max(6, Math.round(pctSize  * 0.55));
+    const mockVoteSize = Math.max(5, Math.round(voteSize * 0.55));
+    const pct1 = document.getElementById('mock-pct1');
+    if (pct1) { pct1.style.color = p1Color; pct1.style.fontSize = mockPctSize + 'px'; }
+    const pct2 = document.getElementById('mock-pct2');
+    if (pct2) { pct2.style.color = p2Color; pct2.style.fontSize = mockPctSize + 'px'; }
+    const mv1 = document.getElementById('mock-votes1');
+    if (mv1) { mv1.style.color = p1Color + '99'; mv1.style.fontSize = mockVoteSize + 'px'; }
+    const mv2 = document.getElementById('mock-votes2');
+    if (mv2) { mv2.style.color = p2Color + '99'; mv2.style.fontSize = mockVoteSize + 'px'; }
+
+    // Portrait size, shape, and bar-behind overlap (mock scaled at 0.3×)
+    const mockPfpSize = Math.max(12, Math.round(pfpSize * 0.3));
+    const mockOverlap = Math.round(mockPfpSize * 0.45);
+    const mp1 = document.getElementById('mock-portrait1');
+    if (mp1) {
+      mp1.style.width = mockPfpSize + 'px'; mp1.style.height = mockPfpSize + 'px';
+      mp1.style.borderColor = p1Color + '66';
+      mp1.style.borderRadius = pfpShape === 'modern' ? '50%' : '0';
+      mp1.style.marginTop = '-' + mockOverlap + 'px';
+      mp1.style.position = 'relative'; mp1.style.zIndex = '2';
+    }
+    const mp2 = document.getElementById('mock-portrait2');
+    if (mp2) {
+      mp2.style.width = mockPfpSize + 'px'; mp2.style.height = mockPfpSize + 'px';
+      mp2.style.borderColor = p2Color + '66';
+      mp2.style.borderRadius = pfpShape === 'modern' ? '50%' : '0';
+      mp2.style.marginTop = '-' + mockOverlap + 'px';
+      mp2.style.position = 'relative'; mp2.style.zIndex = '2';
+    }
+
+    // Horizontal mock
+    const hBarH = Math.max(8, Math.round(barWidth * 0.4));
+    const hTrack1 = document.getElementById('mock-h-track1'); if (hTrack1) hTrack1.style.height = hBarH + 'px';
+    const hTrack2 = document.getElementById('mock-h-track2'); if (hTrack2) hTrack2.style.height = hBarH + 'px';
+    const hFill1 = document.getElementById('mock-h-fill1'); if (hFill1) { hFill1.style.background = p1Color; hFill1.style.borderRadius = barRadius + 'px'; }
+    const hFill2 = document.getElementById('mock-h-fill2'); if (hFill2) { hFill2.style.background = p2Color; hFill2.style.borderRadius = barRadius + 'px'; }
+    const hPct1 = document.getElementById('mock-h-pct1'); if (hPct1) { hPct1.style.color = p1Color; hPct1.style.fontSize = mockPctSize + 'px'; }
+    const hPct2 = document.getElementById('mock-h-pct2'); if (hPct2) { hPct2.style.color = p2Color; hPct2.style.fontSize = mockPctSize + 'px'; }
+    const hVotes1 = document.getElementById('mock-h-votes1'); if (hVotes1) { hVotes1.style.color = p1Color + '99'; hVotes1.style.fontSize = mockVoteSize + 'px'; }
+    const hVotes2 = document.getElementById('mock-h-votes2'); if (hVotes2) { hVotes2.style.color = p2Color + '99'; hVotes2.style.fontSize = mockVoteSize + 'px'; }
+    const hPfpSz = Math.max(12, Math.round(pfpSize * 0.3));
+    const hPfp1 = document.getElementById('mock-h-pfp1'); if (hPfp1) { hPfp1.style.width = hPfpSz + 'px'; hPfp1.style.height = hPfpSz + 'px'; hPfp1.style.borderColor = p1Color + '66'; hPfp1.style.borderRadius = pfpShape === 'modern' ? '50%' : '0'; }
+    const hPfp2 = document.getElementById('mock-h-pfp2'); if (hPfp2) { hPfp2.style.width = hPfpSz + 'px'; hPfp2.style.height = hPfpSz + 'px'; hPfp2.style.borderColor = p2Color + '66'; hPfp2.style.borderRadius = pfpShape === 'modern' ? '50%' : '0'; }
+    const hBg = document.getElementById('mock-h-bg'); if (hBg) { hBg.style.background = bgOpacity > 0 ? 'rgba(3,12,28,' + bgOpacity + ')' : 'transparent'; hBg.style.borderRadius = bgRadius + 'px'; hBg.style.width = bgWidth + '%'; hBg.style.height = bgHeight + '%'; }
+    const hBox = document.getElementById('poll-h-preview-box'); if (hBox) hBox.style.gap = Math.max(4, Math.round(barGap * 0.4)) + 'px';
+
+    fetch('/save-settings', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ poll: { p1Color, p2Color, barWidth, barGap, bgOpacity, bgRadius, bgWidth, bgHeight, barRadius, maxHeightEnabled, maxHeight, pctSize, voteSize, pfpSize, pfpShape, pollType: _pollType } })
+    }).catch(() => {});
+  }
+
+  let _pollOrientation = 'v';
+  function switchPollOrientationTab(tab) {
+    _pollOrientation = tab;
+    const v = document.getElementById('poll-orient-v');
+    const h = document.getElementById('poll-orient-h');
+    const btnV = document.getElementById('poll-orient-btn-v');
+    const btnH = document.getElementById('poll-orient-btn-h');
+    if (v) v.style.display = tab === 'v' ? 'flex' : 'none';
+    if (h) h.style.display = tab === 'h' ? 'flex' : 'none';
+    if (btnV) { btnV.style.background = tab === 'v' ? '#001a30' : 'transparent'; btnV.style.color = tab === 'v' ? '#3a9fc8' : 'rgba(255,255,255,0.3)'; btnV.style.borderBottom = tab === 'v' ? '2px solid #3a9fc8' : '2px solid rgba(58,159,200,0.15)'; }
+    if (btnH) { btnH.style.background = tab === 'h' ? '#001a30' : 'transparent'; btnH.style.color = tab === 'h' ? '#3a9fc8' : 'rgba(255,255,255,0.3)'; btnH.style.borderBottom = tab === 'h' ? '2px solid #3a9fc8' : '2px solid rgba(58,159,200,0.15)'; }
+    const url = tab === 'h' ? 'http://127.0.0.1:7777/poll-overlay-h' : 'http://127.0.0.1:7777/poll-overlay';
+    const shortUrl = tab === 'h' ? '127.0.0.1:7777/poll-overlay-h' : '127.0.0.1:7777/poll-overlay';
+    const urlWrap = document.getElementById('poll-obs-url-wrap');
+    const urlSpan = document.getElementById('poll-obs-url-span');
+    if (urlWrap) urlWrap.onclick = () => copyUrl(url, 'copy-poll-url');
+    if (urlSpan) urlSpan.textContent = shortUrl;
   }
 
   // ── End Chat Engagement ───────────────────────────────────────────────────────
 
+  setInterval(bitlyLiveUpdate, 3000);
+  renderTabBar();
   load().then(() => { setTimeout(loadSaveData, 250); });
 </script>
 
@@ -5817,6 +7522,8 @@
     <div id="bsky-modal-status" style="font-size:9px;text-align:center;min-height:18px;letter-spacing:0.06em;"></div>
   </div>
 </div>
+
+<div id="pinned-container"></div>
 
 </body>
 </html>
