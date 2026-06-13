@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Hype Train Overlay</title>
+<style>
+  @font-face { font-family: 'MMRock9'; src: url('/font/MMRock9.ttf') format('truetype'); }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    background: transparent;
+    width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: 'MMRock9', monospace;
+  }
+  #hype-wrap {
+    position: absolute;
+    bottom: 16px; left: 16px;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  #hype-wrap.active { display: flex; }
+  #hype-full-label {
+    font-size: 14px;
+    color: #ffffff;
+    letter-spacing: 0.15em;
+    text-shadow: 0 0 8px #3a9fc8, 1px 1px 0 #000;
+    display: none;
+  }
+  #hype-full-label.show { display: block; animation: hypeFlash 0.5s infinite alternate; }
+  @keyframes hypeFlash {
+    from { color: #ffffff; }
+    to   { color: #3a9fc8; text-shadow: 0 0 16px #ffffff, 1px 1px 0 #000; }
+  }
+  #hype-bar-outer {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 3px;
+    padding: 6px;
+    background: #0a0a0a;
+    border: 3px solid #222;
+  }
+  .hype-sq {
+    width: 32px;
+    height: 16px;
+    background: #1a1a1a;
+    border: 2px solid #333;
+    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  }
+  .hype-sq.filled { border-color: #5ab4ff; }
+  .hype-sq.full   { animation: squareFlash 0.5s infinite alternate; }
+  @keyframes squareFlash {
+    from { border-color: #5ab4ff; box-shadow: none; }
+    to   { border-color: #ffffff; box-shadow: 0 0 6px #ffffff; }
+  }
+  #hype-label {
+    letter-spacing: 0.12em;
+    text-shadow: 1px 1px 0 #000;
+  }
+  #hype-count {
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.6);
+    text-shadow: 1px 1px 0 #000;
+  }
+</style>
+</head>
+<body>
+<div id="hype-wrap">
+  <div id="hype-full-label">HYPE!</div>
+  <div id="hype-bar-outer"></div>
+  <div id="hype-label">HYPE TRAIN</div>
+  <div id="hype-count">0 / 50</div>
+</div>
+<script>
+  const SQ = 20;
+  let _squares = [];
+  let _cfg = {
+    sqColor: '#3a9fc8', sqWidth: 32, sqHeight: 16, sqGap: 3,
+    padding: 6, labelSize: 9, countSize: 9, fullLabelSize: 14, position: 'bottom-left'
+  };
+
+  const POS_MAP = {
+    'top-left':      { top:'0',   left:'0',   bottom:'',   right:'',  transform:'' },
+    'top-center':    { top:'0',   left:'50%', bottom:'',   right:'',  transform:'translateX(-50%)' },
+    'top-right':     { top:'0',   left:'',    bottom:'',   right:'0', transform:'' },
+    'mid-left':      { top:'50%', left:'0',   bottom:'',   right:'',  transform:'translateY(-50%)' },
+    'mid-center':    { top:'50%', left:'50%', bottom:'',   right:'',  transform:'translate(-50%,-50%)' },
+    'mid-right':     { top:'50%', left:'',    bottom:'',   right:'0', transform:'translateY(-50%)' },
+    'bottom-left':   { top:'',    left:'0',   bottom:'0',  right:'',  transform:'' },
+    'bottom-center': { top:'',    left:'50%', bottom:'0',  right:'',  transform:'translateX(-50%)' },
+    'bottom-right':  { top:'',    left:'',    bottom:'0',  right:'0', transform:'' },
+  };
+
+  function applySettings(cfg) {
+    Object.assign(_cfg, cfg);
+    const c = _cfg;
+    const wrap = document.getElementById('hype-wrap');
+    const outer = document.getElementById('hype-bar-outer');
+    const label = document.getElementById('hype-label');
+    const count = document.getElementById('hype-count');
+    const full  = document.getElementById('hype-full-label');
+
+    const p = POS_MAP[c.position] || POS_MAP['bottom-left'];
+    wrap.style.top       = p.top;
+    wrap.style.left      = p.left;
+    wrap.style.bottom    = p.bottom;
+    wrap.style.right     = p.right;
+    wrap.style.transform = p.transform;
+
+    if (outer) {
+      outer.style.gap     = c.sqGap    + 'px';
+      outer.style.padding = c.padding  + 'px';
+    }
+    if (label) { label.style.fontSize = c.labelSize + 'px'; label.style.color = c.sqColor; }
+    if (count) { count.style.fontSize = c.countSize + 'px'; }
+    if (full)  { full.style.fontSize  = c.fullLabelSize + 'px'; }
+
+    _squares.forEach(sq => {
+      sq.style.width  = c.sqWidth  + 'px';
+      sq.style.height = c.sqHeight + 'px';
+    });
+  }
+
+  function buildSquares() {
+    const outer = document.getElementById('hype-bar-outer');
+    outer.innerHTML = '';
+    _squares = [];
+    for (let i = 0; i < SQ; i++) {
+      const el = document.createElement('div');
+      el.className = 'hype-sq';
+      el.style.width  = _cfg.sqWidth  + 'px';
+      el.style.height = _cfg.sqHeight + 'px';
+      outer.appendChild(el);
+      _squares.push(el);
+    }
+  }
+
+  function updateOverlay(data) {
+    const wrap = document.getElementById('hype-wrap');
+    if (data.overlaySettings) applySettings(data.overlaySettings);
+    if (!data.active) { wrap.classList.remove('active'); return; }
+    wrap.classList.add('active');
+
+    const count = data.count || 0;
+    const goal  = data.goal  || 50;
+    const full  = data.full  || false;
+    const filled = full ? SQ : Math.min(SQ, Math.round((count / Math.max(1, goal)) * SQ));
+    const sqColor = _cfg.sqColor;
+
+    _squares.forEach((sq, i) => {
+      sq.className = 'hype-sq';
+      if (i < filled) {
+        sq.style.background = sqColor;
+        sq.classList.add(full ? 'full' : 'filled');
+      } else {
+        sq.style.background = '#1a1a1a';
+        sq.style.borderColor = '#333';
+        sq.style.boxShadow = '';
+      }
+    });
+
+    const fullLabel = document.getElementById('hype-full-label');
+    if (full) fullLabel.classList.add('show');
+    else fullLabel.classList.remove('show');
+
+    document.getElementById('hype-count').textContent = (full ? goal : count) + ' / ' + goal;
+  }
+
+  async function poll() {
+    try {
+      const r = await fetch('/hype-status');
+      const d = await r.json();
+      updateOverlay(d);
+    } catch(e) {}
+    setTimeout(poll, 1000);
+  }
+
+  buildSquares();
+  poll();
+</script>
+</body>
+</html>

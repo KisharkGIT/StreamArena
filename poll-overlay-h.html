@@ -340,10 +340,27 @@
     animating = false;
   }
 
+  function _shadowCss(sh) {
+    if (!sh) sh = {};
+    var a = sh.angle != null ? sh.angle : 135, d = sh.distance != null ? sh.distance : 8;
+    var blur = sh.hardness != null ? sh.hardness : 0, spread = sh.spread != null ? sh.spread : 0;
+    var color = sh.color || '#000000', op = sh.opacity != null ? sh.opacity : 1;
+    var rad = a * Math.PI / 180;
+    var x = Math.round(d * Math.sin(rad)), y = Math.round(-d * Math.cos(rad));
+    var r = parseInt(color.slice(1,3)||'00',16), g = parseInt(color.slice(3,5)||'00',16), b = parseInt(color.slice(5,7)||'00',16);
+    var col = 'rgba('+r+','+g+','+b+','+op+')';
+    var val = x+'px '+y+'px '+blur+'px '+col;
+    if (spread > 0) val += ', '+x+'px '+y+'px '+(blur+spread)+'px rgba('+r+','+g+','+b+','+Math.max(0,+(op-0.35).toFixed(2))+')';
+    return val;
+  }
+
   function applyPollSettings(ps) {
     if (!ps) return;
-    const p1Color  = ps.p1Color  || '#3a9fc8';
-    const p2Color  = ps.p2Color  || '#ff6694';
+    const p1Color     = ps.p1Color     || '#3a9fc8';
+    const p2Color     = ps.p2Color     || '#ff6694';
+    const p1TextColor = ps.p1TextColor || p1Color;
+    const p2TextColor = ps.p2TextColor || p2Color;
+    const textShadow  = _shadowCss(ps.shadow);
     const barWidth = ps.barWidth || 40;
     const barGap   = ps.barGap   || 12;
     const bgOpacity = ps.bgOpacity != null ? ps.bgOpacity : 0;
@@ -380,11 +397,11 @@
     const f1 = document.getElementById('fill1'); if (f1) { f1.style.background = p1Color; f1.style.borderRadius = barRadius + 'px'; }
     const f2 = document.getElementById('fill2'); if (f2) { f2.style.background = p2Color; f2.style.borderRadius = barRadius + 'px'; }
 
-    const pct1el = document.getElementById('pct1'); if (pct1el) { pct1el.style.color = p1Color; pct1el.style.fontSize = pctSize + 'px'; }
-    const pct2el = document.getElementById('pct2'); if (pct2el) { pct2el.style.color = p2Color; pct2el.style.fontSize = pctSize + 'px'; }
+    const pct1el = document.getElementById('pct1'); if (pct1el) { pct1el.style.color = p1TextColor; pct1el.style.fontSize = pctSize + 'px'; pct1el.style.textShadow = textShadow; }
+    const pct2el = document.getElementById('pct2'); if (pct2el) { pct2el.style.color = p2TextColor; pct2el.style.fontSize = pctSize + 'px'; pct2el.style.textShadow = textShadow; }
 
-    const v1el = document.getElementById('votes1'); if (v1el) { v1el.style.color = p1Color + 'aa'; v1el.style.fontSize = voteSize + 'px'; }
-    const v2el = document.getElementById('votes2'); if (v2el) { v2el.style.color = p2Color + 'aa'; v2el.style.fontSize = voteSize + 'px'; }
+    const v1el = document.getElementById('votes1'); if (v1el) { v1el.style.color = p1TextColor + 'aa'; v1el.style.fontSize = voteSize + 'px'; v1el.style.textShadow = textShadow; }
+    const v2el = document.getElementById('votes2'); if (v2el) { v2el.style.color = p2TextColor + 'aa'; v2el.style.fontSize = voteSize + 'px'; v2el.style.textShadow = textShadow; }
 
     [document.getElementById('portrait1'), document.getElementById('portrait2')].forEach(p => {
       if (!p) return;

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Character Vote Overlay</title>
+<style>
+  @font-face { font-family: 'MMRock9'; src: url('/font/MMRock9.ttf') format('truetype'); }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    background: transparent;
+    width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: 'MMRock9', monospace;
+  }
+  #cv-wrap {
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 380px;
+    padding: 16px;
+    display: none;
+  }
+  #cv-wrap.active { display: block; }
+  .cv-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: absolute;
+    left: 0; right: 0;
+    transition: top 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .cv-name {
+    width: 130px;
+    font-size: 10px;
+    color: #5ab4ff;
+    letter-spacing: 0.08em;
+    text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+    white-space: nowrap;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .cv-bar-track {
+    flex: 1;
+    height: 14px;
+    background: rgba(90,180,255,0.12);
+    position: relative;
+    border: 1px solid rgba(90,180,255,0.2);
+  }
+  .cv-bar-fill {
+    height: 100%;
+    background: #5ab4ff;
+    transition: width 0.7s ease;
+    min-width: 2px;
+  }
+  .cv-pct {
+    width: 36px;
+    font-size: 9px;
+    color: #5ab4ff;
+    text-align: right;
+    letter-spacing: 0.06em;
+    text-shadow: 1px 1px 0 #000, -1px -1px 0 #000;
+    flex-shrink: 0;
+  }
+  #cv-rows-container {
+    position: relative;
+    width: 100%;
+  }
+</style>
+</head>
+<body>
+<div id="cv-wrap">
+  <div id="cv-rows-container"></div>
+</div>
+<script>
+  let _lastTop = [];
+  let _rows = [];
+  let _maxSlots = 4;
+  let _cfg = {
+    barColor: '#5ab4ff', textColor: '#5ab4ff', barHeight: 14, barGap: 8, barRadius: 0,
+    trackOpacity: 0.12, nameWidth: 130, nameFontSize: 10, pctFontSize: 9,
+    bgOpacity: 0, bgRadius: 0, padding: 16, position: 'bottom-left',
+    overlayWidth: 380, scale: 1.0,
+    shadow: { angle: 135, distance: 8, hardness: 0, spread: 0, color: '#000000', opacity: 1 }
+  };
+
+  const POS_MAP = {
+    'top-left':      { top:'0',   left:'0',   bottom:'',   right:'',  posTransform:'' },
+    'top-center':    { top:'0',   left:'50%', bottom:'',   right:'',  posTransform:'translateX(-50%)' },
+    'top-right':     { top:'0',   left:'',    bottom:'',   right:'0', posTransform:'' },
+    'mid-left':      { top:'50%', left:'0',   bottom:'',   right:'',  posTransform:'translateY(-50%)' },
+    'mid-center':    { top:'50%', left:'50%', bottom:'',   right:'',  posTransform:'translate(-50%,-50%)' },
+    'mid-right':     { top:'50%', left:'',    bottom:'',   right:'0', posTransform:'translateY(-50%)' },
+    'bottom-left':   { top:'',    left:'0',   bottom:'0',  right:'',  posTransform:'' },
+    'bottom-center': { top:'',    left:'50%', bottom:'0',  right:'',  posTransform:'translateX(-50%)' },
+    'bottom-right':  { top:'',    left:'',    bottom:'0',  right:'0', posTransform:'' },
+  };
+
+  const ORIGIN_MAP = {
+    'top-left':      'top left',    'top-center':    'top center',    'top-right':    'top right',
+    'mid-left':      'left center', 'mid-center':    'center center', 'mid-right':    'right center',
+    'bottom-left':   'bottom left', 'bottom-center': 'bottom center', 'bottom-right': 'bottom right',
+  };
+
+  function hexToRgb(hex) {
+    hex = hex.replace('#','');
+    if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+    return parseInt(hex.substr(0,2),16)+','+parseInt(hex.substr(2,2),16)+','+parseInt(hex.substr(4,2),16);
+  }
+
+  function _shadowCss(sh) {
+    if (!sh) sh = {};
+    var a = sh.angle!=null?sh.angle:135, d = sh.distance!=null?sh.distance:8;
+    var blur = sh.hardness!=null?sh.hardness:0, spread = sh.spread!=null?sh.spread:0;
+    var color = sh.color||'#000000', op = sh.opacity!=null?sh.opacity:1;
+    var rad = a*Math.PI/180;
+    var x = Math.round(d*Math.sin(rad)), y = Math.round(-d*Math.cos(rad));
+    var r = parseInt(color.slice(1,3)||'00',16), g = parseInt(color.slice(3,5)||'00',16), b = parseInt(color.slice(5,7)||'00',16);
+    var col = 'rgba('+r+','+g+','+b+','+op+')';
+    var val = x+'px '+y+'px '+blur+'px '+col;
+    if (spread > 0) val += ', '+x+'px '+y+'px '+(blur+spread)+'px rgba('+r+','+g+','+b+','+Math.max(0,+(op-0.35).toFixed(2))+')';
+    return val;
+  }
+
+  function applySettings(cfg) {
+    Object.assign(_cfg, cfg);
+    const c = _cfg;
+    const rowH = c.barHeight + 14;
+    const wrap = document.getElementById('cv-wrap');
+    const container = document.getElementById('cv-rows-container');
+    const rgb = hexToRgb(c.barColor);
+
+    const p = POS_MAP[c.position] || POS_MAP['bottom-left'];
+    wrap.style.top    = p.top;
+    wrap.style.left   = p.left;
+    wrap.style.bottom = p.bottom;
+    wrap.style.right  = p.right;
+    const sc = c.scale && Math.abs(c.scale - 1) > 0.001 ? 'scale(' + c.scale + ')' : '';
+    wrap.style.transform       = [p.posTransform, sc].filter(Boolean).join(' ') || '';
+    wrap.style.transformOrigin = ORIGIN_MAP[c.position] || 'bottom left';
+
+    wrap.style.width        = c.overlayWidth + 'px';
+    wrap.style.padding      = c.padding + 'px';
+    wrap.style.background   = c.bgOpacity > 0 ? 'rgba(0,0,0,' + c.bgOpacity + ')' : 'transparent';
+    wrap.style.borderRadius = c.bgRadius + 'px';
+
+    if (container) container.style.height = (_maxSlots * rowH + (_maxSlots - 1) * c.barGap) + 'px';
+
+    const tColor  = c.textColor || c.barColor;
+    const tShadow = _shadowCss(c.shadow);
+    _rows.forEach(row => {
+      row.style.height = rowH + 'px';
+      const nameEl = row.querySelector('.cv-name');
+      const track  = row.querySelector('.cv-bar-track');
+      const fill   = row.querySelector('.cv-bar-fill');
+      const pct    = row.querySelector('.cv-pct');
+      if (nameEl) {
+        nameEl.style.width      = c.nameWidth    + 'px';
+        nameEl.style.fontSize   = c.nameFontSize + 'px';
+        nameEl.style.color      = tColor;
+        nameEl.style.textShadow = tShadow;
+      }
+      if (track) {
+        track.style.height       = c.barHeight + 'px';
+        track.style.background   = 'rgba(' + rgb + ',' + c.trackOpacity + ')';
+        track.style.borderRadius = c.barRadius + 'px';
+        track.style.border       = '1px solid rgba(' + rgb + ',0.2)';
+      }
+      if (fill) { fill.style.background = c.barColor; fill.style.borderRadius = c.barRadius + 'px'; }
+      if (pct)  { pct.style.fontSize = c.pctFontSize + 'px'; pct.style.color = tColor; pct.style.textShadow = tShadow; pct.style.width = Math.max(28, c.pctFontSize * 4) + 'px'; }
+    });
+  }
+
+  function initRows() {
+    const container = document.getElementById('cv-rows-container');
+    container.innerHTML = '';
+    _rows = [];
+    const rowH = _cfg.barHeight + 14;
+    for (let i = 0; i < _maxSlots; i++) {
+      const row = document.createElement('div');
+      row.className = 'cv-row';
+      row.style.top = (i * (rowH + _cfg.barGap)) + 'px';
+      row.innerHTML = `<span class="cv-name">--</span><div class="cv-bar-track"><div class="cv-bar-fill" style="width:0%"></div></div><span class="cv-pct">0%</span>`;
+      container.appendChild(row);
+      _rows.push(row);
+    }
+    container.style.height = (_maxSlots * rowH + (_maxSlots - 1) * _cfg.barGap) + 'px';
+  }
+
+  function updateOverlay(data) {
+    const wrap = document.getElementById('cv-wrap');
+    if (data.overlaySettings) applySettings(data.overlaySettings);
+    if (!data.active) { wrap.classList.remove('active'); return; }
+    wrap.classList.add('active');
+
+    const newMax = data.maxSlots || 4;
+    if (newMax !== _maxSlots) {
+      _maxSlots = newMax;
+      initRows();
+      applySettings(_cfg);
+    }
+
+    const rowH = _cfg.barHeight + 14;
+    const gap  = _cfg.barGap;
+    const topEntries = data.topEntries || [];
+    const total = topEntries.reduce((s, e) => s + (e.count || 0), 0);
+
+    const prevOrder = {};
+    _lastTop.forEach((e, i) => { if (e) prevOrder[e.key] = i; });
+
+    const newOrder = topEntries.map((e, i) => {
+      const prev = prevOrder[e.key];
+      return { entry: e, slot: prev !== undefined ? prev : i };
+    });
+    const usedSlots = new Set(newOrder.filter(r => r.slot !== undefined).map(r => r.slot));
+    const availSlots = Array.from({length: _maxSlots}, (_, i) => i).filter(s => !usedSlots.has(s));
+    newOrder.forEach(r => { if (r.slot === undefined) r.slot = availSlots.shift(); });
+    newOrder.sort((a, b) => (b.entry.count || 0) - (a.entry.count || 0));
+    newOrder.forEach((r, visualPos) => { r.visualPos = visualPos; });
+
+    _rows.forEach((row, i) => {
+      const nr = newOrder.find(r => r.visualPos === i);
+      if (nr) {
+        const pct = total > 0 ? Math.round(nr.entry.count / total * 100) : 0;
+        row.style.top = (i * (rowH + gap)) + 'px';
+        row.querySelector('.cv-name').textContent = nr.entry.displayName;
+        row.querySelector('.cv-bar-fill').style.width = pct + '%';
+        row.querySelector('.cv-pct').textContent = pct + '%';
+        row.style.opacity = '1';
+      } else {
+        row.style.opacity = '0';
+      }
+    });
+
+    _lastTop = topEntries;
+  }
+
+  async function poll() {
+    try {
+      const r = await fetch('/charvote-status');
+      const d = await r.json();
+      updateOverlay(d);
+    } catch(e) {}
+    setTimeout(poll, 1500);
+  }
+
+  initRows();
+  poll();
+</script>
+</body>
+</html>

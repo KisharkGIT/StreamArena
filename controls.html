@@ -1427,6 +1427,7 @@
             <span style="font-size:9px;letter-spacing:0.1em;color:#5ab4ff;">YOUTUBE ACCOUNT</span>
             <span style="display:flex;align-items:center;gap:10px;">
               <span id="yt-account-indicator" style="font-size:7px;letter-spacing:0.06em;color:rgba(255,255,255,0.25);">● NOT CONNECTED</span>
+              <span id="yt-quota-badge" style="font-size:7px;letter-spacing:0.06em;color:rgba(255,255,255,0.2);display:none;"></span>
               <span id="yt-account-arrow" style="font-size:10px;color:rgba(255,255,255,0.5);">▶</span>
             </span>
           </button>
@@ -1456,6 +1457,19 @@
               <button class="px-btn" style="padding:7px 10px;font-size:7px;" onclick="ytSetManualBroadcast()">SET</button>
             </div>
             <div class="file-status" id="ytStatus">Not connected</div>
+            <div style="margin-top:4px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
+                <span class="section-label">API QUOTA (TODAY)</span>
+                <span id="ytQuotaText" style="font-size:7px;color:rgba(255,255,255,0.35);letter-spacing:0.05em;">--</span>
+              </div>
+              <div style="height:6px;background:rgba(90,180,255,0.1);border:1px solid rgba(90,180,255,0.15);">
+                <div id="ytQuotaBar" style="height:100%;background:#5ab4ff;width:0%;transition:width 0.4s ease;"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+                <span style="font-size:7px;color:rgba(255,255,255,0.2);letter-spacing:0.04em;">DAILY LIMIT</span>
+                <input type="number" id="ytQuotaLimit" class="file-input" style="width:72px;font-size:7px;text-align:right;padding:2px 4px;" value="10000" min="1000" max="1000000" onchange="saveYtQuotaLimit()">
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -2723,6 +2737,10 @@
             <button class="px-btn" id="pollCloseBtn" style="flex:1;padding:8px;font-size:7px;color:#f87171;display:none;" onclick="pollClosePoll()">CLOSE POLL</button>
             <button class="px-btn" id="pollNewBtn" style="flex:1;padding:8px;font-size:7px;color:#facc15;display:none;" onclick="pollOpenNew()">OPEN NEW</button>
           </div>
+          <div id="pollWinnerRow" style="display:none;gap:6px;">
+            <button class="px-btn" id="pollP1WinBtn" style="flex:1;padding:7px;font-size:7px;color:#3a9fc8;" onclick="pollSetWinner('1')">P1 WON</button>
+            <button class="px-btn" id="pollP2WinBtn" style="flex:1;padding:7px;font-size:7px;color:#ff6694;" onclick="pollSetWinner('2')">P2 WON</button>
+          </div>
           <div>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
               <div class="section-label" style="margin:0;">MOCK PREVIEW</div>
@@ -2795,6 +2813,13 @@
               <button class="px-btn" id="poll-type-other" onclick="setPollType('other')" style="padding:7px;font-size:7px;">OTHER POLL</button>
             </div>
           </div>
+          <div class="check-row" style="align-items:center;gap:8px;">
+            <label class="toggle-wrap">
+              <input type="checkbox" id="pollMultiVote" onchange="savePollMultiVote()">
+              <span class="toggle-track"></span><span class="toggle-thumb"></span>
+            </label>
+            <label for="pollMultiVote" style="cursor:pointer;font-size:8px;letter-spacing:0.05em;">ALLOW MULTIPLE VOTES PER PERSON</label>
+          </div>
           <div id="poll-other-content" style="display:none;font-family:'MMRock9',monospace;font-size:10px;color:rgba(58,159,200,0.7);text-align:center;padding:18px 8px;border:1px solid rgba(58,159,200,0.2);">FEATURE COMING SOON</div>
           <div id="poll-vs-content">
             <div style="border:1px solid rgba(255,255,255,0.1);">
@@ -2803,13 +2828,33 @@
                 <span class="chat-widget-arrow">&#9662;</span>
               </div>
               <div class="chat-widget-body hidden" style="gap:8px;">
-                <div class="row" style="margin-bottom:8px;">
-                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">P1 COLOR</label>
+                <div style="margin-bottom:4px;">
+                  <div class="section-label" style="cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center;" onclick="var _p=document.getElementById('pollShadowPanel'),_open=_p.style.display!=='block';_p.style.display=_open?'block':'none';if(_open){initShadowKnob('pollShadowKnob','pollShadowAngleVal',pollApplySettings);drawShadowKnob('pollShadowKnob','pollShadowAngleVal');}">DROP SHADOW <span style="font-size:8px;opacity:0.4;">▶</span></div>
+                  <div id="pollShadowPanel" style="display:none;padding-top:4px;">
+                    <div class="row" style="align-items:center;gap:6px;"><label>Angle</label><canvas id="pollShadowKnob" width="54" height="54" data-angle="135" style="cursor:crosshair;flex-shrink:0;display:block;touch-action:none;"></canvas><input type="text" inputmode="numeric" class="knob-angle-input" id="pollShadowAngleVal" value="135" onchange="(function(i){var v=((parseFloat(i.value)||0)+360)%360;var c=document.getElementById('pollShadowKnob');if(c)c.dataset.angle=v;i.value=Math.round(v);drawShadowKnob('pollShadowKnob','pollShadowAngleVal');pollApplySettings();})(this)"><span style="font-size:9px;color:rgba(255,255,255,0.4);">°</span></div>
+                    <div class="row"><label>Distance</label><input type="range" min="0" max="40" value="8" id="pollShadowDist" oninput="document.getElementById('pollShadowDistVal').textContent=this.value+'px';pollApplySettings()" /><span class="val" id="pollShadowDistVal">8px</span></div>
+                    <div class="row"><label>Opacity</label><input type="range" min="0" max="100" value="100" id="pollShadowOpacity" oninput="document.getElementById('pollShadowOpacityVal').textContent=this.value+'%';pollApplySettings()" /><span class="val" id="pollShadowOpacityVal">100%</span></div>
+                    <div class="row"><label>Hardness</label><input type="range" min="0" max="30" value="0" id="pollShadowBlur" oninput="document.getElementById('pollShadowBlurVal').textContent=this.value==0?'HARD':this.value+'px';pollApplySettings()" /><span class="val" id="pollShadowBlurVal">HARD</span></div>
+                    <div class="row"><label>Spread</label><input type="range" min="0" max="20" value="0" id="pollShadowSpread" oninput="document.getElementById('pollShadowSpreadVal').textContent=this.value+'px';pollApplySettings()" /><span class="val" id="pollShadowSpreadVal">0px</span></div>
+                    <div class="row"><label>Color</label><input type="color" id="pollShadowColor" value="#000000" oninput="pollApplySettings()" style="width:36px;height:26px;padding:1px;border:1px solid rgba(255,255,255,0.2);background:#0d1b2e;cursor:pointer;" /></div>
+                    <div class="row" style="justify-content:flex-end;"><button class="save-btn px-btn" onclick="resetShadow('poll',pollApplySettings)" style="font-size:7px;">Reset to Default</button></div>
+                  </div>
+                </div>
+                <div class="row" style="margin-bottom:4px;">
+                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">P1 BAR COLOR</label>
                   <input type="color" id="pollP1Color" value="#3a9fc8" oninput="pollApplySettings()">
                 </div>
                 <div class="row" style="margin-bottom:8px;">
-                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">P2 COLOR</label>
+                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">P1 TEXT COLOR</label>
+                  <input type="color" id="pollP1TextColor" value="#3a9fc8" oninput="pollApplySettings()">
+                </div>
+                <div class="row" style="margin-bottom:4px;">
+                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">P2 BAR COLOR</label>
                   <input type="color" id="pollP2Color" value="#ff6694" oninput="pollApplySettings()">
+                </div>
+                <div class="row" style="margin-bottom:8px;">
+                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">P2 TEXT COLOR</label>
+                  <input type="color" id="pollP2TextColor" value="#ff6694" oninput="pollApplySettings()">
                 </div>
                 <div class="row" style="margin-bottom:8px;">
                   <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">PFP SHAPE</label>
@@ -2938,6 +2983,501 @@
             </div>
             <div class="copy-flash" id="copy-poll-url"></div>
           </div>`
+    },
+    charvote: {
+      label: 'CHARACTER VOTES',
+      html: `<div>
+            <div class="section-label">OVERLAY PREVIEW</div>
+            <div class="preview-box" style="width:100%;"><iframe src="http://127.0.0.1:7777/charvote-overlay" scrolling="no"></iframe></div>
+            <a class="preview-open" href="http://127.0.0.1:7777/charvote-overlay" target="_blank">&#8599; Open fullscreen</a>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="px-btn" id="cvStartBtn" style="flex:1;padding:8px;font-size:7px;color:#4ade80;" onclick="cvStart()">START VOTING</button>
+            <button class="px-btn" id="cvResetBtn" style="flex:1;padding:8px;font-size:7px;color:#facc15;" onclick="cvReset()">RESET VOTES</button>
+          </div>
+          <div class="row" style="align-items:center;gap:8px;">
+            <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">MAX SLOTS</label>
+            <div style="display:flex;gap:4px;">
+              <button class="px-btn" id="cvSlots-2" onclick="cvSetSlots(this)" data-val="2" style="padding:4px 8px;font-size:7px;">2</button>
+              <button class="px-btn" id="cvSlots-3" onclick="cvSetSlots(this)" data-val="3" style="padding:4px 8px;font-size:7px;">3</button>
+              <button class="px-btn active" id="cvSlots-4" onclick="cvSetSlots(this)" data-val="4" style="padding:4px 8px;font-size:7px;">4</button>
+              <button class="px-btn" id="cvSlots-5" onclick="cvSetSlots(this)" data-val="5" style="padding:4px 8px;font-size:7px;">5</button>
+              <button class="px-btn" id="cvSlots-6" onclick="cvSetSlots(this)" data-val="6" style="padding:4px 8px;font-size:7px;">6</button>
+            </div>
+          </div>
+          <div>
+            <div class="section-label" style="margin-bottom:6px;">MOCK PREVIEW</div>
+            <div id="cv-mock-bg" style="background:transparent;padding:8px;width:100%;overflow:hidden;">
+              <div id="cv-mock-inner" style="display:flex;flex-direction:column;gap:8px;width:100%;">
+              </div>
+            </div>
+          </div>
+          <div class="check-row" style="align-items:center;gap:8px;">
+            <label class="toggle-wrap">
+              <input type="checkbox" id="cvMultiVote" onchange="saveCvSettings()">
+              <span class="toggle-track"></span><span class="toggle-thumb"></span>
+            </label>
+            <label for="cvMultiVote" style="cursor:pointer;font-size:8px;letter-spacing:0.05em;">ALLOW MULTIPLE VOTES PER PERSON</label>
+          </div>
+          <div id="cvStatus" style="font-family:'MMRock9',monospace;font-size:7px;color:rgba(255,255,255,0.4);letter-spacing:0.06em;min-height:12px;text-align:center;"></div>
+          <div style="border:1px solid rgba(255,255,255,0.1);">
+            <div class="chat-widget-header" onclick="chatWidgetToggle(this)" style="padding:8px 10px;">
+              <span class="section-label" style="margin:0;flex:1;">CUSTOMIZATION</span>
+              <span class="chat-widget-arrow">&#9662;</span>
+            </div>
+            <div class="chat-widget-body hidden" style="gap:8px;">
+              <div style="margin-bottom:4px;">
+                <div class="section-label" style="cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center;" onclick="var _p=document.getElementById('cvShadowPanel'),_open=_p.style.display!=='block';_p.style.display=_open?'block':'none';if(_open){initShadowKnob('cvShadowKnob','cvShadowAngleVal',cvApplySettings);drawShadowKnob('cvShadowKnob','cvShadowAngleVal');}">DROP SHADOW <span style="font-size:8px;opacity:0.4;">▶</span></div>
+                <div id="cvShadowPanel" style="display:none;padding-top:4px;">
+                  <div class="row" style="align-items:center;gap:6px;"><label>Angle</label><canvas id="cvShadowKnob" width="54" height="54" data-angle="135" style="cursor:crosshair;flex-shrink:0;display:block;touch-action:none;"></canvas><input type="text" inputmode="numeric" class="knob-angle-input" id="cvShadowAngleVal" value="135" onchange="(function(i){var v=((parseFloat(i.value)||0)+360)%360;var c=document.getElementById('cvShadowKnob');if(c)c.dataset.angle=v;i.value=Math.round(v);drawShadowKnob('cvShadowKnob','cvShadowAngleVal');cvApplySettings();})(this)"><span style="font-size:9px;color:rgba(255,255,255,0.4);">°</span></div>
+                  <div class="row"><label>Distance</label><input type="range" min="0" max="40" value="8" id="cvShadowDist" oninput="document.getElementById('cvShadowDistVal').textContent=this.value+'px';cvApplySettings()" /><span class="val" id="cvShadowDistVal">8px</span></div>
+                  <div class="row"><label>Opacity</label><input type="range" min="0" max="100" value="100" id="cvShadowOpacity" oninput="document.getElementById('cvShadowOpacityVal').textContent=this.value+'%';cvApplySettings()" /><span class="val" id="cvShadowOpacityVal">100%</span></div>
+                  <div class="row"><label>Hardness</label><input type="range" min="0" max="30" value="0" id="cvShadowBlur" oninput="document.getElementById('cvShadowBlurVal').textContent=this.value==0?'HARD':this.value+'px';cvApplySettings()" /><span class="val" id="cvShadowBlurVal">HARD</span></div>
+                  <div class="row"><label>Spread</label><input type="range" min="0" max="20" value="0" id="cvShadowSpread" oninput="document.getElementById('cvShadowSpreadVal').textContent=this.value+'px';cvApplySettings()" /><span class="val" id="cvShadowSpreadVal">0px</span></div>
+                  <div class="row"><label>Color</label><input type="color" id="cvShadowColor" value="#000000" oninput="cvApplySettings()" style="width:36px;height:26px;padding:1px;border:1px solid rgba(255,255,255,0.2);background:#0d1b2e;cursor:pointer;" /></div>
+                  <div class="row" style="justify-content:flex-end;"><button class="save-btn px-btn" onclick="resetShadow('cv',cvApplySettings)" style="font-size:7px;">Reset to Default</button></div>
+                </div>
+              </div>
+              <div class="row" style="margin-bottom:4px;">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:100px;">BAR COLOR</label>
+                <input type="color" id="cvBarColor" value="#5ab4ff" oninput="cvApplySettings()">
+              </div>
+              <div class="row" style="margin-bottom:4px;">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:100px;">TEXT COLOR</label>
+                <input type="color" id="cvTextColor" value="#5ab4ff" oninput="cvApplySettings()">
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:100px;">BAR HEIGHT</label>
+                <input type="range" min="6" max="40" step="1" id="cvBarHeight" value="14" oninput="cvApplySettings()">
+                <span class="val" id="cvBarHeightVal">14px</span>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:100px;">BAR GAP</label>
+                <input type="range" min="0" max="30" step="1" id="cvBarGap" value="8" oninput="cvApplySettings()">
+                <span class="val" id="cvBarGapVal">8px</span>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:100px;">BAR RADIUS</label>
+                <input type="range" min="0" max="20" step="1" id="cvBarRadius" value="0" oninput="cvApplySettings()">
+                <span class="val" id="cvBarRadiusVal">0px</span>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:100px;">TRACK OPACITY</label>
+                <input type="range" min="0" max="1" step="0.05" id="cvTrackOpacity" value="0.12" oninput="cvApplySettings()">
+                <span class="val" id="cvTrackOpacityVal">0.12</span>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:100px;">NAME WIDTH</label>
+                <input type="range" min="60" max="200" step="5" id="cvNameWidth" value="130" oninput="cvApplySettings()">
+                <span class="val" id="cvNameWidthVal">130px</span>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:100px;">NAME SIZE</label>
+                <input type="range" min="6" max="16" step="1" id="cvNameFontSize" value="10" oninput="cvApplySettings()">
+                <span class="val" id="cvNameFontSizeVal">10px</span>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:100px;">PCT SIZE</label>
+                <input type="range" min="6" max="16" step="1" id="cvPctFontSize" value="9" oninput="cvApplySettings()">
+                <span class="val" id="cvPctFontSizeVal">9px</span>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:100px;">BG OPACITY</label>
+                <input type="range" min="0" max="1" step="0.05" id="cvBgOpacity" value="0" oninput="cvApplySettings()">
+                <span class="val" id="cvBgOpacityVal">0.00</span>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:100px;">BG RADIUS</label>
+                <input type="range" min="0" max="20" step="1" id="cvBgRadius" value="0" oninput="cvApplySettings()">
+                <span class="val" id="cvBgRadiusVal">0px</span>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:100px;">PADDING</label>
+                <input type="range" min="4" max="40" step="2" id="cvPadding" value="16" oninput="cvApplySettings()">
+                <span class="val" id="cvPaddingVal">16px</span>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:100px;">OVERLAY WIDTH</label>
+                <input type="range" min="200" max="800" step="10" id="cvOverlayWidth" value="380" oninput="cvApplySettings()">
+                <span class="val" id="cvOverlayWidthVal">380px</span>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:100px;">SCALE</label>
+                <input type="range" min="0.5" max="3.0" step="0.05" id="cvScale" value="1.0" oninput="cvApplySettings()">
+                <span class="val" id="cvScaleVal">1.00x</span>
+              </div>
+              <div>
+                <div class="section-label" style="margin-bottom:3px;">POSITION</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;">
+                  <button class="px-btn" id="cvPos-top-left"      onclick="cvSetPos(this)" data-val="top-left"      style="padding:5px 2px;font-size:6px;">TOP LEFT</button>
+                  <button class="px-btn" id="cvPos-top-center"    onclick="cvSetPos(this)" data-val="top-center"    style="padding:5px 2px;font-size:6px;">TOP CTR</button>
+                  <button class="px-btn" id="cvPos-top-right"     onclick="cvSetPos(this)" data-val="top-right"     style="padding:5px 2px;font-size:6px;">TOP RIGHT</button>
+                  <button class="px-btn" id="cvPos-mid-left"      onclick="cvSetPos(this)" data-val="mid-left"      style="padding:5px 2px;font-size:6px;">MID LEFT</button>
+                  <button class="px-btn" id="cvPos-mid-center"    onclick="cvSetPos(this)" data-val="mid-center"    style="padding:5px 2px;font-size:6px;">MID CTR</button>
+                  <button class="px-btn" id="cvPos-mid-right"     onclick="cvSetPos(this)" data-val="mid-right"     style="padding:5px 2px;font-size:6px;">MID RIGHT</button>
+                  <button class="px-btn active" id="cvPos-bottom-left"   onclick="cvSetPos(this)" data-val="bottom-left"   style="padding:5px 2px;font-size:6px;">BTM LEFT</button>
+                  <button class="px-btn" id="cvPos-bottom-center" onclick="cvSetPos(this)" data-val="bottom-center" style="padding:5px 2px;font-size:6px;">BTM CTR</button>
+                  <button class="px-btn" id="cvPos-bottom-right"  onclick="cvSetPos(this)" data-val="bottom-right"  style="padding:5px 2px;font-size:6px;">BTM RIGHT</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="section-label" style="margin-bottom:4px;">OBS OVERLAY URL</div>
+            <div class="preview-url" style="font-size:7px;" onclick="copyUrl('http://127.0.0.1:7777/charvote-overlay','copy-cv-url')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#3a9fc8" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              <span>127.0.0.1:7777/charvote-overlay</span>
+            </div>
+            <div class="copy-flash" id="copy-cv-url"></div>
+          </div>`
+    },
+    hype: {
+      label: 'HYPE TRAIN',
+      html: `<div>
+            <div class="section-label">OVERLAY PREVIEW</div>
+            <div class="preview-box" style="width:100%;"><iframe src="http://127.0.0.1:7777/hype-overlay" scrolling="no"></iframe></div>
+            <a class="preview-open" href="http://127.0.0.1:7777/hype-overlay" target="_blank">&#8599; Open fullscreen</a>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="px-btn" id="hypeStartBtn" style="flex:1;padding:8px;font-size:7px;color:#4ade80;" onclick="hypeStart()">START HYPE TRAIN</button>
+            <button class="px-btn" id="hypeResetBtn" style="flex:1;padding:8px;font-size:7px;color:#facc15;" onclick="hypeReset()">RESET</button>
+          </div>
+          <div class="row" style="gap:8px;align-items:center;">
+            <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">VOTES TO FILL</label>
+            <input class="file-input" type="number" id="hypeGoal" value="50" min="1" max="9999" style="width:60px;" oninput="saveHypeSettings()">
+          </div>
+          <div class="check-row" style="align-items:center;gap:8px;">
+            <label class="toggle-wrap">
+              <input type="checkbox" id="hypeMultiVote" onchange="saveHypeSettings()">
+              <span class="toggle-track"></span><span class="toggle-thumb"></span>
+            </label>
+            <label for="hypeMultiVote" style="cursor:pointer;font-size:8px;letter-spacing:0.05em;">ALLOW MULTIPLE VOTES PER PERSON</label>
+          </div>
+          <div>
+            <div class="section-label" style="margin-bottom:6px;">MOCK PREVIEW</div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div id="hype-mock-bar-wrap" style="display:flex;flex-direction:column-reverse;gap:2px;padding:4px;background:#0a0a0a;border:2px solid #222;">
+                ${Array.from({length:20},(_,i)=>`<div class="hype-sq" id="hype-sq-${i}" style="width:24px;height:12px;background:#1a1a1a;border:1px solid #333;transition:background 0.2s,border-color 0.2s;"></div>`).join('')}
+              </div>
+              <div style="font-family:'MMRock9',monospace;font-size:8px;color:#3a9fc8;letter-spacing:0.08em;">HYPE TRAIN</div>
+              <div id="hype-mock-count" style="font-family:'MMRock9',monospace;font-size:8px;color:rgba(255,255,255,0.5);">0 / 50</div>
+            </div>
+          </div>
+          <div>
+            <button class="px-btn" style="width:100%;padding:7px;font-size:7px;color:#5ab4ff;" onclick="hypeTestFull()">TEST HYPE (MOCK ONLY)</button>
+          </div>
+          <div id="hypeStatus" style="font-family:'MMRock9',monospace;font-size:7px;color:rgba(255,255,255,0.4);letter-spacing:0.06em;min-height:12px;text-align:center;"></div>
+          <div style="border:1px solid rgba(255,255,255,0.1);">
+            <div class="chat-widget-header" onclick="chatWidgetToggle(this)" style="padding:8px 10px;">
+              <span class="section-label" style="margin:0;flex:1;">CUSTOMIZATION</span>
+              <span class="chat-widget-arrow">&#9662;</span>
+            </div>
+            <div class="chat-widget-body hidden" style="gap:8px;">
+              <div class="row" style="margin-bottom:4px;">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:100px;">SQUARE COLOR</label>
+                <input type="color" id="hypeSqColor" value="#3a9fc8" oninput="hypeApplySettings()">
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:100px;">SQ WIDTH</label>
+                <input type="range" min="16" max="64" step="2" id="hypeSqWidth" value="32" oninput="hypeApplySettings()">
+                <span class="val" id="hypeSqWidthVal">32px</span>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:100px;">SQ HEIGHT</label>
+                <input type="range" min="8" max="32" step="1" id="hypeSqHeight" value="16" oninput="hypeApplySettings()">
+                <span class="val" id="hypeSqHeightVal">16px</span>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:100px;">SQ GAP</label>
+                <input type="range" min="1" max="10" step="1" id="hypeSqGap" value="3" oninput="hypeApplySettings()">
+                <span class="val" id="hypeSqGapVal">3px</span>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:100px;">PADDING</label>
+                <input type="range" min="2" max="20" step="1" id="hypePadding" value="6" oninput="hypeApplySettings()">
+                <span class="val" id="hypePaddingVal">6px</span>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:100px;">LABEL SIZE</label>
+                <input type="range" min="7" max="20" step="1" id="hypeLabelSize" value="9" oninput="hypeApplySettings()">
+                <span class="val" id="hypeLabelSizeVal">9px</span>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:100px;">COUNT SIZE</label>
+                <input type="range" min="7" max="20" step="1" id="hypeCountSize" value="9" oninput="hypeApplySettings()">
+                <span class="val" id="hypeCountSizeVal">9px</span>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:100px;">HYPE! SIZE</label>
+                <input type="range" min="10" max="30" step="1" id="hypeFullLabelSize" value="14" oninput="hypeApplySettings()">
+                <span class="val" id="hypeFullLabelSizeVal">14px</span>
+              </div>
+              <div>
+                <div class="section-label" style="margin-bottom:3px;">POSITION</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;">
+                  <button class="px-btn" id="hyPos-top-left"      onclick="hypeSetPos(this)" data-val="top-left"      style="padding:5px 2px;font-size:6px;">TOP LEFT</button>
+                  <button class="px-btn" id="hyPos-top-center"    onclick="hypeSetPos(this)" data-val="top-center"    style="padding:5px 2px;font-size:6px;">TOP CTR</button>
+                  <button class="px-btn" id="hyPos-top-right"     onclick="hypeSetPos(this)" data-val="top-right"     style="padding:5px 2px;font-size:6px;">TOP RIGHT</button>
+                  <button class="px-btn" id="hyPos-mid-left"      onclick="hypeSetPos(this)" data-val="mid-left"      style="padding:5px 2px;font-size:6px;">MID LEFT</button>
+                  <button class="px-btn" id="hyPos-mid-center"    onclick="hypeSetPos(this)" data-val="mid-center"    style="padding:5px 2px;font-size:6px;">MID CTR</button>
+                  <button class="px-btn" id="hyPos-mid-right"     onclick="hypeSetPos(this)" data-val="mid-right"     style="padding:5px 2px;font-size:6px;">MID RIGHT</button>
+                  <button class="px-btn active" id="hyPos-bottom-left"   onclick="hypeSetPos(this)" data-val="bottom-left"   style="padding:5px 2px;font-size:6px;">BTM LEFT</button>
+                  <button class="px-btn" id="hyPos-bottom-center" onclick="hypeSetPos(this)" data-val="bottom-center" style="padding:5px 2px;font-size:6px;">BTM CTR</button>
+                  <button class="px-btn" id="hyPos-bottom-right"  onclick="hypeSetPos(this)" data-val="bottom-right"  style="padding:5px 2px;font-size:6px;">BTM RIGHT</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="section-label" style="margin-bottom:4px;">OBS OVERLAY URL</div>
+            <div class="preview-url" style="font-size:7px;" onclick="copyUrl('http://127.0.0.1:7777/hype-overlay','copy-hype-url')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#3a9fc8" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              <span>127.0.0.1:7777/hype-overlay</span>
+            </div>
+            <div class="copy-flash" id="copy-hype-url"></div>
+          </div>`
+    },
+    achievements: {
+      label: 'CHAT ACHIEVEMENTS',
+      html: `<div>
+            <div class="section-label">OVERLAY PREVIEW</div>
+            <div class="preview-box" style="width:100%;"><iframe src="http://127.0.0.1:7777/achievements-overlay" scrolling="no"></iframe></div>
+            <a class="preview-open" href="http://127.0.0.1:7777/achievements-overlay" target="_blank">&#8599; Open fullscreen</a>
+          </div>
+          <div>
+            <button class="px-btn" style="width:100%;padding:8px;font-size:7px;color:#f87171;" onclick="achieveReset()">RESET ACHIEVEMENTS</button>
+          </div>
+          <div style="border:1px solid rgba(255,255,255,0.1);">
+            <div class="chat-widget-header" onclick="chatWidgetToggle(this)" style="padding:8px 10px;">
+              <span class="section-label" style="margin:0;flex:1;">LAYOUT</span>
+              <span class="chat-widget-arrow">&#9662;</span>
+            </div>
+            <div class="chat-widget-body hidden" style="gap:8px;">
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:90px;">COLUMNS</label>
+                <input class="file-input" type="number" id="achieveCols" value="2" min="1" max="6" style="width:44px;" oninput="saveAchieveSettings()">
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:90px;">ROWS</label>
+                <input class="file-input" type="number" id="achieveRows" value="4" min="1" max="12" style="width:44px;" oninput="saveAchieveSettings()">
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:90px;">CYCLE (SEC)</label>
+                <input class="file-input" type="number" id="achieveCycleInterval" value="6" min="2" max="60" style="width:44px;" oninput="saveAchieveSettings()">
+              </div>
+              <div style="font-size:6px;color:rgba(255,255,255,0.25);">Set ROWS to 1 and COLS to 2 to show 2 at a time and cycle through all.</div>
+            </div>
+          </div>
+          <div style="border:1px solid rgba(255,255,255,0.1);">
+            <div class="chat-widget-header" onclick="chatWidgetToggle(this)" style="padding:8px 10px;">
+              <span class="section-label" style="margin:0;flex:1;">ACHIEVEMENT LIST</span>
+              <span class="chat-widget-arrow">&#9662;</span>
+            </div>
+            <div class="chat-widget-body hidden" style="gap:0;padding:0;">
+              <div id="achieveList" style="max-height:240px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:4px;"></div>
+              <div style="padding:6px 6px 4px;">
+                <button class="add-btn px-btn" id="achieveAddBtn" onclick="achieveShowAddPanel()" style="margin:0;padding:10px;">+ ADD ACHIEVEMENT</button>
+              </div>
+              <div id="achieveAddPanel" style="display:none;border-top:1px solid rgba(255,255,255,0.1);padding:8px;flex-direction:column;gap:6px;">
+                <div style="display:flex;gap:4px;">
+                  <button class="px-btn" id="achTab-builtin" onclick="achieveSetTab('builtin')" style="flex:1;padding:6px;font-size:7px;color:#5ab4ff;">ACHIEVEMENTS</button>
+                  <button class="px-btn" id="achTab-custom" onclick="achieveSetTab('custom')" style="flex:1;padding:6px;font-size:7px;color:rgba(255,255,255,0.35);">CUSTOMIZE</button>
+                </div>
+                <div id="achBuiltinTab" style="display:flex;flex-direction:column;gap:3px;">
+                  <div style="font-size:6px;color:rgba(255,255,255,0.25);margin-bottom:2px;">CLICK TO ENABLE A BUILT-IN ACHIEVEMENT</div>
+                  <div id="achBuiltinList" style="display:flex;flex-direction:column;gap:3px;max-height:180px;overflow-y:auto;"></div>
+                </div>
+                <div id="achCustomTab" style="display:none;flex-direction:column;gap:6px;">
+                  <div class="row">
+                    <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:60px;">PRESET</label>
+                    <select class="file-input" id="achPresetSelect" onchange="achievePresetChanged()" style="flex:1;font-size:7px;">
+                      <option value="messages_reach">FIRST TO REACH ___ MESSAGES</option>
+                      <option value="type_contains">FIRST TO TYPE ___ IN CHAT</option>
+                      <option value="type_n_times">FIRST TO TYPE ___ ___ TIMES IN CHAT</option>
+                      <option value="exact_text">FIRST TO SAY EXACTLY ___</option>
+                      <option value="msg_length">FIRST TO SEND A ___ CHAR MESSAGE</option>
+                      <option value="all_caps">FIRST TO TYPE IN ALL CAPS (5+ chars)</option>
+                      <option value="fast_response">FIRST TO TYPE WITHIN ___ SEC OF MATCH END</option>
+                      <option value="manual">CUSTOM (MANUAL AWARD)</option>
+                    </select>
+                  </div>
+                  <div id="achParamN" class="row" style="display:none;">
+                    <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:60px;">NUMBER</label>
+                    <input class="file-input" type="number" id="achParamNVal" value="10" min="1" style="width:60px;" oninput="achieveUpdateLabel()">
+                  </div>
+                  <div id="achParamText" class="row" style="display:none;">
+                    <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:60px;">TEXT</label>
+                    <input class="file-input" type="text" id="achParamTextVal" placeholder="e.g. gg" style="flex:1;font-size:7px;" oninput="achieveUpdateLabel()">
+                  </div>
+                  <div class="row">
+                    <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:60px;">LABEL</label>
+                    <input class="file-input" type="text" id="achCustomLabel" placeholder="achievement display text" style="flex:1;font-size:7px;">
+                  </div>
+                  <button class="add-btn px-btn" onclick="achieveAddCustom()" style="margin:0;padding:8px;">+ ADD</button>
+                </div>
+                <button class="px-btn" onclick="achieveHideAddPanel()" style="width:100%;padding:5px;font-size:7px;color:rgba(255,255,255,0.3);">CANCEL</button>
+              </div>
+            </div>
+          </div>
+          <div id="achieveStatus" style="font-family:'MMRock9',monospace;font-size:7px;color:rgba(255,255,255,0.4);letter-spacing:0.06em;min-height:12px;text-align:center;"></div>
+          <div style="border:1px solid rgba(255,255,255,0.1);">
+            <div class="chat-widget-header" onclick="chatWidgetToggle(this)" style="padding:8px 10px;">
+              <span class="section-label" style="margin:0;flex:1;">VISUAL CUSTOMIZATION</span>
+              <span class="chat-widget-arrow">&#9662;</span>
+            </div>
+            <div class="chat-widget-body hidden" style="gap:8px;">
+              <div style="font-size:7px;color:rgba(58,159,200,0.7);letter-spacing:0.08em;margin-bottom:2px;">BACKGROUND</div>
+              <div class="row" style="margin-bottom:4px;">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">BG COLOR</label>
+                <input type="color" id="achCellBgColor" value="#00090e" oninput="achieveApplySettings()">
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">BG OPACITY</label>
+                <input type="range" min="0" max="1" step="0.05" id="achCellBgOpacity" value="0.75" oninput="achieveApplySettings()">
+                <span class="val" id="achCellBgOpacityVal">0.75</span>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">CORNER RADIUS</label>
+                <input type="range" min="0" max="20" step="1" id="achCellRadius" value="0" oninput="achieveApplySettings()">
+                <span class="val" id="achCellRadiusVal">0px</span>
+              </div>
+              <div style="font-size:7px;color:rgba(58,159,200,0.7);letter-spacing:0.08em;margin-top:4px;margin-bottom:2px;">BORDER</div>
+              <div class="row" style="margin-bottom:4px;">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">BORDER COLOR</label>
+                <input type="color" id="achCellBorderColor" value="#3a9fc8" oninput="achieveApplySettings()">
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">BORDER OPACITY</label>
+                <input type="range" min="0" max="1" step="0.05" id="achCellBorderOpacity" value="0.3" oninput="achieveApplySettings()">
+                <span class="val" id="achCellBorderOpacityVal">0.30</span>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">BORDER WIDTH</label>
+                <input type="range" min="0" max="6" step="1" id="achCellBorderWidth" value="1" oninput="achieveApplySettings()">
+                <span class="val" id="achCellBorderWidthVal">1px</span>
+              </div>
+              <div style="font-size:7px;color:rgba(58,159,200,0.7);letter-spacing:0.08em;margin-top:4px;margin-bottom:2px;">OUTLINE</div>
+              <div class="row" style="margin-bottom:4px;">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">OUTLINE COLOR</label>
+                <input type="color" id="achOutlineColor" value="#3a9fc8" oninput="achieveApplySettings()">
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">OUTLINE WIDTH</label>
+                <input type="range" min="0" max="8" step="1" id="achOutlineWidth" value="0" oninput="achieveApplySettings()">
+                <span class="val" id="achOutlineWidthVal">0px</span>
+              </div>
+              <div style="font-size:7px;color:rgba(58,159,200,0.7);letter-spacing:0.08em;margin-top:4px;margin-bottom:2px;">DROP SHADOW</div>
+              <div class="row" style="margin-bottom:4px;">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">ENABLE</label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="achShadowEnabled" onchange="achieveApplySettings()"><span style="font-size:8px;color:rgba(255,255,255,0.5);">ON</span></label>
+              </div>
+              <div id="achShadowFields">
+                <div class="row" style="margin-bottom:4px;">
+                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">SHADOW COLOR</label>
+                  <input type="color" id="achShadowColor" value="#000000" oninput="achieveApplySettings()">
+                </div>
+                <div class="row">
+                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">OFFSET X</label>
+                  <input type="range" min="-20" max="20" step="1" id="achShadowX" value="2" oninput="achieveApplySettings()">
+                  <span class="val" id="achShadowXVal">2px</span>
+                </div>
+                <div class="row">
+                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">OFFSET Y</label>
+                  <input type="range" min="-20" max="20" step="1" id="achShadowY" value="4" oninput="achieveApplySettings()">
+                  <span class="val" id="achShadowYVal">4px</span>
+                </div>
+                <div class="row">
+                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">BLUR</label>
+                  <input type="range" min="0" max="30" step="1" id="achShadowBlur" value="6" oninput="achieveApplySettings()">
+                  <span class="val" id="achShadowBlurVal">6px</span>
+                </div>
+                <div class="row">
+                  <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">OPACITY</label>
+                  <input type="range" min="0" max="1" step="0.05" id="achShadowOpacity" value="0.8" oninput="achieveApplySettings()">
+                  <span class="val" id="achShadowOpacityVal">0.80</span>
+                </div>
+              </div>
+              <div style="font-size:7px;color:rgba(58,159,200,0.7);letter-spacing:0.08em;margin-top:4px;margin-bottom:2px;">SPACING</div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">CELL PADDING</label>
+                <input type="range" min="2" max="20" step="1" id="achCellPadding" value="6" oninput="achieveApplySettings()">
+                <span class="val" id="achCellPaddingVal">6px</span>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">CELL GAP</label>
+                <input type="range" min="0" max="24" step="1" id="achCellGap" value="6" oninput="achieveApplySettings()">
+                <span class="val" id="achCellGapVal">6px</span>
+              </div>
+              <div style="font-size:7px;color:rgba(58,159,200,0.7);letter-spacing:0.08em;margin-top:4px;margin-bottom:2px;">USERNAME TEXT</div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">SIZE</label>
+                <input type="range" min="7" max="24" step="1" id="achUsernameSize" value="9" oninput="achieveApplySettings()">
+                <span class="val" id="achUsernameSizeVal">9px</span>
+              </div>
+              <div class="row" style="margin-bottom:4px;">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">COLOR</label>
+                <input type="color" id="achUsernameColor" value="#5ab4ff" oninput="achieveApplySettings()">
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">WEIGHT</label>
+                <div style="display:flex;gap:4px;">
+                  <button class="px-btn" id="achUW-normal" onclick="achieveSetUW('normal')" style="padding:3px 8px;font-size:7px;color:#5ab4ff;">NORMAL</button>
+                  <button class="px-btn" id="achUW-bold" onclick="achieveSetUW('bold')" style="padding:3px 8px;font-size:7px;color:rgba(255,255,255,0.35);">BOLD</button>
+                </div>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">LETTER SPACING</label>
+                <input type="range" min="0" max="0.5" step="0.01" id="achUsernameSpacing" value="0.1" oninput="achieveApplySettings()">
+                <span class="val" id="achUsernameSpacingVal">0.10em</span>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">TRANSFORM</label>
+                <div style="display:flex;gap:4px;">
+                  <button class="px-btn" id="achUT-uppercase" onclick="achieveSetUT('uppercase')" style="padding:3px 6px;font-size:7px;color:#5ab4ff;">UPPER</button>
+                  <button class="px-btn" id="achUT-none" onclick="achieveSetUT('none')" style="padding:3px 6px;font-size:7px;color:rgba(255,255,255,0.35);">NONE</button>
+                  <button class="px-btn" id="achUT-lowercase" onclick="achieveSetUT('lowercase')" style="padding:3px 6px;font-size:7px;color:rgba(255,255,255,0.35);">LOWER</button>
+                </div>
+              </div>
+              <div style="font-size:7px;color:rgba(58,159,200,0.7);letter-spacing:0.08em;margin-top:4px;margin-bottom:2px;">LABEL TEXT</div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">SIZE</label>
+                <input type="range" min="5" max="20" step="1" id="achLabelSize" value="7" oninput="achieveApplySettings()">
+                <span class="val" id="achLabelSizeVal">7px</span>
+              </div>
+              <div class="row" style="margin-bottom:4px;">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">COLOR</label>
+                <input type="color" id="achLabelColor" value="#999999" oninput="achieveApplySettings()">
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">WEIGHT</label>
+                <div style="display:flex;gap:4px;">
+                  <button class="px-btn" id="achLW-normal" onclick="achieveSetLW('normal')" style="padding:3px 8px;font-size:7px;color:#5ab4ff;">NORMAL</button>
+                  <button class="px-btn" id="achLW-bold" onclick="achieveSetLW('bold')" style="padding:3px 8px;font-size:7px;color:rgba(255,255,255,0.35);">BOLD</button>
+                </div>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">LETTER SPACING</label>
+                <input type="range" min="0" max="0.5" step="0.01" id="achLabelSpacing" value="0.07" oninput="achieveApplySettings()">
+                <span class="val" id="achLabelSpacingVal">0.07em</span>
+              </div>
+              <div class="row">
+                <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:110px;">TRANSFORM</label>
+                <div style="display:flex;gap:4px;">
+                  <button class="px-btn" id="achLT-uppercase" onclick="achieveSetLT('uppercase')" style="padding:3px 6px;font-size:7px;color:#5ab4ff;">UPPER</button>
+                  <button class="px-btn" id="achLT-none" onclick="achieveSetLT('none')" style="padding:3px 6px;font-size:7px;color:rgba(255,255,255,0.35);">NONE</button>
+                  <button class="px-btn" id="achLT-lowercase" onclick="achieveSetLT('lowercase')" style="padding:3px 6px;font-size:7px;color:rgba(255,255,255,0.35);">LOWER</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="section-label" style="margin-bottom:4px;">OBS OVERLAY URL</div>
+            <div class="preview-url" style="font-size:7px;" onclick="copyUrl('http://127.0.0.1:7777/achievements-overlay','copy-ach-url')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#3a9fc8" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              <span>127.0.0.1:7777/achievements-overlay</span>
+            </div>
+            <div class="copy-flash" id="copy-ach-url"></div>
+          </div>`
     }
   };
 
@@ -2945,13 +3485,13 @@
   // e.g. [['brb'], ['countdown','social'], ['clock'], ['nextmatch']]
   let widgetLayout = [['brb'], ['countdown'], ['clock'], ['social'], ['nextmatch'], ['startgg'], ['bluesky']];
   let widgetEnabled = { brb: true, countdown: true, clock: true, social: true, nextmatch: true, startgg: true, bluesky: true }
-  let chatWidgetEnabled = { bitly: true, chatcmds: true, poll: true };
-  const DEFAULT_CHAT_ENABLED = { bitly: true, chatcmds: true, poll: true };
-  const CW_LABELS = { bitly: 'BITLY COUNTER', chatcmds: 'CHAT COMMANDS', poll: 'LIVE POLL' };
-  let chatLayout = [['bitly'], ['chatcmds'], ['poll']];
-  let chatWidgetOpen = { bitly: true, chatcmds: true, poll: true };
-  const DEFAULT_CHAT_LAYOUT = [['bitly'], ['chatcmds'], ['poll']];
-  const DEFAULT_CHAT_OPEN   = { bitly: true, chatcmds: true, poll: true };
+  let chatWidgetEnabled = { bitly: true, chatcmds: true, poll: true, charvote: true, hype: true, achievements: true };
+  const DEFAULT_CHAT_ENABLED = { bitly: true, chatcmds: true, poll: true, charvote: true, hype: true, achievements: true };
+  const CW_LABELS = { bitly: 'BITLY COUNTER', chatcmds: 'CHAT COMMANDS', poll: 'LIVE POLL', charvote: 'CHARACTER VOTES', hype: 'HYPE TRAIN', achievements: 'CHAT ACHIEVEMENTS' };
+  let chatLayout = [['bitly'], ['chatcmds'], ['poll'], ['charvote'], ['hype'], ['achievements']];
+  let chatWidgetOpen = { bitly: true, chatcmds: true, poll: true, charvote: true, hype: true, achievements: true };
+  const DEFAULT_CHAT_LAYOUT = [['bitly'], ['chatcmds'], ['poll'], ['charvote'], ['hype'], ['achievements']];
+  const DEFAULT_CHAT_OPEN   = { bitly: true, chatcmds: true, poll: true, charvote: true, hype: true, achievements: true };
   let chatDragSrc = null;
   let widgetOpen = { brb: true, countdown: true, clock: true, social: true, nextmatch: true, startgg: true, bluesky: true }
 
@@ -3867,6 +4407,8 @@
     initShadowKnob('clockShadowKnob', 'clockShadowAngleVal', saveClock);
     initShadowKnob('cdShadowKnob',    'cdShadowAngleVal',    saveCountdown);
     initShadowKnob('nmShadowKnob',    'nmShadowAngleVal',    saveNextMatch);
+    initShadowKnob('pollShadowKnob',  'pollShadowAngleVal',  pollApplySettings);
+    initShadowKnob('cvShadowKnob',    'cvShadowAngleVal',    cvApplySettings);
   }
 
   function getShadow(prefix) {
@@ -4172,8 +4714,11 @@
       if (d.poll) {
         const p = d.poll;
         const _s = (id, v) => { const e = document.getElementById(id); if (e && v != null) e.value = v; };
-        _s('pollP1Color',  p.p1Color);
-        _s('pollP2Color',  p.p2Color);
+        _s('pollP1Color',      p.p1Color);
+        _s('pollP1TextColor',  p.p1TextColor || p.p1Color);
+        _s('pollP2Color',      p.p2Color);
+        _s('pollP2TextColor',  p.p2TextColor || p.p2Color);
+        if (p.shadow) loadShadow('poll', p.shadow);
         _s('pollBarWidth', p.barWidth);
         _s('pollBarGap',   p.barGap);
         _s('pollBgOpacity',p.bgOpacity);
@@ -4201,8 +4746,122 @@
           if (otherEl) otherEl.style.display = p.pollType === 'other' ? '' : 'none';
         }
       }
+      if (d.poll && d.poll.multiVote != null) {
+        const pmv = document.getElementById('pollMultiVote');
+        if (pmv) pmv.checked = !!d.poll.multiVote;
+      }
       pollRefreshStatus();
       pollApplySettings();
+
+      // Character Vote settings
+      if (d.charVote) {
+        const cvMv = document.getElementById('cvMultiVote');
+        if (cvMv) cvMv.checked = !!d.charVote.multiVote;
+        const cvMs = d.charVote.maxSlots || 4;
+        document.querySelectorAll('[id^="cvSlots-"]').forEach(b => b.classList.toggle('active', parseInt(b.dataset.val) === cvMs));
+        cvRebuildMockRows(cvMs);
+      } else {
+        cvRebuildMockRows(4);
+      }
+      if (d.charVoteOverlay) {
+        const cvo = d.charVoteOverlay;
+        const _si = (id, v) => { const e = document.getElementById(id); if (e && v != null) e.value = v; };
+        _si('cvBarColor',     cvo.barColor     || '#5ab4ff');
+        _si('cvTextColor',    cvo.textColor    || cvo.barColor || '#5ab4ff');
+        if (cvo.shadow) loadShadow('cv', cvo.shadow);
+        _si('cvBarHeight',    cvo.barHeight    ?? 14);
+        _si('cvBarGap',       cvo.barGap       ?? 8);
+        _si('cvBarRadius',    cvo.barRadius    ?? 0);
+        _si('cvTrackOpacity', cvo.trackOpacity ?? 0.12);
+        _si('cvNameWidth',    cvo.nameWidth    ?? 130);
+        _si('cvNameFontSize', cvo.nameFontSize ?? 10);
+        _si('cvPctFontSize',  cvo.pctFontSize  ?? 9);
+        _si('cvBgOpacity',    cvo.bgOpacity    ?? 0);
+        _si('cvBgRadius',     cvo.bgRadius     ?? 0);
+        _si('cvPadding',       cvo.padding       ?? 16);
+        _si('cvOverlayWidth',  cvo.overlayWidth  ?? 380);
+        _si('cvScale',         cvo.scale         ?? 1.0);
+        const pos = cvo.position || 'bottom-left';
+        document.querySelectorAll('[id^="cvPos-"]').forEach(b => b.classList.toggle('active', b.dataset.val === pos));
+      }
+      cvApplySettings();
+      cvRefreshStatus();
+
+      // Hype Train settings
+      if (d.hype) {
+        const hgEl = document.getElementById('hypeGoal');
+        if (hgEl && d.hype.goal != null) hgEl.value = d.hype.goal;
+        const hmvEl = document.getElementById('hypeMultiVote');
+        if (hmvEl) hmvEl.checked = !!d.hype.multiVote;
+      }
+      if (d.hypeOverlay) {
+        const ho = d.hypeOverlay;
+        const _si = (id, v) => { const e = document.getElementById(id); if (e && v != null) e.value = v; };
+        _si('hypeSqColor',       ho.sqColor       || '#3a9fc8');
+        _si('hypeSqWidth',       ho.sqWidth        ?? 32);
+        _si('hypeSqHeight',      ho.sqHeight       ?? 16);
+        _si('hypeSqGap',         ho.sqGap          ?? 3);
+        _si('hypePadding',       ho.padding        ?? 6);
+        _si('hypeLabelSize',     ho.labelSize      ?? 9);
+        _si('hypeCountSize',     ho.countSize      ?? 9);
+        _si('hypeFullLabelSize', ho.fullLabelSize  ?? 14);
+        const hpos = ho.position || 'bottom-left';
+        document.querySelectorAll('[id^="hyPos-"]').forEach(b => b.classList.toggle('active', b.dataset.val === hpos));
+      }
+      hypeApplySettings();
+      hypeRefreshStatus();
+
+      // Achievements settings
+      if (d.achievements) {
+        const ach = d.achievements;
+        const _siv = (id, v) => { const e = document.getElementById(id); if (e && v != null) e.value = v; };
+        _siv('achieveCols',         ach.cols         ?? 2);
+        _siv('achieveRows',         ach.rows         ?? 4);
+        _siv('achieveCycleInterval', ach.cycleInterval ?? 6);
+        // Load achievement list config
+        window._achEnabledBuiltins = ach.enabledBuiltins !== undefined && ach.enabledBuiltins !== null
+          ? ach.enabledBuiltins
+          : [...ACHIEVE_BUILTIN_IDS];
+        window._achCustomAchieves = ach.customAchieves || [];
+      } else {
+        window._achEnabledBuiltins = [...ACHIEVE_BUILTIN_IDS];
+        window._achCustomAchieves = [];
+      }
+      if (d.achieveOverlay) {
+        const ao = d.achieveOverlay;
+        const _si = (id, v) => { const e = document.getElementById(id); if (e && v != null) e.value = v; };
+        _si('achCellBgColor',       ao.cellBgColor       || '#00090e');
+        _si('achCellBgOpacity',     ao.cellBgOpacity     ?? 0.75);
+        _si('achCellRadius',        ao.cellRadius        ?? 0);
+        _si('achCellBorderColor',   ao.cellBorderColor   || '#3a9fc8');
+        _si('achCellBorderOpacity', ao.cellBorderOpacity ?? 0.3);
+        _si('achCellBorderWidth',   ao.cellBorderWidth   ?? 1);
+        _si('achOutlineColor',      ao.outlineColor      || '#3a9fc8');
+        _si('achOutlineWidth',      ao.outlineWidth      ?? 0);
+        const seEl = document.getElementById('achShadowEnabled');
+        if (seEl) seEl.checked = !!ao.shadowEnabled;
+        _si('achShadowColor',       ao.shadowColor       || '#000000');
+        _si('achShadowX',           ao.shadowX           ?? 2);
+        _si('achShadowY',           ao.shadowY           ?? 4);
+        _si('achShadowBlur',        ao.shadowBlur        ?? 6);
+        _si('achShadowOpacity',     ao.shadowOpacity     ?? 0.8);
+        _si('achCellPadding',       ao.cellPadding       ?? 6);
+        _si('achCellGap',           ao.cellGap           ?? 6);
+        _si('achUsernameSize',      ao.usernameSize      ?? 9);
+        _si('achUsernameColor',     ao.usernameColor     || '#5ab4ff');
+        _si('achUsernameSpacing',   ao.usernameSpacing   ?? 0.1);
+        _si('achLabelSize',         ao.labelSize         ?? 7);
+        _si('achLabelColor',        ao.labelColor        || '#999999');
+        _si('achLabelSpacing',      ao.labelSpacing      ?? 0.07);
+        if (!window._achState) window._achState = { uw:'normal', ut:'uppercase', lw:'normal', lt:'uppercase' };
+        achieveSetUW(ao.usernameWeight    || 'normal');
+        achieveSetUT(ao.usernameTransform || 'uppercase');
+        achieveSetLW(ao.labelWeight       || 'normal');
+        achieveSetLT(ao.labelTransform    || 'uppercase');
+      }
+      achieveRenderList();
+      achieveApplySettings();
+      achieveRefreshStatus();
 
       // Help settings
       if (d.helpSettings) {
@@ -6876,7 +7535,40 @@
     el.className = 'file-status' + (isErr ? ' err' : ' ok');
   }
 
+  async function refreshYtQuota() {
+    try {
+      const r = await fetch('/yt-quota');
+      const d = await r.json();
+      const used = d.used || 0;
+      const limit = d.limit || 10000;
+      const pct = Math.min(100, Math.round(used / limit * 100));
+      const color = pct > 90 ? '#f87171' : pct > 70 ? '#fbbf24' : '#5ab4ff';
+      const bar = document.getElementById('ytQuotaBar');
+      const text = document.getElementById('ytQuotaText');
+      const badge = document.getElementById('yt-quota-badge');
+      const limitEl = document.getElementById('ytQuotaLimit');
+      if (bar) { bar.style.width = pct + '%'; bar.style.background = color; }
+      if (text) text.textContent = used + ' / ' + limit + ' units  (' + pct + '%)';
+      if (badge) {
+        const k = limit >= 1000 ? Math.round(limit / 1000) + 'K' : limit;
+        badge.textContent = used + ' / ' + k;
+        badge.style.display = '';
+        badge.style.color = pct > 90 ? '#f87171' : pct > 70 ? '#fbbf24' : 'rgba(255,255,255,0.3)';
+      }
+      if (limitEl && document.activeElement !== limitEl) limitEl.value = limit;
+    } catch(e) {}
+  }
+
+  async function saveYtQuotaLimit() {
+    const el = document.getElementById('ytQuotaLimit');
+    const limit = parseInt(el?.value) || 10000;
+    await fetch('/yt-quota-limit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ limit }) }).catch(() => {});
+    refreshYtQuota();
+  }
+
   setInterval(ytCheckStatus, 15000);
+  setInterval(refreshYtQuota, 5000);
+  refreshYtQuota();
 
   // ── BRB tab ───────────────────────────────────────────────────────────────────
   function switchBrbTab(tab) {
@@ -7083,6 +7775,7 @@
   let _pfpShape = 'square';
   let _pollType = 'vs';
   let _pollActive = false;
+  let _pollClosed = false; // true after first close — shows winner row
 
   function setPfpShape(shape) {
     _pfpShape = shape;
@@ -7103,12 +7796,28 @@
   }
 
   function _updatePollBtn() {
-    const openBtn  = document.getElementById('pollOpenBtn');
-    const closeBtn = document.getElementById('pollCloseBtn');
-    const newBtn   = document.getElementById('pollNewBtn');
+    const openBtn   = document.getElementById('pollOpenBtn');
+    const closeBtn  = document.getElementById('pollCloseBtn');
+    const newBtn    = document.getElementById('pollNewBtn');
+    const winnerRow = document.getElementById('pollWinnerRow');
+    const p1Btn     = document.getElementById('pollP1WinBtn');
+    const p2Btn     = document.getElementById('pollP2WinBtn');
     if (openBtn)  openBtn.style.display  = _pollActive ? 'none' : '';
     if (closeBtn) closeBtn.style.display = _pollActive ? ''     : 'none';
     if (newBtn)   newBtn.style.display   = _pollActive ? ''     : 'none';
+    // Show winner row only when poll is closed (not active, but has been opened at least once)
+    if (winnerRow) winnerRow.style.display = (!_pollActive && _pollClosed) ? 'flex' : 'none';
+    // Reset winner button styles
+    if (_pollActive) {
+      if (p1Btn) { p1Btn.style.borderColor = ''; p1Btn.style.color = '#3a9fc8'; p1Btn.style.opacity = '1'; }
+      if (p2Btn) { p2Btn.style.borderColor = ''; p2Btn.style.color = '#ff6694'; p2Btn.style.opacity = '1'; }
+      // Update labels with player names
+      const ps = { p1: _pollP1, p2: _pollP2 };
+      if (p1Btn && _pollP1 && _pollP1.name) p1Btn.textContent = _pollP1.name.toUpperCase() + ' WON';
+      else if (p1Btn) p1Btn.textContent = 'P1 WON';
+      if (p2Btn && _pollP2 && _pollP2.name) p2Btn.textContent = _pollP2.name.toUpperCase() + ' WON';
+      else if (p2Btn) p2Btn.textContent = 'P2 WON';
+    }
   }
 
   function pollToggleActive() {
@@ -7135,6 +7844,8 @@
   }
 
   async function pollOpenNew() {
+    _pollClosed = false;
+    _updatePollBtn();
     await pollOpenPoll();
   }
 
@@ -7264,7 +7975,7 @@
     try {
       await fetch('/poll-open', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ p1, p2 })
+        body: JSON.stringify({ p1, p2, multiVote: document.getElementById('pollMultiVote')?.checked || false })
       });
       _pollActive = true;
       _updatePollBtn();
@@ -7277,10 +7988,19 @@
     try {
       await fetch('/poll-close', { method: 'POST' });
       _pollActive = false;
+      _pollClosed = true;
       _updatePollBtn();
       if (_pollRefreshTimer) { clearInterval(_pollRefreshTimer); _pollRefreshTimer = null; }
       pollRefreshStatus();
     } catch(e) {}
+  }
+
+  async function pollSetWinner(side) {
+    await fetch('/poll-set-winner', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ winner: side }) });
+    const btn   = document.getElementById(side === '1' ? 'pollP1WinBtn' : 'pollP2WinBtn');
+    const other = document.getElementById(side === '1' ? 'pollP2WinBtn' : 'pollP1WinBtn');
+    if (btn)   { btn.style.borderColor = '#4ade80';  btn.style.color = '#4ade80'; }
+    if (other) { other.style.opacity = '0.3'; }
   }
 
   async function pollRefreshStatus() {
@@ -7288,10 +8008,10 @@
       const r = await fetch('/poll-status');
       const d = await r.json();
 
-      if (_pollActive !== d.active) {
-        _pollActive = d.active;
-        _updatePollBtn();
-      }
+      const _needsBtnUpdate = (_pollActive !== d.active) || (!_pollClosed && !d.active && d.total > 0);
+      _pollActive = d.active;
+      if (!d.active && d.total > 0) _pollClosed = true;
+      if (_needsBtnUpdate) _updatePollBtn();
       if (d.active && !_pollRefreshTimer) {
         _pollRefreshTimer = setInterval(pollRefreshStatus, 3000);
       } else if (!d.active && _pollRefreshTimer) {
@@ -7345,9 +8065,17 @@
     } catch(e) {}
   }
 
+  function savePollMultiVote() {
+    const multiVote = document.getElementById('pollMultiVote')?.checked || false;
+    fetch('/save-settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ poll: { multiVote } }) }).catch(() => {});
+  }
+
   function pollApplySettings() {
-    const p1Color  = document.getElementById('pollP1Color')?.value || '#3a9fc8';
-    const p2Color  = document.getElementById('pollP2Color')?.value || '#ff6694';
+    const p1Color     = document.getElementById('pollP1Color')?.value     || '#3a9fc8';
+    const p2Color     = document.getElementById('pollP2Color')?.value     || '#ff6694';
+    const p1TextColor = document.getElementById('pollP1TextColor')?.value || p1Color;
+    const p2TextColor = document.getElementById('pollP2TextColor')?.value || p2Color;
+    const shadow      = getShadow('poll');
     const barWidth = parseInt(document.getElementById('pollBarWidth')?.value  ?? 40);
     const barGap   = parseInt(document.getElementById('pollBarGap')?.value    ?? 12);
     const bgOpacity        = parseFloat(document.getElementById('pollBgOpacity')?.value  ?? 0);
@@ -7407,14 +8135,23 @@
     // Pct text colors + sizes (scale font to mock)
     const mockPctSize  = Math.max(6, Math.round(pctSize  * 0.55));
     const mockVoteSize = Math.max(5, Math.round(voteSize * 0.55));
+    const _mShadow = (function(sh, scale) {
+      var a = sh.angle || 135, d = (sh.distance || 0) * (scale || 0.4);
+      var rad = a * Math.PI / 180;
+      var x = Math.round(d * Math.sin(rad)), y = Math.round(-d * Math.cos(rad));
+      var op = sh.opacity != null ? sh.opacity : 1;
+      var col = sh.color || '#000';
+      return x + 'px ' + y + 'px ' + (sh.hardness || 0) + 'px rgba(' +
+        parseInt(col.slice(1,3)||'00',16) + ',' + parseInt(col.slice(3,5)||'00',16) + ',' + parseInt(col.slice(5,7)||'00',16) + ',' + op + ')';
+    })(shadow, 0.4);
     const pct1 = document.getElementById('mock-pct1');
-    if (pct1) { pct1.style.color = p1Color; pct1.style.fontSize = mockPctSize + 'px'; }
+    if (pct1) { pct1.style.color = p1TextColor; pct1.style.fontSize = mockPctSize + 'px'; pct1.style.textShadow = _mShadow; }
     const pct2 = document.getElementById('mock-pct2');
-    if (pct2) { pct2.style.color = p2Color; pct2.style.fontSize = mockPctSize + 'px'; }
+    if (pct2) { pct2.style.color = p2TextColor; pct2.style.fontSize = mockPctSize + 'px'; pct2.style.textShadow = _mShadow; }
     const mv1 = document.getElementById('mock-votes1');
-    if (mv1) { mv1.style.color = p1Color + '99'; mv1.style.fontSize = mockVoteSize + 'px'; }
+    if (mv1) { mv1.style.color = p1TextColor + '99'; mv1.style.fontSize = mockVoteSize + 'px'; mv1.style.textShadow = _mShadow; }
     const mv2 = document.getElementById('mock-votes2');
-    if (mv2) { mv2.style.color = p2Color + '99'; mv2.style.fontSize = mockVoteSize + 'px'; }
+    if (mv2) { mv2.style.color = p2TextColor + '99'; mv2.style.fontSize = mockVoteSize + 'px'; mv2.style.textShadow = _mShadow; }
 
     // Portrait size, shape, and bar-behind overlap (mock scaled at 0.3×)
     const mockPfpSize = Math.max(12, Math.round(pfpSize * 0.3));
@@ -7442,10 +8179,10 @@
     const hTrack2 = document.getElementById('mock-h-track2'); if (hTrack2) hTrack2.style.height = hBarH + 'px';
     const hFill1 = document.getElementById('mock-h-fill1'); if (hFill1) { hFill1.style.background = p1Color; hFill1.style.borderRadius = barRadius + 'px'; }
     const hFill2 = document.getElementById('mock-h-fill2'); if (hFill2) { hFill2.style.background = p2Color; hFill2.style.borderRadius = barRadius + 'px'; }
-    const hPct1 = document.getElementById('mock-h-pct1'); if (hPct1) { hPct1.style.color = p1Color; hPct1.style.fontSize = mockPctSize + 'px'; }
-    const hPct2 = document.getElementById('mock-h-pct2'); if (hPct2) { hPct2.style.color = p2Color; hPct2.style.fontSize = mockPctSize + 'px'; }
-    const hVotes1 = document.getElementById('mock-h-votes1'); if (hVotes1) { hVotes1.style.color = p1Color + '99'; hVotes1.style.fontSize = mockVoteSize + 'px'; }
-    const hVotes2 = document.getElementById('mock-h-votes2'); if (hVotes2) { hVotes2.style.color = p2Color + '99'; hVotes2.style.fontSize = mockVoteSize + 'px'; }
+    const hPct1 = document.getElementById('mock-h-pct1'); if (hPct1) { hPct1.style.color = p1TextColor; hPct1.style.fontSize = mockPctSize + 'px'; hPct1.style.textShadow = _mShadow; }
+    const hPct2 = document.getElementById('mock-h-pct2'); if (hPct2) { hPct2.style.color = p2TextColor; hPct2.style.fontSize = mockPctSize + 'px'; hPct2.style.textShadow = _mShadow; }
+    const hVotes1 = document.getElementById('mock-h-votes1'); if (hVotes1) { hVotes1.style.color = p1TextColor + '99'; hVotes1.style.fontSize = mockVoteSize + 'px'; hVotes1.style.textShadow = _mShadow; }
+    const hVotes2 = document.getElementById('mock-h-votes2'); if (hVotes2) { hVotes2.style.color = p2TextColor + '99'; hVotes2.style.fontSize = mockVoteSize + 'px'; hVotes2.style.textShadow = _mShadow; }
     const hPfpSz = Math.max(12, Math.round(pfpSize * 0.3));
     const hPfp1 = document.getElementById('mock-h-pfp1'); if (hPfp1) { hPfp1.style.width = hPfpSz + 'px'; hPfp1.style.height = hPfpSz + 'px'; hPfp1.style.borderColor = p1Color + '66'; hPfp1.style.borderRadius = pfpShape === 'modern' ? '50%' : '0'; }
     const hPfp2 = document.getElementById('mock-h-pfp2'); if (hPfp2) { hPfp2.style.width = hPfpSz + 'px'; hPfp2.style.height = hPfpSz + 'px'; hPfp2.style.borderColor = p2Color + '66'; hPfp2.style.borderRadius = pfpShape === 'modern' ? '50%' : '0'; }
@@ -7454,7 +8191,7 @@
 
     fetch('/save-settings', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ poll: { p1Color, p2Color, barWidth, barGap, bgOpacity, bgRadius, bgWidth, bgHeight, barRadius, maxHeightEnabled, maxHeight, pctSize, voteSize, pfpSize, pfpShape, pollType: _pollType } })
+      body: JSON.stringify({ poll: { p1Color, p2Color, p1TextColor, p2TextColor, barWidth, barGap, bgOpacity, bgRadius, bgWidth, bgHeight, barRadius, maxHeightEnabled, maxHeight, pctSize, voteSize, pfpSize, pfpShape, pollType: _pollType, shadow } })
     }).catch(() => {});
   }
 
@@ -7475,6 +8212,623 @@
     const urlSpan = document.getElementById('poll-obs-url-span');
     if (urlWrap) urlWrap.onclick = () => copyUrl(url, 'copy-poll-url');
     if (urlSpan) urlSpan.textContent = shortUrl;
+  }
+
+  // ── Character Vote functions ──────────────────────────────────────────────────
+  let _cvRefreshTimer = null;
+  let _chatTabActive = true;
+
+  function cvRebuildMockRows(n) {
+    const inner = document.getElementById('cv-mock-inner');
+    if (!inner) return;
+    inner.innerHTML = '';
+    for (let i = 0; i < n; i++) {
+      const row = document.createElement('div');
+      row.id = 'cv-mock-row-' + i;
+      row.style.cssText = "display:flex;align-items:center;gap:8px;height:22px;opacity:0.3;font-family:'MMRock9',monospace;";
+      row.innerHTML = '<span class="cv-mock-name" style="width:78px;font-size:8px;color:#5ab4ff;white-space:nowrap;overflow:hidden;flex-shrink:0;">--</span><div class="cv-mock-track" style="flex:1;height:12px;background:rgba(90,180,255,0.12);position:relative;"><div class="cv-mock-bar" style="height:100%;background:#5ab4ff;width:0%;transition:width 0.5s ease;"></div></div><span class="cv-mock-pct" style="width:24px;font-size:7px;color:#5ab4ff;text-align:right;flex-shrink:0;">0%</span>';
+      inner.appendChild(row);
+    }
+  }
+
+  function cvRenderMock(topEntries) {
+    const slotsBtn = document.querySelector('[id^="cvSlots-"].active');
+    const n = slotsBtn ? parseInt(slotsBtn.dataset.val) : 4;
+    const total = topEntries ? topEntries.reduce((s, e) => s + (e.count || 0), 0) : 0;
+    for (let i = 0; i < n; i++) {
+      const row = document.getElementById('cv-mock-row-' + i);
+      if (!row) continue;
+      const entry = topEntries && topEntries[i];
+      const nameEl = row.querySelector('.cv-mock-name');
+      const barEl  = row.querySelector('.cv-mock-bar');
+      const pctEl  = row.querySelector('.cv-mock-pct');
+      if (entry) {
+        const pct = total > 0 ? Math.round(entry.count / total * 100) : 0;
+        row.style.opacity = '1';
+        if (nameEl) nameEl.textContent = entry.displayName;
+        if (barEl)  barEl.style.width  = pct + '%';
+        if (pctEl)  pctEl.textContent  = pct + '%';
+      } else {
+        row.style.opacity = '0.25';
+        if (nameEl) nameEl.textContent = '--';
+        if (barEl)  barEl.style.width  = '0%';
+        if (pctEl)  pctEl.textContent  = '0%';
+      }
+    }
+  }
+
+  async function cvRefreshStatus() {
+    try {
+      const r = await fetch('/charvote-status');
+      const d = await r.json();
+      const startBtn = document.getElementById('cvStartBtn');
+      if (startBtn) {
+        if (d.active) { startBtn.textContent = 'STOP VOTING'; startBtn.style.color = '#f87171'; startBtn.onclick = cvStop; }
+        else          { startBtn.textContent = 'START VOTING'; startBtn.style.color = '#4ade80'; startBtn.onclick = cvStart; }
+      }
+      if (d.maxSlots) {
+        const n = d.maxSlots;
+        document.querySelectorAll('[id^="cvSlots-"]').forEach(b => b.classList.toggle('active', parseInt(b.dataset.val) === n));
+        if (!document.getElementById('cv-mock-row-' + (n - 1))) cvRebuildMockRows(n);
+      }
+      cvRenderMock(d.topEntries);
+      const totalVotes = d.topEntries ? d.topEntries.reduce((s, e) => s + (e.count || 0), 0) : 0;
+      const statusEl = document.getElementById('cvStatus');
+      if (statusEl) {
+        statusEl.textContent = d.active ? 'VOTING ACTIVE — ' + totalVotes + ' votes' : (totalVotes ? 'Voting stopped — ' + totalVotes + ' votes' : 'VOTING INACTIVE');
+        statusEl.style.color = d.active ? '#4ade80' : 'rgba(255,255,255,0.4)';
+      }
+      if (d.active && !_cvRefreshTimer && _chatTabActive) {
+        _cvRefreshTimer = setInterval(cvRefreshStatus, 2000);
+      } else if (!d.active && _cvRefreshTimer) {
+        clearInterval(_cvRefreshTimer); _cvRefreshTimer = null;
+      }
+    } catch(e) {}
+  }
+
+  async function cvStart() {
+    const multiVote = document.getElementById('cvMultiVote')?.checked || false;
+    await fetch('/charvote-start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ multiVote }) });
+    if (!_cvRefreshTimer) _cvRefreshTimer = setInterval(cvRefreshStatus, 2000);
+    cvRefreshStatus();
+  }
+
+  async function cvStop() {
+    await fetch('/charvote-stop', { method: 'POST' });
+    if (_cvRefreshTimer) { clearInterval(_cvRefreshTimer); _cvRefreshTimer = null; }
+    cvRefreshStatus();
+  }
+
+  async function cvReset() {
+    await fetch('/charvote-reset', { method: 'POST' });
+    cvRefreshStatus();
+  }
+
+  function saveCvSettings() {
+    const multiVote = document.getElementById('cvMultiVote')?.checked || false;
+    fetch('/save-settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ charVote: { multiVote } }) }).catch(() => {});
+  }
+
+  function cvApplySettings() {
+    const barColor     = document.getElementById('cvBarColor')?.value        || '#5ab4ff';
+    const textColor    = document.getElementById('cvTextColor')?.value       || barColor;
+    const shadow       = getShadow('cv');
+    const barHeight    = parseInt(document.getElementById('cvBarHeight')?.value    ?? 14);
+    const barGap       = parseInt(document.getElementById('cvBarGap')?.value       ?? 8);
+    const barRadius    = parseInt(document.getElementById('cvBarRadius')?.value    ?? 0);
+    const trackOpacity = parseFloat(document.getElementById('cvTrackOpacity')?.value ?? 0.12);
+    const nameWidth    = parseInt(document.getElementById('cvNameWidth')?.value    ?? 130);
+    const nameFontSize = parseInt(document.getElementById('cvNameFontSize')?.value ?? 10);
+    const pctFontSize  = parseInt(document.getElementById('cvPctFontSize')?.value  ?? 9);
+    const bgOpacity    = parseFloat(document.getElementById('cvBgOpacity')?.value  ?? 0);
+    const bgRadius     = parseInt(document.getElementById('cvBgRadius')?.value     ?? 0);
+    const padding      = parseInt(document.getElementById('cvPadding')?.value      ?? 16);
+    const overlayWidth = parseInt(document.getElementById('cvOverlayWidth')?.value ?? 380);
+    const scale        = parseFloat(document.getElementById('cvScale')?.value      ?? 1.0);
+    const posBtn       = document.querySelector('[id^="cvPos-"].active');
+    const position     = posBtn ? posBtn.dataset.val : 'bottom-left';
+
+    const _v = (id, txt) => { const e = document.getElementById(id); if (e) e.textContent = txt; };
+    _v('cvBarHeightVal',    barHeight    + 'px');
+    _v('cvBarGapVal',       barGap       + 'px');
+    _v('cvBarRadiusVal',    barRadius    + 'px');
+    _v('cvTrackOpacityVal', trackOpacity.toFixed(2));
+    _v('cvNameWidthVal',    nameWidth    + 'px');
+    _v('cvNameFontSizeVal', nameFontSize + 'px');
+    _v('cvPctFontSizeVal',  pctFontSize  + 'px');
+    _v('cvBgOpacityVal',    bgOpacity.toFixed(2));
+    _v('cvBgRadiusVal',     bgRadius     + 'px');
+    _v('cvPaddingVal',      padding      + 'px');
+    _v('cvOverlayWidthVal', overlayWidth + 'px');
+    _v('cvScaleVal',        scale.toFixed(2) + 'x');
+
+    const _rgba = (hex, a) => {
+      hex = hex.replace('#','');
+      if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+      const r = parseInt(hex.substr(0,2),16), g = parseInt(hex.substr(2,2),16), b = parseInt(hex.substr(4,2),16);
+      return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+    };
+
+    const mBarH  = Math.max(4,  Math.round(barHeight    * 0.8));
+    const mGap   = Math.max(3,  Math.round(barGap       * 0.8));
+    const mNameW = Math.max(40, Math.round(nameWidth     * 0.6));
+    const mNameF = Math.max(6,  Math.round(nameFontSize  * 0.8));
+    const mPctF  = Math.max(5,  Math.round(pctFontSize   * 0.8));
+    const mRowH  = mBarH + 10;
+    const mPad   = Math.max(4, Math.round(padding * 0.5));
+
+    const inner = document.getElementById('cv-mock-inner');
+    if (inner) inner.style.gap = mGap + 'px';
+    const bg = document.getElementById('cv-mock-bg');
+    if (bg) {
+      bg.style.background   = bgOpacity > 0 ? _rgba('#030c1c', bgOpacity) : 'transparent';
+      bg.style.borderRadius = bgRadius + 'px';
+      bg.style.padding      = mPad + 'px';
+    }
+
+    const slotsBtn = document.querySelector('[id^="cvSlots-"].active');
+    const _n = slotsBtn ? parseInt(slotsBtn.dataset.val) : 4;
+    for (let i = 0; i < _n; i++) {
+      const row = document.getElementById('cv-mock-row-' + i);
+      if (!row) continue;
+      row.style.height = mRowH + 'px';
+      const _msd = (function(sh, sc) {
+        var a = sh.angle||135, d = (sh.distance||0)*sc, rad = a*Math.PI/180;
+        var x = Math.round(d*Math.sin(rad)), y = Math.round(-d*Math.cos(rad));
+        var op = sh.opacity!=null?sh.opacity:1, col = sh.color||'#000';
+        return x+'px '+y+'px '+(sh.hardness||0)+'px rgba('+parseInt(col.slice(1,3)||'00',16)+','+parseInt(col.slice(3,5)||'00',16)+','+parseInt(col.slice(5,7)||'00',16)+','+op+')';
+      })(shadow, 0.4);
+      const nameEl = row.querySelector('.cv-mock-name');
+      if (nameEl) { nameEl.style.width = mNameW + 'px'; nameEl.style.fontSize = mNameF + 'px'; nameEl.style.color = textColor; nameEl.style.textShadow = _msd; }
+      const track = row.querySelector('.cv-mock-track');
+      if (track) { track.style.height = mBarH + 'px'; track.style.background = _rgba(barColor, trackOpacity); track.style.borderRadius = barRadius + 'px'; }
+      const fill = row.querySelector('.cv-mock-bar');
+      if (fill)  { fill.style.background = barColor; fill.style.borderRadius = barRadius + 'px'; }
+      const pct = row.querySelector('.cv-mock-pct');
+      if (pct)   { pct.style.fontSize = mPctF + 'px'; pct.style.color = textColor; pct.style.textShadow = _msd; }
+    }
+
+    fetch('/save-settings', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ charVoteOverlay: { barColor, textColor, barHeight, barGap, barRadius, trackOpacity, nameWidth, nameFontSize, pctFontSize, bgOpacity, bgRadius, padding, position, overlayWidth, scale, shadow } })
+    }).catch(() => {});
+  }
+
+  function cvSetPos(btn) {
+    document.querySelectorAll('[id^="cvPos-"]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    cvApplySettings();
+  }
+
+  function cvSetSlots(btn) {
+    document.querySelectorAll('[id^="cvSlots-"]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const n = parseInt(btn.dataset.val) || 4;
+    cvRebuildMockRows(n);
+    cvApplySettings();
+    fetch('/save-settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ charVote: { maxSlots: n } }) }).catch(() => {});
+  }
+
+  // ── Hype Train functions ──────────────────────────────────────────────────────
+  let _hypeRefreshTimer = null;
+
+  function hypeRenderMock(count, goal, full) {
+    const sq = 20;
+    const filled = full ? sq : Math.min(sq, Math.round((count / Math.max(1, goal)) * sq));
+    for (let i = 0; i < sq; i++) {
+      const el = document.getElementById('hype-sq-' + i);
+      if (!el) continue;
+      if (i < filled) {
+        el.style.background = '#3a9fc8';
+        el.style.borderColor = full ? '#ffffff' : '#5ab4ff';
+        if (full) el.style.boxShadow = '0 0 4px #3a9fc8';
+        else el.style.boxShadow = '';
+      } else {
+        el.style.background = '#1a1a1a';
+        el.style.borderColor = '#333';
+        el.style.boxShadow = '';
+      }
+    }
+    const countEl = document.getElementById('hype-mock-count');
+    if (countEl) countEl.textContent = (full ? goal : count) + ' / ' + goal;
+  }
+
+  async function hypeRefreshStatus() {
+    try {
+      const r = await fetch('/hype-status');
+      const d = await r.json();
+      const startBtn = document.getElementById('hypeStartBtn');
+      if (startBtn) {
+        if (d.active) { startBtn.textContent = 'STOP HYPE TRAIN'; startBtn.style.color = '#f87171'; startBtn.onclick = hypeStop; }
+        else          { startBtn.textContent = 'START HYPE TRAIN'; startBtn.style.color = '#4ade80'; startBtn.onclick = hypeStart; }
+      }
+      hypeRenderMock(d.count, d.goal, d.full);
+      const statusEl = document.getElementById('hypeStatus');
+      if (statusEl) {
+        statusEl.textContent = d.active ? (d.full ? 'HYPE FULL!' : 'HYPE ACTIVE — ' + d.count + ' / ' + d.goal) : 'HYPE INACTIVE';
+        statusEl.style.color = d.full ? '#facc15' : (d.active ? '#4ade80' : 'rgba(255,255,255,0.4)');
+      }
+      if (d.active && !_hypeRefreshTimer && _chatTabActive) {
+        _hypeRefreshTimer = setInterval(hypeRefreshStatus, 2000);
+      } else if (!d.active && _hypeRefreshTimer) {
+        clearInterval(_hypeRefreshTimer); _hypeRefreshTimer = null;
+      }
+    } catch(e) {}
+  }
+
+  async function hypeStart() {
+    const goal = parseInt(document.getElementById('hypeGoal')?.value || '50');
+    const multiVote = document.getElementById('hypeMultiVote')?.checked || false;
+    await fetch('/hype-start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ goal, multiVote }) });
+    if (!_hypeRefreshTimer) _hypeRefreshTimer = setInterval(hypeRefreshStatus, 2000);
+    hypeRefreshStatus();
+  }
+
+  async function hypeStop() {
+    await fetch('/hype-stop', { method: 'POST' });
+    if (_hypeRefreshTimer) { clearInterval(_hypeRefreshTimer); _hypeRefreshTimer = null; }
+    hypeRefreshStatus();
+  }
+
+  async function hypeReset() {
+    await fetch('/hype-reset', { method: 'POST' });
+    hypeRefreshStatus();
+  }
+
+  async function hypeTestFull() {
+    await fetch('/hype-test', { method: 'POST' });
+    const goal = parseInt(document.getElementById('hypeGoal')?.value || '50');
+    hypeRenderMock(goal, goal, true);
+    setTimeout(() => { hypeRefreshStatus(); }, 3100);
+  }
+
+  function saveHypeSettings() {
+    const goal = parseInt(document.getElementById('hypeGoal')?.value || '50');
+    const multiVote = document.getElementById('hypeMultiVote')?.checked || false;
+    fetch('/save-settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hype: { goal, multiVote } }) }).catch(() => {});
+  }
+
+  // ── Achievements ──────────────────────────────────────────────────────────────
+  const ACHIEVE_BUILTIN_IDS = ['first_chat','messages_25','messages_50','charvote_10','gg_10','who_won','incorrect_5','messages_top','poll_accurate','poll_inaccurate'];
+  const ACHIEVE_BUILTINS = [
+    { id: 'first_chat',      label: 'first to chat in the stream' },
+    { id: 'messages_25',     label: 'first to hit 25 messages in a stream' },
+    { id: 'messages_50',     label: 'first to hit 50+ messages in a stream' },
+    { id: 'charvote_10',     label: 'first to vote in 10+ character votes' },
+    { id: 'gg_10',           label: 'first to type GG 10+ times in one stream' },
+    { id: 'who_won',         label: 'first to ask "who won" after a match' },
+    { id: 'incorrect_5',     label: 'first to get 5 wrong match predictions' },
+    { id: 'messages_top',    label: 'most messages this stream' },
+    { id: 'poll_accurate',   label: 'most accurate match predictions' },
+    { id: 'poll_inaccurate', label: 'most inaccurate match predictions' },
+  ];
+
+  if (!window._achState) window._achState = { uw:'normal', ut:'uppercase', lw:'normal', lt:'uppercase' };
+  if (!window._achEnabledBuiltins) window._achEnabledBuiltins = [...ACHIEVE_BUILTIN_IDS];
+  if (!window._achCustomAchieves) window._achCustomAchieves = [];
+
+  async function achieveReset() {
+    if (!confirm('Reset all achievements? This cannot be undone.')) return;
+    await fetch('/achievements-reset', { method: 'POST' });
+    achieveRefreshStatus();
+  }
+
+  async function achieveAward(id, label) {
+    await fetch('/achievements-award', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, username: 'TEST USER', label }) });
+    achieveRefreshStatus();
+  }
+
+  async function achieveRefreshStatus() {
+    try {
+      const r = await fetch('/achievements-status');
+      const d = await r.json();
+      const statusEl = document.getElementById('achieveStatus');
+      if (statusEl) statusEl.textContent = (d.awards && d.awards.length) ? d.awards.length + ' achievement(s) awarded' : 'No achievements yet';
+    } catch(e) {}
+  }
+
+  function achieveRenderList() {
+    const list = document.getElementById('achieveList');
+    if (!list) return;
+    const eb = window._achEnabledBuiltins || ACHIEVE_BUILTIN_IDS;
+    const ca = window._achCustomAchieves || [];
+    const rows = [];
+    for (const id of eb) {
+      const b = ACHIEVE_BUILTINS.find(x => x.id === id);
+      if (!b) continue;
+      const esc = b.label.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+      rows.push('<div class="override-row" style="grid-template-columns:1fr auto;align-items:center;">' +
+        '<div class="override-fields"><div style="font-family:\'MMRock9\',monospace;font-size:7px;color:rgba(255,255,255,0.75);">' + b.label + '</div>' +
+        '<div style="font-size:6px;color:rgba(58,159,200,0.5);margin-top:2px;">BUILT-IN AUTO</div></div>' +
+        '<div style="display:flex;gap:3px;align-items:center;">' +
+        '<button class="px-btn" style="padding:2px 5px;font-size:6px;color:#5ab4ff;" onclick="achieveAward(\'' + id + '\',\'' + esc + '\')">TEST</button>' +
+        '<button class="px-btn" style="padding:2px 5px;font-size:6px;color:#f87171;" onclick="achieveRemoveBuiltin(\'' + id + '\')">X</button></div></div>');
+    }
+    for (const item of ca) {
+      const esc = (item.label || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+      const isManual = item.preset === 'manual';
+      const aBtn = isManual
+        ? '<button class="px-btn" style="padding:2px 5px;font-size:6px;color:#4ade80;" onclick="achieveManualAward(\'' + item.id + '\',\'' + esc + '\')">AWARD</button>'
+        : '<button class="px-btn" style="padding:2px 5px;font-size:6px;color:#5ab4ff;" onclick="achieveAward(\'' + item.id + '\',\'' + esc + '\')">TEST</button>';
+      rows.push('<div class="override-row" style="grid-template-columns:1fr auto;align-items:center;">' +
+        '<div class="override-fields"><div style="font-family:\'MMRock9\',monospace;font-size:7px;color:rgba(255,255,255,0.75);">' + (item.label || '') + '</div>' +
+        '<div style="font-size:6px;color:rgba(160,140,220,0.5);margin-top:2px;">CUSTOM' + (isManual ? '' : ' AUTO') + '</div></div>' +
+        '<div style="display:flex;gap:3px;align-items:center;">' + aBtn +
+        '<button class="px-btn" style="padding:2px 5px;font-size:6px;color:#f87171;" onclick="achieveRemoveCustom(\'' + item.id + '\')">X</button></div></div>');
+    }
+    list.innerHTML = rows.length ? rows.join('') : '<div style="font-size:7px;color:rgba(255,255,255,0.3);padding:8px;text-align:center;">No achievements — click + ADD</div>';
+  }
+
+  function achieveRenderBuiltinPicker() {
+    const list = document.getElementById('achBuiltinList');
+    if (!list) return;
+    const eb = window._achEnabledBuiltins || [];
+    const available = ACHIEVE_BUILTINS.filter(b => !eb.includes(b.id));
+    if (!available.length) {
+      list.innerHTML = '<div style="font-size:7px;color:rgba(255,255,255,0.3);padding:4px;">All built-in achievements are enabled</div>';
+      return;
+    }
+    list.innerHTML = available.map(b =>
+      '<button class="px-btn" style="width:100%;padding:5px 8px;font-size:7px;color:rgba(255,255,255,0.7);text-align:left;" onclick="achieveAddBuiltin(\'' + b.id + '\')">' +
+      '+ ' + b.label + '</button>'
+    ).join('');
+  }
+
+  function achieveShowAddPanel() {
+    const panel = document.getElementById('achieveAddPanel');
+    const btn = document.getElementById('achieveAddBtn');
+    if (panel) panel.style.display = 'flex';
+    if (btn) btn.style.display = 'none';
+    achieveSetTab('builtin');
+  }
+
+  function achieveHideAddPanel() {
+    const panel = document.getElementById('achieveAddPanel');
+    const btn = document.getElementById('achieveAddBtn');
+    if (panel) panel.style.display = 'none';
+    if (btn) btn.style.display = '';
+  }
+
+  function achieveSetTab(tab) {
+    const btEl = document.getElementById('achBuiltinTab');
+    const ctEl = document.getElementById('achCustomTab');
+    const bbBtn = document.getElementById('achTab-builtin');
+    const cbBtn = document.getElementById('achTab-custom');
+    if (btEl) btEl.style.display = tab === 'builtin' ? 'flex' : 'none';
+    if (ctEl) ctEl.style.display = tab === 'custom' ? 'flex' : 'none';
+    if (bbBtn) bbBtn.style.color = tab === 'builtin' ? '#5ab4ff' : 'rgba(255,255,255,0.35)';
+    if (cbBtn) cbBtn.style.color = tab === 'custom' ? '#5ab4ff' : 'rgba(255,255,255,0.35)';
+    if (tab === 'builtin') achieveRenderBuiltinPicker();
+    else { achievePresetChanged(); }
+  }
+
+  function achievePresetChanged() {
+    const preset = document.getElementById('achPresetSelect')?.value;
+    const showN    = ['messages_reach','type_n_times','msg_length','fast_response'].includes(preset);
+    const showText = ['type_contains','type_n_times','exact_text'].includes(preset);
+    const nEl   = document.getElementById('achParamN');
+    const txEl  = document.getElementById('achParamText');
+    if (nEl)  nEl.style.display  = showN    ? 'flex' : 'none';
+    if (txEl) txEl.style.display = showText ? 'flex' : 'none';
+    achieveUpdateLabel();
+  }
+
+  function achieveUpdateLabel() {
+    const preset = document.getElementById('achPresetSelect')?.value || 'messages_reach';
+    const n    = document.getElementById('achParamNVal')?.value  || '10';
+    const text = document.getElementById('achParamTextVal')?.value || '___';
+    const tpl = {
+      messages_reach:  'first to reach ' + n + ' messages',
+      type_contains:   'first to type ' + text + ' in chat',
+      type_n_times:    'first to type ' + text + ' ' + n + ' times in chat',
+      exact_text:      'first to say exactly: ' + text,
+      msg_length:      'first to send a ' + n + '+ char message',
+      all_caps:        'first to type in all caps',
+      fast_response:   'first to type within ' + n + 's of match end',
+      manual:          ''
+    };
+    const lEl = document.getElementById('achCustomLabel');
+    if (lEl) lEl.value = tpl[preset] || '';
+  }
+
+  function achieveAddBuiltin(id) {
+    if (!window._achEnabledBuiltins) window._achEnabledBuiltins = [];
+    if (!window._achEnabledBuiltins.includes(id)) {
+      window._achEnabledBuiltins.push(id);
+      achieveSaveConfig();
+      achieveRenderList();
+      achieveRenderBuiltinPicker();
+    }
+  }
+
+  function achieveRemoveBuiltin(id) {
+    window._achEnabledBuiltins = (window._achEnabledBuiltins || []).filter(x => x !== id);
+    achieveSaveConfig();
+    achieveRenderList();
+    achieveRenderBuiltinPicker();
+  }
+
+  function achieveAddCustom() {
+    const preset = document.getElementById('achPresetSelect')?.value || 'messages_reach';
+    const n     = parseInt(document.getElementById('achParamNVal')?.value)  || 10;
+    const text  = (document.getElementById('achParamTextVal')?.value || '').trim();
+    const label = (document.getElementById('achCustomLabel')?.value  || '').trim();
+    if (!label) { alert('Please enter a label'); return; }
+    if (['type_contains','type_n_times','exact_text'].includes(preset) && !text) { alert('Please enter text for this preset'); return; }
+    const ca = { id: 'ca_' + Date.now(), preset, params: { n, text }, label };
+    if (!window._achCustomAchieves) window._achCustomAchieves = [];
+    window._achCustomAchieves.push(ca);
+    achieveSaveConfig();
+    achieveHideAddPanel();
+    achieveRenderList();
+    const selEl = document.getElementById('achPresetSelect');
+    if (selEl) selEl.selectedIndex = 0;
+    const txEl = document.getElementById('achParamTextVal');
+    if (txEl) txEl.value = '';
+    const nEl = document.getElementById('achParamNVal');
+    if (nEl) nEl.value = '10';
+    achievePresetChanged();
+  }
+
+  function achieveRemoveCustom(id) {
+    window._achCustomAchieves = (window._achCustomAchieves || []).filter(x => x.id !== id);
+    achieveSaveConfig();
+    achieveRenderList();
+  }
+
+  function achieveManualAward(id, label) {
+    const username = prompt('Enter username to award "' + label + '":');
+    if (!username || !username.trim()) return;
+    fetch('/achievements-award', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, username: username.trim(), label }) }).then(() => achieveRefreshStatus());
+  }
+
+  function achieveSaveConfig() {
+    fetch('/save-settings', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ achievements: { enabledBuiltins: window._achEnabledBuiltins, customAchieves: window._achCustomAchieves } })
+    }).catch(() => {});
+  }
+
+  function saveAchieveSettings() {
+    const cols          = parseInt(document.getElementById('achieveCols')?.value          || '2');
+    const rows          = parseInt(document.getElementById('achieveRows')?.value          || '4');
+    const cycleInterval = parseInt(document.getElementById('achieveCycleInterval')?.value || '6');
+    fetch('/save-settings', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ achievements: { cols, rows, cycleInterval } }) }).catch(() => {});
+  }
+
+  function achieveSetUW(val) {
+    if (!window._achState) window._achState = { uw:'normal', ut:'uppercase', lw:'normal', lt:'uppercase' };
+    window._achState.uw = val;
+    ['normal','bold'].forEach(v => { const b = document.getElementById('achUW-'+v); if (b) b.style.color = v === val ? '#5ab4ff' : 'rgba(255,255,255,0.35)'; });
+  }
+  function achieveSetUT(val) {
+    if (!window._achState) window._achState = { uw:'normal', ut:'uppercase', lw:'normal', lt:'uppercase' };
+    window._achState.ut = val;
+    ['uppercase','none','lowercase'].forEach(v => { const b = document.getElementById('achUT-'+v); if (b) b.style.color = v === val ? '#5ab4ff' : 'rgba(255,255,255,0.35)'; });
+  }
+  function achieveSetLW(val) {
+    if (!window._achState) window._achState = { uw:'normal', ut:'uppercase', lw:'normal', lt:'uppercase' };
+    window._achState.lw = val;
+    ['normal','bold'].forEach(v => { const b = document.getElementById('achLW-'+v); if (b) b.style.color = v === val ? '#5ab4ff' : 'rgba(255,255,255,0.35)'; });
+  }
+  function achieveSetLT(val) {
+    if (!window._achState) window._achState = { uw:'normal', ut:'uppercase', lw:'normal', lt:'uppercase' };
+    window._achState.lt = val;
+    ['uppercase','none','lowercase'].forEach(v => { const b = document.getElementById('achLT-'+v); if (b) b.style.color = v === val ? '#5ab4ff' : 'rgba(255,255,255,0.35)'; });
+  }
+
+  function hypeApplySettings() {
+    const sqColor       = document.getElementById('hypeSqColor')?.value        || '#3a9fc8';
+    const sqWidth       = parseInt(document.getElementById('hypeSqWidth')?.value       ?? 32);
+    const sqHeight      = parseInt(document.getElementById('hypeSqHeight')?.value      ?? 16);
+    const sqGap         = parseInt(document.getElementById('hypeSqGap')?.value         ?? 3);
+    const padding       = parseInt(document.getElementById('hypePadding')?.value       ?? 6);
+    const labelSize     = parseInt(document.getElementById('hypeLabelSize')?.value     ?? 9);
+    const countSize     = parseInt(document.getElementById('hypeCountSize')?.value     ?? 9);
+    const fullLabelSize = parseInt(document.getElementById('hypeFullLabelSize')?.value ?? 14);
+    const posBtn        = document.querySelector('[id^="hyPos-"].active');
+    const position      = posBtn ? posBtn.dataset.val : 'bottom-left';
+
+    const _v = (id, txt) => { const e = document.getElementById(id); if (e) e.textContent = txt; };
+    _v('hypeSqWidthVal',       sqWidth       + 'px');
+    _v('hypeSqHeightVal',      sqHeight      + 'px');
+    _v('hypeSqGapVal',         sqGap         + 'px');
+    _v('hypePaddingVal',       padding       + 'px');
+    _v('hypeLabelSizeVal',     labelSize     + 'px');
+    _v('hypeCountSizeVal',     countSize     + 'px');
+    _v('hypeFullLabelSizeVal', fullLabelSize + 'px');
+
+    // Update mock squares
+    const mSqW = Math.max(10, Math.round(sqWidth  * 0.75));
+    const mSqH = Math.max(6,  Math.round(sqHeight * 0.75));
+    const mGap = Math.max(2,  Math.round(sqGap    * 0.75));
+    const barWrap = document.getElementById('hype-mock-bar-wrap');
+    if (barWrap) barWrap.style.gap = mGap + 'px';
+    for (let i = 0; i < 20; i++) {
+      const sq = document.getElementById('hype-sq-' + i);
+      if (sq) { sq.style.width = mSqW + 'px'; sq.style.height = mSqH + 'px'; }
+    }
+
+    fetch('/save-settings', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ hypeOverlay: { sqColor, sqWidth, sqHeight, sqGap, padding, labelSize, countSize, fullLabelSize, position } })
+    }).catch(() => {});
+  }
+
+  function hypeSetPos(btn) {
+    document.querySelectorAll('[id^="hyPos-"]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    hypeApplySettings();
+  }
+
+  function achieveApplySettings() {
+    if (!window._achState) window._achState = { uw:'normal', ut:'uppercase', lw:'normal', lt:'uppercase' };
+    const _gv  = (id, def) => { const e = document.getElementById(id); return e ? e.value : def; };
+    const _gf  = (id, def) => parseFloat(_gv(id, def));
+    const _gi  = (id, def) => parseInt(_gv(id, def));
+    const _gc  = (id, def) => _gv(id, null) || def;
+    const _gb  = id => { const e = document.getElementById(id); return e ? e.checked : false; };
+
+    const cellBgColor       = _gc('achCellBgColor',      '#00090e');
+    const cellBgOpacity     = _gf('achCellBgOpacity',    0.75);
+    const cellRadius        = _gi('achCellRadius',        0);
+    const cellBorderColor   = _gc('achCellBorderColor',  '#3a9fc8');
+    const cellBorderOpacity = _gf('achCellBorderOpacity', 0.3);
+    const cellBorderWidth   = _gi('achCellBorderWidth',   1);
+    const outlineColor      = _gc('achOutlineColor',     '#3a9fc8');
+    const outlineWidth      = _gi('achOutlineWidth',      0);
+    const shadowEnabled     = _gb('achShadowEnabled');
+    const shadowColor       = _gc('achShadowColor',      '#000000');
+    const shadowX           = _gi('achShadowX',           2);
+    const shadowY           = _gi('achShadowY',           4);
+    const shadowBlur        = _gi('achShadowBlur',        6);
+    const shadowOpacity     = _gf('achShadowOpacity',    0.8);
+    const cellPadding       = _gi('achCellPadding',       6);
+    const cellGap           = _gi('achCellGap',           6);
+    const usernameSize      = _gi('achUsernameSize',      9);
+    const usernameColor     = _gc('achUsernameColor',    '#5ab4ff');
+    const usernameSpacing   = _gf('achUsernameSpacing',  0.1);
+    const labelSize         = _gi('achLabelSize',         7);
+    const labelColor        = _gc('achLabelColor',       '#999999');
+    const labelSpacing      = _gf('achLabelSpacing',     0.07);
+    const usernameWeight    = window._achState.uw || 'normal';
+    const usernameTransform = window._achState.ut || 'uppercase';
+    const labelWeight       = window._achState.lw || 'normal';
+    const labelTransform    = window._achState.lt || 'uppercase';
+
+    const _v = (id, txt) => { const e = document.getElementById(id); if (e) e.textContent = txt; };
+    _v('achCellBgOpacityVal',     cellBgOpacity.toFixed(2));
+    _v('achCellRadiusVal',        cellRadius        + 'px');
+    _v('achCellBorderOpacityVal', cellBorderOpacity.toFixed(2));
+    _v('achCellBorderWidthVal',   cellBorderWidth   + 'px');
+    _v('achOutlineWidthVal',      outlineWidth      + 'px');
+    _v('achShadowXVal',           shadowX           + 'px');
+    _v('achShadowYVal',           shadowY           + 'px');
+    _v('achShadowBlurVal',        shadowBlur        + 'px');
+    _v('achShadowOpacityVal',     shadowOpacity.toFixed(2));
+    _v('achCellPaddingVal',       cellPadding       + 'px');
+    _v('achCellGapVal',           cellGap           + 'px');
+    _v('achUsernameSizeVal',      usernameSize      + 'px');
+    _v('achUsernameSpacingVal',   usernameSpacing.toFixed(2) + 'em');
+    _v('achLabelSizeVal',         labelSize         + 'px');
+    _v('achLabelSpacingVal',      labelSpacing.toFixed(2)  + 'em');
+
+    const sf = document.getElementById('achShadowFields');
+    if (sf) sf.style.display = shadowEnabled ? '' : 'none';
+
+    fetch('/save-settings', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ achieveOverlay: {
+        cellBgColor, cellBgOpacity, cellRadius,
+        cellBorderColor, cellBorderOpacity, cellBorderWidth,
+        outlineColor, outlineWidth,
+        shadowEnabled, shadowColor, shadowX, shadowY, shadowBlur, shadowOpacity,
+        cellPadding, cellGap,
+        usernameSize, usernameColor, usernameWeight, usernameSpacing, usernameTransform,
+        labelSize, labelColor, labelWeight, labelSpacing, labelTransform
+      }})
+    }).catch(() => {});
   }
 
   // ── End Chat Engagement ───────────────────────────────────────────────────────

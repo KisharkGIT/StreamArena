@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Achievements Overlay</title>
+<style>
+  @font-face { font-family: 'MMRock9'; src: url('/font/MMRock9.ttf') format('truetype'); }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    background: transparent;
+    width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: 'MMRock9', monospace;
+  }
+  #ach-wrap {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: none;
+    flex-direction: column;
+    padding: 12px;
+    gap: 8px;
+  }
+  #ach-wrap.active { display: flex; }
+  #ach-grid {
+    display: grid;
+    gap: 6px;
+    flex: 1;
+    opacity: 1;
+    transition: opacity 1s ease;
+  }
+  #ach-grid.fade-out { opacity: 0; }
+  .ach-cell {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .ach-username {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 1px 1px 0 #000;
+  }
+  .ach-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 1px 1px 0 #000;
+  }
+</style>
+</head>
+<body>
+<div id="ach-wrap">
+  <div id="ach-grid"></div>
+</div>
+<script>
+  let _cols = 2;
+  let _rows = 4;
+  let _cycleInterval = 6;
+  let _awards = [];
+  let _page = 0;
+  let _pageTimer = null;
+  let _cfg = {
+    cellBgColor: '#00090e', cellBgOpacity: 0.75, cellRadius: 0,
+    cellBorderColor: '#3a9fc8', cellBorderOpacity: 0.3, cellBorderWidth: 1,
+    outlineColor: '#3a9fc8', outlineWidth: 0,
+    shadowEnabled: false, shadowX: 2, shadowY: 4, shadowBlur: 6, shadowColor: '#000000', shadowOpacity: 0.8,
+    cellPadding: 6, cellGap: 6,
+    usernameSize: 9, usernameColor: '#5ab4ff', usernameWeight: 'normal', usernameSpacing: 0.1, usernameTransform: 'uppercase',
+    labelSize: 7, labelColor: '#999999', labelWeight: 'normal', labelSpacing: 0.07, labelTransform: 'uppercase'
+  };
+
+  function hexToRgb(hex) {
+    hex = hex.replace('#', '');
+    if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+    return parseInt(hex.substr(0,2),16)+','+parseInt(hex.substr(2,2),16)+','+parseInt(hex.substr(4,2),16);
+  }
+
+  function applySettings(cfg) {
+    Object.assign(_cfg, cfg);
+  }
+
+  function renderPage() {
+    const c = _cfg;
+    const grid = document.getElementById('ach-grid');
+    const perPage = _cols * _rows;
+    const start = _page * perPage;
+    const slice = _awards.slice(start, start + perPage);
+
+    const borderRgb  = hexToRgb(c.cellBorderColor);
+    const bgRgb      = hexToRgb(c.cellBgColor || '#00090e');
+    const shadowRgb  = hexToRgb(c.shadowColor || '#000000');
+
+    grid.style.gridTemplateColumns = 'repeat(' + _cols + ', 1fr)';
+    grid.style.gridTemplateRows    = 'repeat(' + _rows + ', 1fr)';
+    grid.style.gap = (c.cellGap || 6) + 'px';
+    grid.innerHTML = '';
+
+    for (let i = 0; i < _rows * _cols; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'ach-cell';
+
+      // Background
+      cell.style.background   = 'rgba(' + bgRgb + ',' + (c.cellBgOpacity ?? 0.75) + ')';
+      // Border
+      const bw = c.cellBorderWidth ?? 1;
+      cell.style.border       = bw + 'px solid rgba(' + borderRgb + ',' + (c.cellBorderOpacity ?? 0.3) + ')';
+      // Radius
+      cell.style.borderRadius = (c.cellRadius || 0) + 'px';
+      // Padding
+      cell.style.padding      = (c.cellPadding ?? 6) + 'px ' + ((c.cellPadding ?? 6) + 2) + 'px';
+      // Outline
+      const ow = c.outlineWidth || 0;
+      cell.style.outline      = ow > 0 ? ow + 'px solid ' + (c.outlineColor || '#3a9fc8') : 'none';
+      cell.style.outlineOffset = ow > 0 ? '-' + ow + 'px' : '0';
+      // Shadow
+      if (c.shadowEnabled) {
+        cell.style.boxShadow = (c.shadowX ?? 2) + 'px ' + (c.shadowY ?? 4) + 'px ' + (c.shadowBlur ?? 6) + 'px rgba(' + shadowRgb + ',' + (c.shadowOpacity ?? 0.8) + ')';
+      } else {
+        cell.style.boxShadow = 'none';
+      }
+
+      if (slice[i]) {
+        const u = document.createElement('div');
+        u.className = 'ach-username';
+        u.style.fontSize      = (c.usernameSize || 9) + 'px';
+        u.style.color         = c.usernameColor || '#5ab4ff';
+        u.style.fontWeight    = c.usernameWeight || 'normal';
+        u.style.letterSpacing = (c.usernameSpacing ?? 0.1) + 'em';
+        u.style.textTransform = c.usernameTransform || 'uppercase';
+        u.textContent = slice[i].username || '';
+
+        const l = document.createElement('div');
+        l.className = 'ach-label';
+        l.style.fontSize      = (c.labelSize || 7) + 'px';
+        l.style.color         = c.labelColor || '#999999';
+        l.style.fontWeight    = c.labelWeight || 'normal';
+        l.style.letterSpacing = (c.labelSpacing ?? 0.07) + 'em';
+        l.style.textTransform = c.labelTransform || 'uppercase';
+        l.textContent = slice[i].label || '';
+
+        cell.appendChild(u);
+        cell.appendChild(l);
+      }
+      grid.appendChild(cell);
+    }
+  }
+
+  function startPaging() {
+    if (_pageTimer) clearInterval(_pageTimer);
+    const perPage = _cols * _rows;
+    const totalPages = Math.max(1, Math.ceil(_awards.length / perPage));
+    if (totalPages <= 1) { _page = 0; renderPage(); return; }
+    const intervalMs = Math.max(2, _cycleInterval || 6) * 1000;
+    _pageTimer = setInterval(() => {
+      const grid = document.getElementById('ach-grid');
+      grid.classList.add('fade-out');
+      setTimeout(() => {
+        _page = (_page + 1) % totalPages;
+        renderPage();
+        grid.classList.remove('fade-out');
+      }, 1000);
+    }, intervalMs);
+    _page = 0;
+    renderPage();
+  }
+
+  async function loadSettings() {
+    try {
+      const r = await fetch('/settings');
+      const d = await r.json();
+      if (d.achievements) {
+        _cols          = Math.max(1, parseInt(d.achievements.cols)          || 2);
+        _rows          = Math.max(1, parseInt(d.achievements.rows)          || 4);
+        _cycleInterval = Math.max(2, parseInt(d.achievements.cycleInterval) || 6);
+      }
+      if (d.achieveOverlay) applySettings(d.achieveOverlay);
+    } catch(e) {}
+  }
+
+  async function poll() {
+    try {
+      const r = await fetch('/achievements-status');
+      const d = await r.json();
+      const wrap   = document.getElementById('ach-wrap');
+      const awards = d.awards || [];
+      if (d.overlaySettings) {
+        applySettings(d.overlaySettings);
+        if (d.overlaySettings.cycleInterval != null) _cycleInterval = Math.max(2, d.overlaySettings.cycleInterval);
+      }
+      if (!awards.length) {
+        wrap.classList.remove('active');
+      } else {
+        wrap.classList.add('active');
+        const changed = JSON.stringify(awards) !== JSON.stringify(_awards);
+        _awards = awards;
+        if (changed) startPaging();
+      }
+    } catch(e) {}
+    setTimeout(poll, 3000);
+  }
+
+  async function init() {
+    await loadSettings();
+    poll();
+  }
+
+  init();
+</script>
+</body>
+</html>

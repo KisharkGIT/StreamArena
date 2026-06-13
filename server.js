@@ -90,13 +90,39 @@ const DEFAULTS = {
   autoSyncStreamQueue: false,
   chatCommands: [],
   poll: {
-    p1Color: '#3a9fc8', p2Color: '#ff6694', barWidth: 40, barGap: 12,
+    p1Color: '#3a9fc8', p2Color: '#ff6694',
+    p1TextColor: '#3a9fc8', p2TextColor: '#ff6694',
+    barWidth: 40, barGap: 12,
     bgOpacity: 0, bgRadius: 0, bgWidth: 200, bgHeight: 300, barRadius: 0,
     maxHeightEnabled: false, maxHeight: 300,
     pctSize: 18, voteSize: 12, pfpSize: 80,
-    pfpShape: 'square', pollType: 'vs'
+    pfpShape: 'square', pollType: 'vs',
+    shadow: { angle: 135, distance: 8, hardness: 0, spread: 0, color: '#000000', opacity: 1 }
   },
   chatWidgetEnabled: { bitly: true, chatcmds: true, poll: true },
+  charVote: { multiVote: false, maxSlots: 4 },
+  charVoteOverlay: {
+    barColor: '#5ab4ff', textColor: '#5ab4ff', barHeight: 14, barGap: 8, barRadius: 0,
+    trackOpacity: 0.12, nameWidth: 130, nameFontSize: 10, pctFontSize: 9,
+    bgOpacity: 0, bgRadius: 0, padding: 16, position: 'bottom-left',
+    overlayWidth: 380, scale: 1.0,
+    shadow: { angle: 135, distance: 8, hardness: 0, spread: 0, color: '#000000', opacity: 1 }
+  },
+  hype: { goal: 50, multiVote: false },
+  hypeOverlay: {
+    sqColor: '#3a9fc8', sqWidth: 32, sqHeight: 16, sqGap: 3,
+    padding: 6, labelSize: 9, countSize: 9, fullLabelSize: 14, position: 'bottom-left'
+  },
+  achievements: { cols: 2, rows: 4, cycleInterval: 6, enabledBuiltins: null, customAchieves: [] },
+  achieveOverlay: {
+    cellBgColor: '#00090e', cellBgOpacity: 0.75, cellRadius: 0,
+    cellBorderColor: '#3a9fc8', cellBorderOpacity: 0.3, cellBorderWidth: 1,
+    outlineColor: '#3a9fc8', outlineWidth: 0,
+    shadowEnabled: false, shadowX: 2, shadowY: 4, shadowBlur: 6, shadowColor: '#000000', shadowOpacity: 0.8,
+    cellPadding: 6, cellGap: 6,
+    usernameSize: 9, usernameColor: '#5ab4ff', usernameWeight: 'normal', usernameSpacing: 0.1, usernameTransform: 'uppercase',
+    labelSize: 7, labelColor: '#999999', labelWeight: 'normal', labelSpacing: 0.07, labelTransform: 'uppercase'
+  },
   helpSettings: { enabled: true, format: 'verbose', separator: ' | ' },
   tabOrder: null,
   bitlyToken: '',
@@ -331,10 +357,137 @@ function parseSong(raw, overrides) {
 }
 
 // ── YouTube Chat global state ─────────────────────────────────────────────────
-if (!global.ytState)   global.ytState   = { liveChatId: null, nextPageToken: null, polling: false, pollTimer: null, seenIds: new Set(), nextPollInterval: 15000 };
-if (!global.pollState) global.pollState = { active: false, votes: { '1': 0, '2': 0 }, voters: new Map(), p1: { name: '', imageUrl: '' }, p2: { name: '', imageUrl: '' } };
+if (!global.ytState)   global.ytState   = { liveChatId: null, nextPageToken: null, polling: false, pollTimer: null, seenIds: new Set(), nextPollInterval: 15000, videoId: null };
+
+// ── YouTube Quota tracking ────────────────────────────────────────────────────
+if (!global.ytQuota) {
+  global.ytQuota = { used: 0, limit: 10000, resetDate: '' };
+  try {
+    const _q = JSON.parse(fs.readFileSync(path.join(APP_DIR, 'yt-quota.json'), 'utf8'));
+    const _today = new Date().toISOString().slice(0, 10);
+    global.ytQuota.limit = _q.limit || 10000;
+    if (_q.resetDate === _today) { global.ytQuota.used = _q.used || 0; global.ytQuota.resetDate = _today; }
+    else { global.ytQuota.used = 0; global.ytQuota.resetDate = _today; }
+  } catch(e) { global.ytQuota.resetDate = new Date().toISOString().slice(0, 10); }
+}
+if (!global.pollState) global.pollState = { active: false, votes: { '1': 0, '2': 0 }, voters: new Map(), p1: { name: '', imageUrl: '' }, p2: { name: '', imageUrl: '' }, multiVote: false };
+
+// ── Character Vote state ──────────────────────────────────────────────────────
+if (!global.charVoteState) {
+  global.charVoteState = { active: false, multiVote: false, votes: {}, voters: {} };
+  // Restore from settings if temp data exists
+  try {
+    const _sv = loadSettings();
+    if (_sv._charVoteTemp) {
+      const t = _sv._charVoteTemp;
+      global.charVoteState.votes = t.votes || {};
+      global.charVoteState.voters = t.voters || {};
+      global.charVoteState.multiVote = t.multiVote || false;
+    }
+  } catch(e) {}
+}
+
+// ── Hype Train state ──────────────────────────────────────────────────────────
+if (!global.hypeState) global.hypeState = { active: false, count: 0, goal: 50, multiVote: false, voters: {}, full: false, fullAt: null };
+
+// ── Achievement state ─────────────────────────────────────────────────────────
+if (!global.achieveState) global.achieveState = {
+  userData: {}, staticAwards: [], earlyUsers: {}, whoWonFirst: null,
+  matchEndTime: null, viewerCount: 0, lastMatchId: 0, customTracking: {}
+};
+
+const BUILTIN_ACHIEVE_IDS = ['first_chat','messages_25','messages_50','charvote_10','gg_10','who_won','incorrect_5','messages_top','poll_accurate','poll_inaccurate'];
+
+function initAchieveSettings() {
+  try {
+    const s = loadSettings();
+    const ach = s.achievements || {};
+    global.achieveSettings = {
+      enabledBuiltins: ach.enabledBuiltins !== undefined ? ach.enabledBuiltins : null,
+      customAchieves: ach.customAchieves || []
+    };
+  } catch(e) { global.achieveSettings = { enabledBuiltins: null, customAchieves: [] }; }
+}
+if (!global.achieveSettings) initAchieveSettings();
+
+// ── Utility: parse character vote command ─────────────────────────────────────
+function parseVoteCmd(raw) {
+  // raw is the text after stripping '!'
+  const s = raw.trim().toLowerCase();
+  if (!s) return null;
+  if (s.endsWith(' woman')) {
+    const base = s.slice(0, s.length - 6).trim();
+    if (!base) return null;
+    return { key: base, displayName: base.toUpperCase() + ' WOMAN' };
+  }
+  if (s.endsWith(' man')) {
+    const base = s.slice(0, s.length - 4).trim();
+    if (!base) return null;
+    return { key: base, displayName: base.toUpperCase() + ' MAN' };
+  }
+  return { key: s, displayName: s.toUpperCase() + ' MAN' };
+}
+
+// ── Utility: debounced save of charVote temp state ────────────────────────────
+let _charVoteSaveTimer = null;
+function _saveCharVoteToSettings() {
+  if (_charVoteSaveTimer) clearTimeout(_charVoteSaveTimer);
+  _charVoteSaveTimer = setTimeout(() => {
+    try {
+      const sv = loadSettings();
+      const cv = global.charVoteState;
+      sv._charVoteTemp = { votes: cv.votes, voters: cv.voters, multiVote: cv.multiVote };
+      saveSettings(sv);
+    } catch(e) {}
+  }, 2000);
+}
+
+// ── Utility: check and award achievement ─────────────────────────────────────
+function _checkAward(id, channelId, username, label) {
+  const as = global.achieveState;
+  if (as.staticAwards.some(a => a.id === id)) return;
+  const eb = global.achieveSettings?.enabledBuiltins;
+  if (eb !== null && eb !== undefined && BUILTIN_ACHIEVE_IDS.includes(id) && !eb.includes(id)) return;
+  as.staticAwards.push({ id, channelId, username, label, ts: Date.now() });
+}
+
+// ── Viewer count poll ─────────────────────────────────────────────────────────
+let _viewerCountTimer = null;
+async function ytViewerCountPoll() {
+  try {
+    const videoId = global.ytState.videoId;
+    if (!videoId) return;
+    const token = await ytEnsureToken();
+    if (!token) return;
+    const r = await ytApiReq('GET', '/youtube/v3/videos', { part: 'liveStreamingDetails', id: videoId }, null, token);
+    if (r.status === 200 && r.body.items?.[0]) {
+      const cnt = parseInt(r.body.items[0].liveStreamingDetails?.concurrentViewers || '0', 10);
+      if (!isNaN(cnt)) global.achieveState.viewerCount = cnt;
+    }
+  } catch(e) {}
+}
+
+const YT_QUOTA_COSTS = {
+  'GET /youtube/v3/liveChat/messages':  5,
+  'POST /youtube/v3/liveChat/messages': 200,
+  'GET /youtube/v3/liveBroadcasts':     1,
+  'GET /youtube/v3/videos':             1,
+  'GET /youtube/v3/channels':           1,
+};
+let _ytQuotaSaveTimer = null;
+function _ytChargeQuota(pathStr, method) {
+  const key = (method || 'GET') + ' ' + pathStr.split('?')[0];
+  const cost = YT_QUOTA_COSTS[key] || 1;
+  global.ytQuota.used += cost;
+  global.ytQuota.resetDate = new Date().toISOString().slice(0, 10);
+  if (_ytQuotaSaveTimer) clearTimeout(_ytQuotaSaveTimer);
+  _ytQuotaSaveTimer = setTimeout(() => {
+    try { fs.writeFileSync(path.join(APP_DIR, 'yt-quota.json'), JSON.stringify(global.ytQuota, null, 2)); } catch(e) {}
+  }, 2000);
+}
 
 function ytApiReq(method, pathStr, params, body, token) {
+  _ytChargeQuota(pathStr, method);
   const https = require('https');
   const qs = params ? ('?' + Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&')) : '';
   const buf = body ? Buffer.from(typeof body === 'string' ? body : JSON.stringify(body)) : null;
@@ -412,11 +565,105 @@ async function ytPollOnce() {
     const text = (msg.snippet?.textMessageDetails?.messageText || '').trim();
     const channelId = msg.authorDetails?.channelId || '';
     if (!text || !channelId) continue;
-    if (global.pollState.active && (text === '1' || text === '2') && !global.pollState.voters.has(channelId)) {
+    if (global.pollState.active && (text === '1' || text === '2') && (!global.pollState.voters.has(channelId) || global.pollState.multiVote)) {
       global.pollState.votes[text]++;
       global.pollState.voters.set(channelId, text);
     }
     const lower = text.toLowerCase();
+
+    // Character vote
+    const cv = global.charVoteState;
+    if (cv.active && lower.startsWith('!') && lower !== '!hype' && lower !== '!help') {
+      const vc = parseVoteCmd(lower.slice(1));
+      if (vc) {
+        const alreadyVoted = cv.voters[channelId];
+        if (cv.multiVote || !alreadyVoted) {
+          if (!cv.votes[vc.key]) cv.votes[vc.key] = { displayName: vc.displayName, count: 0 };
+          cv.votes[vc.key].count++;
+          cv.voters[channelId] = vc.key;
+          _saveCharVoteToSettings();
+        }
+        const as2 = global.achieveState;
+        if (!as2.userData[channelId]) as2.userData[channelId] = { username: msg.authorDetails?.displayName || channelId, msgCount: 0, ggCount: 0, incorrectCount: 0, charVoteCount: 0, pollHistory: [] };
+        if (!alreadyVoted) {
+          as2.userData[channelId].charVoteCount++;
+          if (as2.userData[channelId].charVoteCount >= 10) _checkAward('charvote_10', channelId, as2.userData[channelId].username, 'first to vote in 10+ character votes');
+        }
+      }
+    }
+
+    // Hype train
+    const hy = global.hypeState;
+    if (hy.active && lower === '!hype') {
+      if (hy.multiVote || !hy.voters[channelId]) {
+        hy.voters[channelId] = true;
+        hy.count++;
+        if (!hy.full && hy.count >= hy.goal) {
+          hy.full = true; hy.fullAt = Date.now();
+          setTimeout(() => { hy.full = false; hy.count = 0; hy.voters = {}; hy.fullAt = null; }, 120000);
+        }
+      }
+    }
+
+    // Achievement tracking
+    {
+      const as = global.achieveState;
+      const displayName = msg.authorDetails?.displayName || channelId;
+      if (!as.userData[channelId]) as.userData[channelId] = { username: displayName, msgCount: 0, ggCount: 0, incorrectCount: 0, charVoteCount: 0, pollHistory: [] };
+      const ud = as.userData[channelId];
+      ud.username = displayName;
+      ud.msgCount++;
+      if (ud.msgCount === 1) {
+        _checkAward('first_chat', channelId, displayName, 'first to chat in the stream');
+      }
+      if (ud.msgCount === 25) _checkAward('messages_25', channelId, displayName, 'first to hit 25 messages in a stream');
+      if (ud.msgCount === 50) _checkAward('messages_50', channelId, displayName, 'first to hit 50+ messages in a stream');
+      if (lower === 'gg' || lower === 'gg!' || lower === 'ggg' || lower === 'ggs') {
+        ud.ggCount++;
+        if (ud.ggCount >= 10) _checkAward('gg_10', channelId, displayName, 'first to type GG 10+ times in one stream');
+      }
+      if (as.matchEndTime && !as.whoWonFirst && (Date.now() - as.matchEndTime) < 60000) {
+        if (/who\s*(won|win)/i.test(text)) {
+          as.whoWonFirst = { channelId, username: displayName };
+          _checkAward('who_won', channelId, displayName, 'first to ask "who won" after a match');
+        }
+      }
+    }
+
+    // Custom achieve tracking
+    {
+      const as = global.achieveState;
+      if (!as.customTracking) as.customTracking = {};
+      const customs = global.achieveSettings?.customAchieves || [];
+      const displayName = as.userData[channelId]?.username || channelId;
+      for (const ca of customs) {
+        if (ca.preset === 'manual') continue;
+        if (as.staticAwards.some(a => a.id === ca.id)) continue;
+        const p = ca.params || {};
+        if (!as.customTracking[ca.id]) as.customTracking[ca.id] = {};
+        const ct = as.customTracking[ca.id];
+        const ud2 = as.userData[channelId];
+        if (ca.preset === 'messages_reach') {
+          if (ud2 && ud2.msgCount >= (parseInt(p.n) || 10)) _checkAward(ca.id, channelId, displayName, ca.label);
+        } else if (ca.preset === 'type_contains') {
+          if (p.text && lower.includes(p.text.toLowerCase())) _checkAward(ca.id, channelId, displayName, ca.label);
+        } else if (ca.preset === 'type_n_times') {
+          if (p.text && lower.includes(p.text.toLowerCase())) {
+            ct[channelId] = (ct[channelId] || 0) + 1;
+            if (ct[channelId] >= (parseInt(p.n) || 3)) _checkAward(ca.id, channelId, displayName, ca.label);
+          }
+        } else if (ca.preset === 'exact_text') {
+          if (p.text && lower === p.text.toLowerCase()) _checkAward(ca.id, channelId, displayName, ca.label);
+        } else if (ca.preset === 'msg_length') {
+          if (text.length >= (parseInt(p.n) || 100)) _checkAward(ca.id, channelId, displayName, ca.label);
+        } else if (ca.preset === 'all_caps') {
+          if (text.length >= 5 && text === text.toUpperCase() && /[A-Z]/.test(text)) _checkAward(ca.id, channelId, displayName, ca.label);
+        } else if (ca.preset === 'fast_response') {
+          if (as.matchEndTime && (Date.now() - as.matchEndTime) < (parseInt(p.n) || 10) * 1000) _checkAward(ca.id, channelId, displayName, ca.label);
+        }
+      }
+    }
+
     // !help auto-reply
     const hs = s.helpSettings || {};
     if (hs.enabled !== false && (lower === '!help' || lower.startsWith('!help '))) {
@@ -465,6 +712,9 @@ function ytStartPolling() {
   global.ytState.polling = true;
   global.ytState.nextPollInterval = 15000;
   ytScheduleNextPoll();
+  if (_viewerCountTimer) clearInterval(_viewerCountTimer);
+  _viewerCountTimer = setInterval(ytViewerCountPoll, 60000);
+  ytViewerCountPoll();
 }
 
 async function ytConnectAndStart(liveChatId) {
@@ -492,6 +742,7 @@ function ytStopPolling() {
   if (global.ytState.pollTimer) clearTimeout(global.ytState.pollTimer);
   global.ytState.polling = false;
   global.ytState.pollTimer = null;
+  if (_viewerCountTimer) { clearInterval(_viewerCountTimer); _viewerCountTimer = null; }
 }
 // ── End YouTube Chat global state ─────────────────────────────────────────────
 
@@ -820,6 +1071,7 @@ const server = http.createServer(async (req, res) => {
       if (!bc) { json200(res, { error: 'No active broadcast found. Start your stream first.' }); return; }
       const liveChatId = bc.snippet?.liveChatId;
       if (!liveChatId) { json200(res, { error: 'Broadcast has no live chat' }); return; }
+      global.ytState.videoId = bc.id || null;
       await ytConnectAndStart(liveChatId);
       json200(res, { ok: true, title: bc.snippet.title, liveChatId });
     } catch(e) { json200(res, { error: e.message }); }
@@ -853,9 +1105,32 @@ const server = http.createServer(async (req, res) => {
       if (!video) { json200(res, { error: 'Video not found (ID: ' + videoId + ') — it may be private, deleted, or the YouTube Data API v3 may not be enabled in your Google Cloud project' }); return; }
       const liveChatId = video.liveStreamingDetails?.activeLiveChatId;
       if (!liveChatId) { json200(res, { error: 'No active live chat — "' + (video.snippet?.title || videoId) + '" is not currently live' }); return; }
+      global.ytState.videoId = videoId;
       await ytConnectAndStart(liveChatId);
       json200(res, { ok: true, title: video.snippet?.title || videoId, liveChatId });
     } catch(e) { json200(res, { error: e.message }); }
+    return;
+  }
+
+  if (pathname === '/yt-quota') {
+    const today = new Date().toISOString().slice(0, 10);
+    if (global.ytQuota.resetDate !== today) {
+      global.ytQuota.used = 0;
+      global.ytQuota.resetDate = today;
+      try { fs.writeFileSync(path.join(APP_DIR, 'yt-quota.json'), JSON.stringify(global.ytQuota, null, 2)); } catch(e) {}
+    }
+    json200(res, { used: global.ytQuota.used, limit: global.ytQuota.limit, resetDate: global.ytQuota.resetDate });
+    return;
+  }
+
+  if (pathname === '/yt-quota-limit' && req.method === 'POST') {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const limit = parseInt(body.limit) || 10000;
+      global.ytQuota.limit = Math.max(1000, Math.min(1000000, limit));
+      try { fs.writeFileSync(path.join(APP_DIR, 'yt-quota.json'), JSON.stringify(global.ytQuota, null, 2)); } catch(e) {}
+      json200(res, { ok: true, limit: global.ytQuota.limit });
+    } catch(e) { res.writeHead(400); res.end('Bad request'); }
     return;
   }
 
@@ -879,6 +1154,7 @@ const server = http.createServer(async (req, res) => {
       global.pollState.voters = new Map();
       global.pollState.p1 = body.p1 || { name: '', imageUrl: '' };
       global.pollState.p2 = body.p2 || { name: '', imageUrl: '' };
+      if (body.multiVote !== undefined) global.pollState.multiVote = !!body.multiVote;
       json200(res, { ok: true });
     } catch(e) { res.writeHead(400); res.end('Bad request'); }
     return;
@@ -1230,6 +1506,170 @@ const server = http.createServer(async (req, res) => {
       const [p1Url, p2Url] = await Promise.all([fetchAvatar(p1Name || ''), fetchAvatar(p2Name || '')]);
       json200(res, { p1: p1Url, p2: p2Url });
     } catch(e) { json200(res, { p1: '', p2: '' }); }
+    return;
+  }
+
+  // ── Character Vote routes ─────────────────────────────────────────────────────
+  if (pathname === '/charvote-overlay') { serveHtml('charvote-overlay.html', res); return; }
+
+  if (pathname === '/charvote-status') {
+    const cv = global.charVoteState;
+    const maxSlots = (s.charVote || {}).maxSlots || 4;
+    const sorted = Object.entries(cv.votes)
+      .map(([k, v]) => ({ key: k, displayName: v.displayName, count: v.count }))
+      .sort((a, b) => b.count - a.count);
+    const topEntries = sorted.slice(0, maxSlots);
+    json200(res, { active: cv.active, multiVote: cv.multiVote, maxSlots, votes: cv.votes, topEntries, overlaySettings: s.charVoteOverlay || {} }); return;
+  }
+
+  if (pathname === '/charvote-start' && req.method === 'POST') {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const cv = global.charVoteState;
+      cv.active = true;
+      if (body.multiVote !== undefined) cv.multiVote = !!body.multiVote;
+      // Restore from settings temp if it exists and we don't already have votes
+      const sv = loadSettings();
+      if (sv._charVoteTemp && Object.keys(cv.votes).length === 0) {
+        cv.votes = sv._charVoteTemp.votes || {};
+        cv.voters = sv._charVoteTemp.voters || {};
+      }
+      _saveCharVoteToSettings();
+      json200(res, { ok: true });
+    } catch(e) { res.writeHead(400); res.end('Bad request'); }
+    return;
+  }
+
+  if (pathname === '/charvote-stop' && req.method === 'POST') {
+    global.charVoteState.active = false;
+    try {
+      const sv = loadSettings();
+      delete sv._charVoteTemp;
+      saveSettings(sv);
+    } catch(e) {}
+    json200(res, { ok: true }); return;
+  }
+
+  if (pathname === '/charvote-reset' && req.method === 'POST') {
+    const cv = global.charVoteState;
+    cv.votes = {};
+    cv.voters = {};
+    _saveCharVoteToSettings();
+    json200(res, { ok: true }); return;
+  }
+
+  // ── Hype Train routes ─────────────────────────────────────────────────────────
+  if (pathname === '/hype-overlay') { serveHtml('hype-overlay.html', res); return; }
+
+  if (pathname === '/hype-status') {
+    const hy = global.hypeState;
+    const pct = hy.goal > 0 ? Math.min(100, Math.round(hy.count / hy.goal * 100)) : 0;
+    json200(res, { active: hy.active, count: hy.count, goal: hy.goal, full: hy.full || !!hy._testFull, fullAt: hy.fullAt, multiVote: hy.multiVote, pct, overlaySettings: s.hypeOverlay || {} }); return;
+  }
+
+  if (pathname === '/hype-start' && req.method === 'POST') {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const hy = global.hypeState;
+      hy.active = true;
+      if (body.goal !== undefined) hy.goal = Math.max(1, parseInt(body.goal) || 50);
+      if (body.multiVote !== undefined) hy.multiVote = !!body.multiVote;
+      json200(res, { ok: true });
+    } catch(e) { res.writeHead(400); res.end('Bad request'); }
+    return;
+  }
+
+  if (pathname === '/hype-stop' && req.method === 'POST') {
+    global.hypeState.active = false;
+    json200(res, { ok: true }); return;
+  }
+
+  if (pathname === '/hype-reset' && req.method === 'POST') {
+    const hy = global.hypeState;
+    hy.count = 0; hy.voters = {}; hy.full = false; hy.fullAt = null;
+    json200(res, { ok: true }); return;
+  }
+
+  if (pathname === '/hype-test' && req.method === 'POST') {
+    const hy = global.hypeState;
+    hy._testFull = true;
+    setTimeout(() => { hy._testFull = false; }, 3000);
+    json200(res, { ok: true }); return;
+  }
+
+  // ── Achievements routes ───────────────────────────────────────────────────────
+  if (pathname === '/achievements-overlay') { serveHtml('achievements-overlay.html', res); return; }
+
+  if (pathname === '/achievements-status') {
+    const as = global.achieveState;
+    const eb = global.achieveSettings?.enabledBuiltins;
+    const isEnabled = id => !eb || eb.includes(id);
+    // Static awards (filter disabled built-ins)
+    const awards = as.staticAwards.filter(a => !BUILTIN_ACHIEVE_IDS.includes(a.id) || isEnabled(a.id));
+    // Dynamic: messages_top (min 5 msgs)
+    if (isEnabled('messages_top')) {
+      let topUser = null; let topCount = 0;
+      for (const [cid, ud] of Object.entries(as.userData)) {
+        if (ud.msgCount >= 5 && ud.msgCount > topCount) { topCount = ud.msgCount; topUser = { channelId: cid, username: ud.username }; }
+      }
+      if (topUser) awards.push({ id: 'messages_top', channelId: topUser.channelId, username: topUser.username, label: 'most messages this stream', ts: Date.now() });
+    }
+    // Dynamic: poll_accurate / poll_inaccurate (min 3 votes)
+    if (isEnabled('poll_accurate') || isEnabled('poll_inaccurate')) {
+      let accUser = null; let accCount = 0;
+      let inaccUser = null; let inaccCount = 0;
+      for (const [cid, ud] of Object.entries(as.userData)) {
+        const hist = ud.pollHistory || [];
+        const correct = hist.filter(h => h.correct).length;
+        const incorrect = hist.filter(h => !h.correct).length;
+        if (hist.length >= 3 && correct > accCount) { accCount = correct; accUser = { channelId: cid, username: ud.username }; }
+        if (hist.length >= 3 && incorrect > inaccCount) { inaccCount = incorrect; inaccUser = { channelId: cid, username: ud.username }; }
+      }
+      if (accUser && isEnabled('poll_accurate')) awards.push({ id: 'poll_accurate', channelId: accUser.channelId, username: accUser.username, label: 'most accurate match predictions', ts: Date.now() });
+      if (inaccUser && isEnabled('poll_inaccurate')) awards.push({ id: 'poll_inaccurate', channelId: inaccUser.channelId, username: inaccUser.username, label: 'most inaccurate match predictions', ts: Date.now() });
+    }
+    const ao = s.achieveOverlay || {};
+    json200(res, { awards: awards.map(a => ({ username: a.username, label: a.label, ts: a.ts })), overlaySettings: { ...ao, cycleInterval: (s.achievements?.cycleInterval) || 6 } }); return;
+  }
+
+  if (pathname === '/achievements-reset' && req.method === 'POST') {
+    global.achieveState = { userData: {}, staticAwards: [], earlyUsers: {}, whoWonFirst: null, matchEndTime: null, viewerCount: global.achieveState.viewerCount, lastMatchId: 0, customTracking: {} };
+    json200(res, { ok: true }); return;
+  }
+
+  if (pathname === '/achievements-award' && req.method === 'POST') {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const id = body.id || ('manual_' + Date.now());
+      global.achieveState.staticAwards.push({ id, channelId: 'manual', username: body.username || 'UNKNOWN', label: body.label || '', ts: Date.now() });
+      json200(res, { ok: true });
+    } catch(e) { res.writeHead(400); res.end('Bad request'); }
+    return;
+  }
+
+  if (pathname === '/poll-set-winner' && req.method === 'POST') {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const winner = body.winner; // '1' or '2'
+      const as = global.achieveState;
+      as.matchEndTime = Date.now();
+      as.whoWonFirst = null;
+      as.lastMatchId++;
+      const matchId = as.lastMatchId;
+      // Iterate poll voters
+      const ps = global.pollState;
+      for (const [cid, choice] of ps.voters.entries()) {
+        if (!as.userData[cid]) as.userData[cid] = { username: cid, msgCount: 0, ggCount: 0, incorrectCount: 0, charVoteCount: 0, pollHistory: [] };
+        const ud = as.userData[cid];
+        const correct = choice === winner;
+        ud.pollHistory.push({ matchId, choice, winner, correct });
+        if (!correct) {
+          ud.incorrectCount = (ud.incorrectCount || 0) + 1;
+          if (ud.incorrectCount >= 5) _checkAward('incorrect_5', cid, ud.username, 'first to get 5 wrong match predictions');
+        }
+      }
+      json200(res, { ok: true });
+    } catch(e) { res.writeHead(400); res.end('Bad request'); }
     return;
   }
 
@@ -2180,7 +2620,29 @@ const server = http.createServer(async (req, res) => {
       if (body.discordOverlay      !== undefined) s.discordOverlay      = Object.assign({}, s.discordOverlay || {}, body.discordOverlay);
       if (body.discordOverlay2     !== undefined) s.discordOverlay2     = Object.assign({}, s.discordOverlay2 || {}, body.discordOverlay2);
       if (body.discordOverlaySolo  !== undefined) s.discordOverlaySolo  = Object.assign({}, s.discordOverlaySolo || {}, body.discordOverlaySolo);
-      if (body.poll                !== undefined) s.poll                = Object.assign({}, s.poll || {}, body.poll);
+      if (body.poll !== undefined) {
+        s.poll = Object.assign({}, s.poll || {}, body.poll);
+        if (body.poll.multiVote !== undefined) global.pollState.multiVote = !!body.poll.multiVote;
+      }
+      if (body._charVoteTemp !== undefined) s._charVoteTemp = body._charVoteTemp;
+      if (body.charVote !== undefined) {
+        s.charVote = Object.assign({}, s.charVote || {}, body.charVote);
+        if (body.charVote.multiVote !== undefined) global.charVoteState.multiVote = !!body.charVote.multiVote;
+      }
+      if (body.charVoteOverlay !== undefined) s.charVoteOverlay = Object.assign({}, s.charVoteOverlay || {}, body.charVoteOverlay);
+      if (body.hype !== undefined) {
+        s.hype = Object.assign({}, s.hype || {}, body.hype);
+        if (body.hype.multiVote !== undefined) global.hypeState.multiVote = !!body.hype.multiVote;
+        if (body.hype.goal !== undefined) global.hypeState.goal = parseInt(body.hype.goal) || global.hypeState.goal;
+      }
+      if (body.achievements !== undefined) {
+        s.achievements = Object.assign({}, s.achievements || {}, body.achievements);
+        if (body.achievements.customAchieves !== undefined) s.achievements.customAchieves = body.achievements.customAchieves;
+        if (body.achievements.enabledBuiltins !== undefined) s.achievements.enabledBuiltins = body.achievements.enabledBuiltins;
+        initAchieveSettings();
+      }
+      if (body.hypeOverlay    !== undefined) s.hypeOverlay    = Object.assign({}, s.hypeOverlay    || {}, body.hypeOverlay);
+      if (body.achieveOverlay !== undefined) s.achieveOverlay = Object.assign({}, s.achieveOverlay || {}, body.achieveOverlay);
       if (body.chatWidgetEnabled   !== undefined) s.chatWidgetEnabled   = Object.assign({}, s.chatWidgetEnabled || {}, body.chatWidgetEnabled);
       if (body.tabOrder            !== undefined) s.tabOrder            = body.tabOrder;
       if (body.helpSettings        !== undefined) s.helpSettings        = Object.assign({}, s.helpSettings || {}, body.helpSettings);
