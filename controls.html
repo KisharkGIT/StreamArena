@@ -1586,6 +1586,8 @@
   <details class="howto-details">
     <summary style="color:#fc5c7c;">SLIDESHOW</summary>
     <div class="howto-details-body">
+      <p>The Slideshow widget has two independent slideshows, each with its own tab: <span class="hl-brb">SLIDESHOW</span> (BRB display) and <span class="hl-brb">INFORMATION</span>. Both work identically — separate folders, file lists, timing, and transition settings — but serve different overlay URLs so you can layer them separately in Streamlabs.</p>
+
       <p><span class="hl-brb">BRB Slideshow</span> — a cycling display shown during your break.</p>
       <ul>
         <li><span class="hl-brb">Folder Location</span> — point this to a folder and every image, GIF, and video inside gets added to the cycle automatically.</li>
@@ -1594,7 +1596,10 @@
         <li><span class="hl-brb">Randomize</span> — shuffle slide order on each reload.</li>
         <li><span class="hl-brb">Transition</span> — choose between Fade, Slide, Zoom, or Wipe between slides.</li>
       </ul>
-      <p>Add this to Streamlabs as a browser source: <span class="hl-url">http://localhost:7777/brb</span></p>
+      <p>Add the BRB slideshow to Streamlabs as a browser source: <span class="hl-url">http://localhost:7777/brb</span></p>
+
+      <p><span class="hl-brb">Information Slideshow</span> — a second independent slideshow on its own overlay. Use it for tournament info cards, sponsor slides, rules, or anything you want cycling on a separate scene layer. Configured identically to BRB but fully separate — its own folder, its own file list, its own timing.</p>
+      <p>Add the information slideshow to Streamlabs as a browser source: <span class="hl-url">http://127.0.0.1:7777/info-overlay</span></p>
     </div>
   </details>
 
@@ -1878,8 +1883,14 @@
         <li>Opening a new poll always resets the vote counts. You cannot reopen a closed poll and retain its votes.</li>
       </ul>
 
-      <p>Add this to Streamlabs as a browser source: <span class="hl-url">http://127.0.0.1:7777/poll-overlay</span></p>
-      <p>Size it as a tall narrow strip on the side of the screen — it is designed for portrait/sidebar layout.</p>
+      <p><span class="hl-widget">Layout — Vertical vs Horizontal</span></p>
+      <p>The poll widget has two layout tabs at the top: <span class="hl-widget">VERTICAL</span> and <span class="hl-widget">HORIZONTAL</span>. Each tab has its own mock preview so you can see how both look. They share the same poll state — opening and closing the poll controls both overlays simultaneously, you just choose which URL to use in Streamlabs.</p>
+      <ul>
+        <li><span class="hl-widget">Vertical</span> — two tall bars side by side. Designed as a narrow sidebar strip on the left or right edge of the screen.</li>
+        <li><span class="hl-widget">Horizontal</span> — two wide bars stacked top to bottom. Works well as a banner across the bottom or top of the screen.</li>
+      </ul>
+      <p>Vertical overlay: <span class="hl-url">http://127.0.0.1:7777/poll-overlay</span></p>
+      <p>Horizontal overlay: <span class="hl-url">http://127.0.0.1:7777/poll-overlay-h</span></p>
     </div>
   </details>
 
@@ -1920,6 +1931,92 @@
 
       <p>Add this to Streamlabs as a browser source: <span class="hl-url">http://127.0.0.1:7777/bitly-overlay</span></p>
       <p>The count refreshes every 30 seconds automatically.</p>
+    </div>
+  </details>
+
+  <details class="howto-details">
+    <summary style="color:#5ab4ff;">CHARACTER VOTES</summary>
+    <div class="howto-details-body">
+      <p>The <span class="hl-widget">Character Votes</span> widget lets viewers vote in YouTube chat for any character or option by typing <span class="hl-url">!charactername</span>. The overlay shows a live bar chart ranking all entries by vote count, sorted and animated in real time. Use it to let chat vote on characters, stages, or anything else you want to put to a vote.</p>
+
+      <p><span class="hl-widget">How voting works</span></p>
+      <ul>
+        <li>When the vote is open, viewers type <span class="hl-url">!anything</span> in chat — StreamArena counts their message as a vote for that option. For example: <span class="hl-url">!mega man</span>, <span class="hl-url">!bass</span>, <span class="hl-url">!1</span>.</li>
+        <li>By default each viewer can only vote once. Enable <span class="hl-widget">Allow Multiple Votes Per Person</span> if you want viewers to be able to change or add votes.</li>
+        <li>Votes that share the same normalized text (e.g. <span class="hl-url">!MegaMan</span> and <span class="hl-url">!megaman</span>) are counted as the same entry.</li>
+        <li>The <span class="hl-widget">Max Slots</span> setting controls how many entries appear on the overlay at once — the top N by vote count are shown.</li>
+      </ul>
+
+      <p><span class="hl-widget">Running a character vote</span></p>
+      <ul>
+        <li>Click <span class="hl-widget">Start Vote</span> to open voting. The overlay appears and begins tracking <span class="hl-url">!</span> messages from chat immediately.</li>
+        <li>Click <span class="hl-widget">Stop Vote</span> to close voting. The overlay stays visible showing final results.</li>
+        <li>Click <span class="hl-widget">Reset</span> to clear all votes and hide the overlay, ready for the next vote.</li>
+        <li>Vote counts persist through page refreshes while the vote is open, so you won't lose data if you reload the control panel.</li>
+      </ul>
+
+      <p>Add this to Streamlabs as a browser source: <span class="hl-url">http://127.0.0.1:7777/charvote-overlay</span></p>
+    </div>
+  </details>
+
+  <details class="howto-details">
+    <summary style="color:#5ab4ff;">HYPE TRAIN</summary>
+    <div class="howto-details-body">
+      <p>The <span class="hl-widget">Hype Train</span> is a viewer engagement meter. Viewers type <span class="hl-url">!hype</span> in YouTube chat to fill up a bar made of pixel squares. When the bar hits the goal it flashes and resets automatically after 2 minutes. Use it to build energy during a hype moment — top 8 intros, a big set, any moment you want the crowd involved.</p>
+
+      <p><span class="hl-widget">Controls</span></p>
+      <ul>
+        <li>Set the <span class="hl-widget">Goal</span> — how many <span class="hl-url">!hype</span> messages are needed to fill the bar. Default is 50.</li>
+        <li>Click <span class="hl-widget">Start Hype Train</span> to activate it. The overlay appears and starts counting incoming <span class="hl-url">!hype</span> messages.</li>
+        <li>Click <span class="hl-widget">Reset</span> at any time to clear the count and hide the overlay without waiting for it to fill.</li>
+        <li>Enable <span class="hl-widget">Allow Multiple Votes Per Person</span> if you want the same viewer to be able to hype multiple times.</li>
+        <li>When the bar fills, it flashes and shows <span class="hl-url">HYPE!</span> text, then resets automatically after 2 minutes.</li>
+        <li>Use <span class="hl-widget">Test Hype (Mock Only)</span> to preview the full animation in the panel without affecting the real overlay.</li>
+      </ul>
+
+      <p><span class="hl-widget">Appearance</span></p>
+      <ul>
+        <li>The bar is made up of stacked squares. Adjust square width, height, gap, and color in the appearance settings.</li>
+        <li>Position the overlay at any corner or edge of the screen using the position selector.</li>
+      </ul>
+
+      <p>Add this to Streamlabs as a browser source: <span class="hl-url">http://127.0.0.1:7777/hype-overlay</span></p>
+    </div>
+  </details>
+
+  <details class="howto-details">
+    <summary style="color:#5ab4ff;">CHAT ACHIEVEMENTS</summary>
+    <div class="howto-details-body">
+      <p>The <span class="hl-widget">Chat Achievements</span> widget tracks engagement milestones during your stream and displays them on an overlay. As viewers participate in chat — chatting, voting, using commands — they earn achievements that appear on screen. The overlay cycles through a grid of earned achievements, so even old ones stay visible as new ones come in.</p>
+
+      <p><span class="hl-widget">Built-in achievements</span></p>
+      <p>StreamArena tracks several automatic milestones. Click <span class="hl-widget">ACHIEVEMENTS</span> in the list to toggle each one on or off:</p>
+      <ul>
+        <li><span class="hl-widget">First Chat</span> — awarded to the first viewer to send a message in the stream.</li>
+        <li><span class="hl-widget">25 Messages</span> — first viewer to hit 25 messages in a single stream session.</li>
+        <li><span class="hl-widget">50 Messages</span> — first viewer to hit 50 messages in a single stream session.</li>
+        <li><span class="hl-widget">Charvote Veteran</span> — first viewer to participate in 10 or more character votes.</li>
+        <li><span class="hl-widget">GG x10</span> — first viewer to type "gg" 10 times.</li>
+        <li><span class="hl-widget">Who Won</span> — first viewer to ask who won in chat.</li>
+        <li><span class="hl-widget">Incorrect x5</span> — first viewer whose poll prediction was wrong 5 times.</li>
+        <li><span class="hl-widget">Top Chatter</span> — viewer with the most messages at the end.</li>
+        <li><span class="hl-widget">Poll Accurate</span> / <span class="hl-widget">Poll Inaccurate</span> — first viewer to predict a poll result correctly or incorrectly.</li>
+      </ul>
+
+      <p><span class="hl-widget">Custom achievements</span></p>
+      <ul>
+        <li>Click the <span class="hl-widget">CUSTOM</span> tab in the achievement list, then <span class="hl-widget">+ Add Achievement</span>.</li>
+        <li>Give it a label (what displays on stream) and an ID (internal name, no spaces). Custom achievements are awarded manually — click the test button next to any custom entry to trigger it with "TEST USER" as the recipient, or award it from the panel when the moment happens.</li>
+      </ul>
+
+      <p><span class="hl-widget">Overlay layout</span></p>
+      <ul>
+        <li>Set <span class="hl-widget">Columns</span> and <span class="hl-widget">Rows</span> to control how many achievements appear in the grid at once.</li>
+        <li>Set <span class="hl-widget">Cycle Interval</span> (seconds) to control how often the overlay pages to the next group of achievements when there are more than fit in the grid.</li>
+        <li>Click <span class="hl-widget">Reset Achievements</span> to clear all earned achievements and start fresh — useful between streams.</li>
+      </ul>
+
+      <p>Add this to Streamlabs as a browser source: <span class="hl-url">http://127.0.0.1:7777/achievements-overlay</span></p>
     </div>
   </details>
 
