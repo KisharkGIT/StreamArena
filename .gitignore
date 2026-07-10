@@ -8,3 +8,6 @@ profiles.json
 profiles/
 profile-index.json
 settings.json.bak
+brb_display/*
+!brb_display/.gitkeep
+yt-quota.json
