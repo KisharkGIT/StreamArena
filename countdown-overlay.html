@@ -43,7 +43,8 @@
   var _lastShadowKey = '';
   async function poll() {
     try {
-      const r = await fetch('/countdown-state'); const d = await r.json();
+      const _ep = location.pathname === '/countdown2' ? '/countdown-state2' : '/countdown-state';
+      const r = await fetch(_ep); const d = await r.json();
       document.getElementById('cd-label').textContent = d.label || 'Back in...';
       document.documentElement.style.setProperty('--cd-label-color', d.labelColor || '#aaa');
       document.documentElement.style.setProperty('--cd-time-color', d.timeColor || '#fff');

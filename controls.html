@@ -146,10 +146,19 @@
   .save-overrides-btn:hover { background:rgba(58,159,200,0.3); }
   .ov-status { font-size:8px; margin-top:8px; text-align:center; min-height:14px; }
   .ov-status.ok { color:#4ade80; }
+  .ov-toggle-row { display:flex; align-items:center; gap:8px; margin-top:4px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.06); }
+  .ov-toggle-lbl { font-size:7px; color:rgba(255,255,255,0.3); letter-spacing:0.05em; user-select:none; }
+  .ov-toggle-lbl.on  { color:#4ade80; }
+  .ov-toggle-lbl.off { color:rgba(248,113,113,0.6); }
+  .ov-toggle { appearance:none; -webkit-appearance:none; width:30px; height:14px; background:#0d1b2e; border:1px solid rgba(255,255,255,0.2); cursor:pointer; position:relative; flex-shrink:0; transition:background 0.15s,border-color 0.15s; }
+  .ov-toggle::after { content:''; position:absolute; top:2px; left:2px; width:8px; height:8px; background:rgba(248,113,113,0.5); transition:left 0.15s,background 0.15s; }
+  .ov-toggle:checked { background:rgba(74,222,128,0.1); border-color:rgba(74,222,128,0.4); }
+  .ov-toggle:checked::after { left:18px; background:#4ade80; }
   .refresh-btn { padding:9px 14px; background:#0d1b2e; border:1px solid rgba(255,255,255,0.2); border-radius:0; font-family:'MMRock9',monospace; font-size:8px; color:rgba(255,255,255,0.5); cursor:pointer; }
   .refresh-btn:hover { border-color:rgba(58,159,200,0.4); color:#fff; }
   .file-list { display:flex; flex-direction:column; gap:6px; margin-top:10px; max-height:180px; overflow-y:auto; }
   .file-item { background:#0d1b2e; border:1px solid rgba(255,255,255,0.12); border-radius:0; padding:8px 12px; display:flex; align-items:center; gap:8px; font-size:7px; color:rgba(255,255,255,0.5); }
+  .file-item-off { opacity:0.38; }
   .badge { font-size:7px; padding:2px 6px; border-radius:0; font-weight:700; letter-spacing:0.06em; flex-shrink:0; }
   .badge.img  { background:rgba(58,159,200,0.2); color:#5bc8f5; }
   .badge.html { background:rgba(252,92,124,0.2); color:#fc5c7c; }
@@ -167,6 +176,9 @@
 
   /* ── Countdown controls ── */
   .countdown-controls { display:flex; gap:8px; }
+  .cd-tab-bar { display:flex; gap:0; margin-top:6px; }
+  .cd-tab { flex:1; padding:5px 0; font-family:'MMRock9',monospace; font-size:7px; letter-spacing:0.08em; border:1px solid rgba(255,255,255,0.12); background:#060f1d; color:rgba(255,255,255,0.3); cursor:pointer; }
+  .cd-tab.active { background:rgba(74,222,128,0.07); border-color:rgba(74,222,128,0.45); color:#4ade80; }
   .ctrl-btn { flex:1; padding:12px; border-radius:0; border:1px solid; font-family:'MMRock9',monospace; font-size:9px; cursor:pointer; transition:all 0.15s; letter-spacing:0.06em; }
   .ctrl-btn.start { background:rgba(74,222,128,0.1); border-color:rgba(74,222,128,0.4); color:#4ade80; }
   .ctrl-btn.start:hover { background:rgba(74,222,128,0.25); }
@@ -537,6 +549,27 @@
   .px-card[data-wid="bluesky"] .bsky-post-card { border-color:rgba(0,133,255,0.25); }
   .px-card[data-wid="bluesky"] .preview-url span { color:#0085ff; }
 
+  /* ── Save status indicator ── */
+  .save-status-pill {
+    display:flex; align-items:center; gap:5px; padding:4px 9px;
+    border:1px solid; font-family:'MMRock9',monospace; font-size:7px;
+    letter-spacing:0.1em; pointer-events:none; white-space:nowrap;
+    transition:background 0.3s,border-color 0.3s,color 0.3s;
+  }
+  .save-status-dot {
+    width:6px; height:6px; border-radius:50%; flex-shrink:0;
+    transition:background 0.3s,box-shadow 0.3s;
+  }
+  .save-status-pill.ss-saved   { border-color:rgba(74,222,128,0.4);  color:#4ade80; background:rgba(74,222,128,0.08); }
+  .save-status-pill.ss-saved   .save-status-dot { background:#4ade80; box-shadow:0 0 5px #4ade8088; }
+  .save-status-pill.ss-pending { border-color:rgba(250,212,55,0.4);  color:#fad437; background:rgba(250,212,55,0.08); }
+  .save-status-pill.ss-pending .save-status-dot { background:#fad437; animation:ssDotPulse 0.9s ease-in-out infinite; }
+  .save-status-pill.ss-saving  { border-color:rgba(252,180,92,0.4);  color:#fcb45c; background:rgba(252,180,92,0.08); }
+  .save-status-pill.ss-saving  .save-status-dot { background:#fcb45c; animation:ssDotPulse 0.5s ease-in-out infinite; }
+  .save-status-pill.ss-error   { border-color:rgba(248,113,113,0.4); color:#f87171; background:rgba(248,113,113,0.08); }
+  .save-status-pill.ss-error   .save-status-dot { background:#f87171; }
+  @keyframes ssDotPulse { 0%,100%{opacity:1} 50%{opacity:0.25} }
+
   /* ── Pixel Bevel Buttons (pure CSS, no JS) ── */
   .px-btn {
     border-radius: 0 !important;
@@ -855,7 +888,13 @@
   <div style="display:flex;align-items:center;justify-content:space-between;width:100%;max-width:960px;padding:0 20px;box-sizing:border-box;">
     <button class="back-btn" style="margin:0;" onclick="showHome()">← Back</button>
     <h1 style="margin:0;">WIDGET SETTINGS</h1>
-    <button class="px-btn" style="font-size:8px;padding:6px 14px;font-family:'MMRock9',monospace;letter-spacing:0.08em;color:#5bc8f5;" onclick="loadSaveData(this)">↓ LOAD SAVE DATA</button>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div id="save-status-indicator" class="save-status-pill ss-saved" title="Auto-save status">
+        <span class="save-status-dot"></span>
+        <span id="save-status-text">SAVED</span>
+      </div>
+      <button class="px-btn" style="font-size:8px;padding:6px 14px;font-family:'MMRock9',monospace;letter-spacing:0.08em;color:#5bc8f5;" onclick="loadSaveData(this)">↓ LOAD SAVE DATA</button>
+    </div>
   </div>
 
   <!-- Tab bar -->
@@ -2142,7 +2181,11 @@
       html: `
         <div><div class="section-label">PREVIEW</div>
           <div class="preview-box" style="width:100%;"><iframe id="countdown-preview" src="http://localhost:7777/countdown" scrolling="no"></iframe></div>
-          <a class="preview-open" href="http://localhost:7777/countdown" target="_blank">↗ Open fullscreen</a></div>
+          <a class="preview-open" id="countdown-preview-open" href="http://localhost:7777/countdown" target="_blank">↗ Open fullscreen</a>
+          <div class="cd-tab-bar">
+            <button class="cd-tab active px-btn" id="cdTab1" onclick="switchCdTab(1)">COUNTDOWN 1</button>
+            <button class="cd-tab px-btn" id="cdTab2" onclick="switchCdTab(2)">COUNTDOWN 2</button>
+          </div></div>
         <div class="check-row" style="align-items:center;"><label style="font-size:9px;color:rgba(255,255,255,0.5);flex-shrink:0;min-width:90px;">ADD TO SLIDESHOW</label><select id="countdownSlideshow" onchange="saveCountdown()" style="flex:1;background:#0d1b2a;color:#e0e8f0;border:1px solid #1a2535;padding:3px 5px;font-family:'MMRock9',monospace;font-size:7px;letter-spacing:0.06em;"><option value="none">None</option><option value="brb">BRB Slideshow</option><option value="info">Info Slideshow</option><option value="both">Both</option></select></div>
         <div style="margin-bottom:8px;">
           <div class="section-label" style="cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center;" onclick="var _p=document.getElementById('cdShadowPanel'),_open=_p.style.display!=='block';_p.style.display=_open?'block':'none';if(_open){initShadowKnob('cdShadowKnob','cdShadowAngleVal',saveCountdown);drawShadowKnob('cdShadowKnob','cdShadowAngleVal');}">DROP SHADOW <span style="font-size:8px;opacity:0.4;">▶</span></div>
@@ -2169,7 +2212,7 @@
             <button class="ctrl-btn reset px-btn" onclick="countdownCmd('reset')">↺</button>
           </div>
           <div class="file-status" id="countdownStatus" style="margin-top:6px;text-align:center;"></div></div>
-        <div class="preview-url" onclick="copyUrl('http://localhost:7777/countdown','copy-countdown-widget')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#3a9fc8" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg><span>localhost:7777/countdown</span></div>
+        <div class="preview-url" onclick="copyUrl('http://localhost:7777/countdown'+(_cdTab===2?'2':''),'copy-countdown-widget')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#3a9fc8" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg><span id="cd-url-label">localhost:7777/countdown</span></div>
         <div class="copy-flash" id="copy-countdown-widget"></div>`
     },
     clock: {
@@ -2977,13 +3020,13 @@
                 </div>
                 <div class="row">
                   <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">BG RADIUS</label>
-                  <input type="range" min="0" max="30" step="1" id="pollBgRadius" value="0" oninput="pollApplySettings()">
+                  <input type="range" min="0" max="60" step="1" id="pollBgRadius" value="0" oninput="pollApplySettings()">
                   <span class="val" id="pollBgRadiusVal">0px</span>
                 </div>
                 <div class="row">
                   <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">BG WIDTH</label>
-                  <input type="range" min="10" max="200" step="5" id="pollBgWidth" value="100" oninput="pollApplySettings()">
-                  <span class="val" id="pollBgWidthVal">100%</span>
+                  <input type="range" min="50" max="600" step="5" id="pollBgWidth" value="150" oninput="pollApplySettings()">
+                  <span class="val" id="pollBgWidthVal">150px</span>
                 </div>
                 <div class="row">
                   <label style="font-size:9px;color:rgba(255,255,255,0.5);min-width:80px;">BG HEIGHT</label>
@@ -4710,6 +4753,8 @@
         setEl ('countdownLabel',      (w.countdown && w.countdown.label)      || 'Back in...');
         setEl ('countdownLabelColor', (w.countdown && w.countdown.labelColor) || '#aaaaaa');
         setEl ('countdownTimeColor',  (w.countdown && w.countdown.timeColor)  || '#ffffff');
+        _cd1Cache = { minutes:(w.countdown?.minutes)||5, label:(w.countdown?.label)||'Back in...', labelColor:(w.countdown?.labelColor)||'#aaaaaa', timeColor:(w.countdown?.timeColor)||'#ffffff', slideshow:w.countdown?.slideshow||(w.countdown?.inSlideshow?'brb':'none')||'none', shadow:w.countdown?.shadow||{} };
+        _cd2Cache = { minutes:(w.countdown2?.minutes)||5, label:(w.countdown2?.label)||'BRB',       labelColor:(w.countdown2?.labelColor)||'#aaaaaa', timeColor:(w.countdown2?.timeColor)||'#ffffff', slideshow:w.countdown2?.slideshow||'none', shadow:w.countdown2?.shadow||{} };
         setEl('socialSlideshow', w.social?.slideshow || (w.social?.inSlideshow ? 'brb' : 'none'));
         setEl ('socialMessage',     (w.social && w.social.message) || 'Follow for more!');
         setEl ('socialTwitch',      (w.social && w.social.twitch)  || '');
@@ -4820,7 +4865,7 @@
         _s('pollBarGap',   p.barGap);
         _s('pollBgOpacity',p.bgOpacity);
         _s('pollBgRadius', p.bgRadius);
-        _s('pollBgWidth',  p.bgWidth  > 200 ? '100' : p.bgWidth);
+        _s('pollBgWidth',  p.bgWidth);
         _s('pollBgHeight', p.bgHeight > 200 ? '100' : p.bgHeight);
         _s('pollBarRadius',p.barRadius);
         _s('pollMaxHeight',p.maxHeight);
@@ -5040,13 +5085,32 @@
   function renderOverrides() {
     const list=document.getElementById('overridesList'); list.innerHTML='';
     overrides.forEach((o,i)=>{
+      const popup = o.popup !== false;
       const row=document.createElement('div'); row.className='override-row';
-      row.innerHTML='<div class="override-fields"><div class="ov-label">SNIP RAW TEXT</div><input class="ov-input" data-i="'+i+'" data-field="raw" value="'+esc(o.raw)+'" placeholder="exact text from Snip.txt"/><div class="ov-label">DISPLAY TITLE</div><input class="ov-input" data-i="'+i+'" data-field="title" value="'+esc(o.title)+'" placeholder="Song title"/><div class="ov-label">DISPLAY ARTIST</div><input class="ov-input" data-i="'+i+'" data-field="artist" value="'+esc(o.artist)+'" placeholder="Artist"/></div><button class="del-btn" onclick="deleteOverride('+i+')">✕</button>';
+      row.innerHTML='<div class="override-fields">'
+        +'<div class="ov-label">SNIP RAW TEXT</div><input class="ov-input" data-i="'+i+'" data-field="raw" value="'+esc(o.raw)+'" placeholder="exact text from Snip.txt"/>'
+        +'<div class="ov-label">DISPLAY TITLE</div><input class="ov-input" data-i="'+i+'" data-field="title" value="'+esc(o.title)+'" placeholder="Song title"/>'
+        +'<div class="ov-label">DISPLAY ARTIST</div><input class="ov-input" data-i="'+i+'" data-field="artist" value="'+esc(o.artist)+'" placeholder="Artist"/>'
+        +'<div class="ov-toggle-row">'
+        +'<input type="checkbox" class="ov-toggle" data-i="'+i+'"'+(popup?' checked':'')+'/>'
+        +'<span class="ov-toggle-lbl '+(popup?'on':'off')+'">'+(popup?'POPUP ON':'POPUP OFF')+'</span>'
+        +'</div>'
+        +'</div>'
+        +'<button class="del-btn" onclick="deleteOverride('+i+')">✕</button>';
       list.appendChild(row);
     });
     list.querySelectorAll('.ov-input').forEach(inp=>{ inp.addEventListener('input',()=>{overrides[inp.dataset.i][inp.dataset.field]=inp.value;}); });
+    list.querySelectorAll('.ov-toggle').forEach(tog=>{
+      tog.addEventListener('change',()=>{
+        const idx=+tog.dataset.i;
+        overrides[idx].popup=tog.checked;
+        const lbl=tog.closest('.ov-toggle-row').querySelector('.ov-toggle-lbl');
+        if(lbl){ lbl.textContent=tog.checked?'POPUP ON':'POPUP OFF'; lbl.className='ov-toggle-lbl '+(tog.checked?'on':'off'); }
+        saveOverrides();
+      });
+    });
   }
-  function addOverride() { overrides.push({raw:'',title:'',artist:''}); renderOverrides(); document.getElementById('overridesList').scrollTop=999999; }
+  function addOverride() { overrides.push({raw:'',title:'',artist:'',popup:true}); renderOverrides(); document.getElementById('overridesList').scrollTop=999999; }
   function deleteOverride(i) { overrides.splice(i,1); renderOverrides(); }
   async function saveOverrides() {
     await fetch('/saveoverrides',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(overrides)});
@@ -5067,12 +5131,15 @@
     if (!clientId) { flashEl('discordConnectStatus', 'Enter client ID first', 'file-status'); return; }
     flashEl('discordConnectStatus', 'Connecting...', 'file-status');
     try {
+      _setSaveStatus('saving', 'CONNECTING DISCORD');
       await fetch('/discord-connect', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ clientId, ...(clientSecret ? { clientSecret } : {}) })
       });
+      _discordPendingAuth = true;
+      _setSaveStatus('saving', 'WAITING FOR AUTH');
       discordStartStatusPoll();
-    } catch(e) { flashEl('discordConnectStatus', 'Error: ' + e.message, 'file-status'); }
+    } catch(e) { flashEl('discordConnectStatus', 'Error: ' + e.message, 'file-status'); _setSaveStatus('error', 'DISCORD ERROR'); _savedFlashTimer = setTimeout(() => _setSaveStatus('saved', 'SAVED'), 4000); }
   }
 
   function discordStartStatusPoll() {
@@ -5093,6 +5160,7 @@
       const indicator = document.getElementById('discord-account-indicator');
       const tabDot = document.getElementById('discord-tab-dot');
       if (d.status === 'authenticated') {
+        if (_discordPendingAuth) { _discordPendingAuth = false; _setSaveStatus('saved', 'DISCORD CONNECTED'); }
         if (statusEl) statusEl.textContent = '';
         if (infoWrap) infoWrap.style.display = 'flex';
         if (d.user && userLine) userLine.textContent = '● ' + (d.user.username || 'Connected');
@@ -5110,6 +5178,7 @@
         if (indicator) { indicator.textContent = '● CONNECTING...'; indicator.style.color = 'rgba(255,220,80,0.7)'; }
         if (tabDot) tabDot.style.display = 'none';
       } else if (d.status === 'error') {
+        if (_discordPendingAuth) { _discordPendingAuth = false; _setSaveStatus('error', 'DISCORD ERROR'); _savedFlashTimer = setTimeout(() => _setSaveStatus('saved', 'SAVED'), 4000); }
         if (statusEl) { statusEl.textContent = d.error || 'Connection failed'; statusEl.className = 'file-status'; }
         if (indicator) { indicator.textContent = '● ERROR'; indicator.style.color = 'rgba(248,113,113,0.8)'; }
         if (tabDot) tabDot.style.display = 'none';
@@ -5733,10 +5802,123 @@
   }
 
 
+  // ── Status indicator ─────────────────────────────────────────────────────────
+  let _savePendingCount  = 0;
+  let _savedFlashTimer   = null;
+  let _typingPending     = false;
+  let _discordPendingAuth = false;
+
+  function _setSaveStatus(state, label) {
+    clearTimeout(_savedFlashTimer);
+    const pill = document.getElementById('save-status-indicator');
+    const txt  = document.getElementById('save-status-text');
+    if (!pill) return;
+    pill.className = 'save-status-pill ss-' + state;
+    const defaults = { saved:'SAVED', pending:'PENDING', saving:'SAVING', error:'ERROR' };
+    if (txt) txt.textContent = label || defaults[state] || 'SAVED';
+  }
+
+  // Intercept every fetch to drive the status indicator
+  (function() {
+    const _origFetch = window.fetch.bind(window);
+
+    // Background, auto-polled, or have their own inline status — never show in global indicator
+    const QUIET_RE = /\/(poll-status|youtube-status|discord-status|yt-quota|charvote-status|achievements-status|hype-status|stream-queue-status|bluesky-post-status|bluesky-status|replay-files|fonts-list|bitly-count|brb-config|info-config|startgg$|startgg-token|stream-queue-poll|countdown-cmd|discord-connect)/;
+
+    // Generic save endpoints
+    const SAVE_RE = /\/(save-settings|save\?|savefile|saveoverrides|save-layout)/;
+
+    // Action endpoints: [urlPattern, startLabel, doneLabel]
+    const ACTIONS = [
+      [/\/switch-profile/,           'SWITCHING PROFILE',   'PROFILE LOADED'],
+      [/\/create-profile/,           'CREATING PROFILE',    'PROFILE CREATED'],
+      [/\/delete-profile/,           'DELETING PROFILE',    'DELETED'],
+      [/\/rename-profile/,           'RENAMING',            'RENAMED'],
+      [/\/import-profile/,           'IMPORTING PROFILE',   'PROFILE IMPORTED'],
+      [/\/youtube-find-broadcast/,   'SEARCHING',           'BROADCAST FOUND'],
+      [/\/youtube-set-broadcast/,    'LINKING CHAT',        'LIVE CHAT LINKED'],
+      [/\/youtube-disconnect/,       'DISCONNECTING',       'DISCONNECTED'],
+      [/\/bluesky-login/,            'LOGGING IN',          'LOGGED IN'],
+      [/\/bluesky-post-image/,       'UPLOADING IMAGE',     'IMAGE POSTED'],
+      [/\/bluesky-post/,             'POSTING',             'POSTED'],
+      [/\/bluesky-cancel/,           'CANCELLING',          'CANCELLED'],
+      [/\/startgg-participants/,     'LOADING PFPs',        'PFPs LOADED'],
+      [/\/startgg-characters/,       'LOADING PORTRAITS',   'PORTRAITS LOADED'],
+      [/\/poll-open/,                'OPENING POLL',        'POLL OPEN'],
+      [/\/poll-close/,               'CLOSING POLL',        'POLL CLOSED'],
+      [/\/poll-set-winner/,          'SETTING WINNER',      'WINNER SET'],
+      [/\/charvote-start/,           'STARTING VOTE',       'VOTE ACTIVE'],
+      [/\/charvote-stop/,            'STOPPING VOTE',       'VOTE STOPPED'],
+      [/\/charvote-reset/,           'RESETTING VOTE',      'RESET'],
+      [/\/hype-start/,               'STARTING HYPE TRAIN', 'HYPE ACTIVE'],
+      [/\/hype-stop/,                'STOPPING HYPE',       'HYPE STOPPED'],
+      [/\/hype-reset/,               'RESETTING HYPE',      'RESET'],
+      [/\/hype-test/,                'FIRING TEST',         'TEST FIRED'],
+      [/\/achievements-reset/,       'RESETTING',           'ACHIEVEMENTS RESET'],
+      [/\/achievements-award/,       'AWARDING',            'AWARDED'],
+      [/\/bitly-verify/,             'CONNECTING BITLY',    'CONNECTED'],
+      [/\/bitly-reset-count/,        'RESETTING COUNT',     'COUNT RESET'],
+      [/\/stream-queue-set-current/, 'UPDATING MATCH',      'MATCH UPDATED'],
+    ];
+
+    window.fetch = function(url, opts) {
+      const p = _origFetch(url, opts);
+      if (typeof url !== 'string') return p;
+      if (QUIET_RE.test(url)) return p;
+
+      if (SAVE_RE.test(url)) {
+        if (!_typingPending) {
+          _savePendingCount++;
+          _setSaveStatus('saving', 'SAVING');
+          p.then(() => {
+            _savePendingCount = Math.max(0, _savePendingCount - 1);
+            if (_savePendingCount === 0 && !_typingPending) _savedFlashTimer = setTimeout(() => _setSaveStatus('saved', 'SAVED'), 300);
+          }).catch(() => {
+            _savePendingCount = Math.max(0, _savePendingCount - 1);
+            if (_savePendingCount === 0 && !_typingPending) { _setSaveStatus('error', 'SAVE ERROR'); _savedFlashTimer = setTimeout(() => _setSaveStatus('saved', 'SAVED'), 4000); }
+          });
+        }
+        return p;
+      }
+
+      for (const [re, startLabel, doneLabel] of ACTIONS) {
+        if (re.test(url)) {
+          _setSaveStatus('saving', startLabel);
+          p.then(() => {
+            if (doneLabel) _savedFlashTimer = setTimeout(() => _setSaveStatus('saved', doneLabel), 200);
+            else _savedFlashTimer = setTimeout(() => _setSaveStatus('saved', 'SAVED'), 200);
+          }).catch(() => { _setSaveStatus('error', 'ERROR'); _savedFlashTimer = setTimeout(() => _setSaveStatus('saved', 'SAVED'), 4000); });
+          break;
+        }
+      }
+
+      return p;
+    };
+  })();
+  // ── End status indicator ─────────────────────────────────────────────────────
+
+  // PENDING while any text field is focused; resolves on blur
+  document.addEventListener('focusin', function(e) {
+    const tag = e.target && e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') {
+      _typingPending = true;
+      _setSaveStatus('pending', 'PENDING');
+    }
+  }, true);
+  document.addEventListener('focusout', function(e) {
+    const tag = e.target && e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') {
+      clearTimeout(_autoSaveTimer);
+      doAutoSave();
+    }
+  }, true);
+
   // ── Universal auto-save: fires 700ms after last keystroke ──────────────────
   let _autoSaveTimer = null;
   function autoSave() {
     clearTimeout(_autoSaveTimer);
+    _typingPending = true;
+    _setSaveStatus('pending', 'PENDING');
     _autoSaveTimer = setTimeout(doAutoSave, 700);
   }
   function syncStartggFromChat() {
@@ -5780,17 +5962,21 @@
     const bitlyPosActive = document.querySelector('[id^="btPos-"].active');
     if (bitlyPosActive) add('bitlyPosition', bitlyPosActive.dataset.val);
     add('autoSyncStreamQueue', document.getElementById('autoSyncStreamQueue')?.checked ?? null);
-    if (!Object.keys(body).length) return;
+    if (!Object.keys(body).length) { _typingPending = false; _setSaveStatus('saved', 'SAVED'); return; }
     await fetch('/save-settings', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     }).catch(() => {});
+    _typingPending = false;
+    _setSaveStatus('saved', 'SAVED');
   }
   // ── End auto-save ───────────────────────────────────────────────────────────
 
 
   async function loadSaveData(btn) {
+    _setSaveStatus('saving', 'LOADING DATA');
     await load();
+    _setSaveStatus('saved', 'LOADED');
     if (btn) { const orig = btn.textContent; btn.textContent = '✓ LOADED'; setTimeout(() => btn.textContent = orig, 1500); }
   }
 
@@ -7273,26 +7459,62 @@
     } catch(e) { const el=document.getElementById(statusId); if(el) el.textContent='Error'; }
   }
 
+  let _brbDisabledSlides  = new Set();
+  let _infoDisabledSlides = new Set();
+
+  async function saveDisabledSlides(which) {
+    const key = which === 'brb' ? 'brbDisabledSlides' : 'infoDisabledSlides';
+    const val = which === 'brb' ? [..._brbDisabledSlides] : [..._infoDisabledSlides];
+    try {
+      await fetch('/save-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({[key]:val})});
+    } catch(e){}
+  }
+
+  function _buildFileList(slides, disabledSet, onToggle) {
+    const list = document.createElement('div');
+    list.className = 'file-list';
+    slides.forEach(function(s) {
+      const off = s.disabled;
+      const name = s.src.split('/').pop();
+      const badge = s.type==='image' ? '<span class="badge img">IMG</span>' : s.type==='video' ? '<span class="badge vid">VID</span>' : '<span class="badge html">HTML</span>';
+      const item = document.createElement('div');
+      item.className = 'file-item' + (off ? ' file-item-off' : '');
+      item.innerHTML = badge + '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + name + '</span><input type="checkbox" class="ov-toggle"' + (!off ? ' checked' : '') + '/>';
+      item.querySelector('.ov-toggle').addEventListener('change', function() {
+        onToggle(s.src, this.checked);
+        item.classList.toggle('file-item-off', !this.checked);
+      });
+      list.appendChild(item);
+    });
+    return list;
+  }
+
   async function refreshFileList() {
     const wrap=document.getElementById('fileListWrap');
     try {
       const r=await fetch('/brb-config'); const c=await r.json();
-      if(!c.slides||c.slides.length===0){wrap.innerHTML='<div class="file-list"><div class="file-empty">No supported files found</div></div>';return;}
-      const items=c.slides.filter(s=>s.src).map(s=>{
-        const name=s.src.split('/').pop();
-        const badge=s.type==='image'?'<span class="badge img">IMG</span>':s.type==='video'?'<span class="badge vid">VID</span>':'<span class="badge html">HTML</span>';
-        return '<div class="file-item">'+badge+'<span>'+name+'</span></div>';
-      }).join('');
-      wrap.innerHTML='<div class="file-list">'+items+'</div>';
+      const all=(c.allSlides||c.slides||[]).filter(s=>s.src);
+      if(!all.length){wrap.innerHTML='<div class="file-list"><div class="file-empty">No supported files found</div></div>';return;}
+      _brbDisabledSlides=new Set(all.filter(s=>s.disabled).map(s=>s.src));
+      wrap.innerHTML='';
+      wrap.appendChild(_buildFileList(all,_brbDisabledSlides,function(src,enabled){
+        if(enabled) _brbDisabledSlides.delete(src); else _brbDisabledSlides.add(src);
+        saveDisabledSlides('brb');
+      }));
     } catch(e){wrap.innerHTML='<div class="file-list"><div class="file-empty">Could not scan folder</div></div>';}
   }
 
   // ── Countdown ────────────────────────────────────────────────────────────────
+  let _cdTab = 1;
+  let _cd1Cache = null;
+  let _cd2Cache = null;
+
   async function saveCountdown() {
+    const slot = _cdTab === 2 ? 'countdown2' : 'countdown';
     const sw = document.getElementById('countdownSlideshow')?.value || 'none';
-    _wSlideshowState.countdown.slideshow = sw; renderSlideshowLinks();
+    if (_wSlideshowState[slot]) { _wSlideshowState[slot].slideshow = sw; renderSlideshowLinks(); }
     try {
-      await fetch('/save-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brb:{widgets:{countdown:{
+      await fetch('/save-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brb:{widgets:{[slot]:{
         minutes:parseFloat(document.getElementById('countdownMinutes').value),
         label:document.getElementById('countdownLabel').value.trim(),
         slideshow:sw,
@@ -7303,11 +7525,48 @@
     } catch(e){}
   }
   async function countdownCmd(cmd) {
+    const ep = _cdTab === 2 ? '/countdown-cmd2' : '/countdown-cmd';
     try {
-      const r=await fetch('/countdown-cmd',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cmd})});
+      const r=await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cmd})});
       const d=await r.json();
       flashEl('countdownStatus',d.state||cmd,'file-status ok');
     } catch(e){flashEl('countdownStatus','Error','file-status err');}
+  }
+  function switchCdTab(n) {
+    if (n === _cdTab) return;
+    const cur = {
+      minutes:    parseFloat(document.getElementById('countdownMinutes').value) || 5,
+      label:      document.getElementById('countdownLabel').value,
+      labelColor: document.getElementById('countdownLabelColor').value,
+      timeColor:  document.getElementById('countdownTimeColor').value,
+      slideshow:  document.getElementById('countdownSlideshow')?.value || 'none',
+      shadow:     getShadow('cd')
+    };
+    if (_cdTab === 1) _cd1Cache = cur; else _cd2Cache = cur;
+    _cdTab = n;
+    const data = n === 1 ? _cd1Cache : _cd2Cache;
+    if (data) {
+      document.getElementById('countdownMinutes').value       = data.minutes;
+      document.getElementById('countdownMinutesVal').textContent = data.minutes + 'm 00s';
+      document.getElementById('countdownTimeInput').value     = formatMmSs(data.minutes * 60);
+      document.getElementById('countdownLabel').value         = data.label      || '';
+      document.getElementById('countdownLabelColor').value    = data.labelColor || '#aaaaaa';
+      document.getElementById('countdownTimeColor').value     = data.timeColor  || '#ffffff';
+      const sw = document.getElementById('countdownSlideshow');
+      if (sw) sw.value = data.slideshow || 'none';
+      loadShadow('cd', data.shadow || {});
+      if (document.getElementById('cdShadowPanel')?.style.display === 'block')
+        drawShadowKnob('cdShadowKnob', 'cdShadowAngleVal');
+    }
+    const url = n === 2 ? 'http://localhost:7777/countdown2' : 'http://localhost:7777/countdown';
+    const prev = document.getElementById('countdown-preview');
+    if (prev) prev.src = url;
+    const lnk = document.getElementById('countdown-preview-open');
+    if (lnk) lnk.href = url;
+    const lbl = document.getElementById('cd-url-label');
+    if (lbl) lbl.textContent = 'localhost:7777/countdown' + (n === 2 ? '2' : '');
+    document.getElementById('cdTab1').classList.toggle('active', n === 1);
+    document.getElementById('cdTab2').classList.toggle('active', n === 2);
   }
 
   // ── Clock ─────────────────────────────────────────────────────────────────────
@@ -7399,8 +7658,9 @@
   }
 
   async function saveCountdownSecs(totalSecs) {
+    const slot = _cdTab === 2 ? 'countdown2' : 'countdown';
     try {
-      await fetch('/save-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brb:{widgets:{countdown:{minutes: totalSecs/60, label:document.getElementById('countdownLabel').value.trim(), inSlideshow:document.getElementById('countdownInSlideshow').checked, labelColor:document.getElementById('countdownLabelColor').value, timeColor:document.getElementById('countdownTimeColor').value}}}})});
+      await fetch('/save-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({brb:{widgets:{[slot]:{minutes: totalSecs/60, label:document.getElementById('countdownLabel').value.trim(), labelColor:document.getElementById('countdownLabelColor').value, timeColor:document.getElementById('countdownTimeColor').value}}}})});
     } catch(e) {}
   }
 
@@ -7716,13 +7976,14 @@
     const wrap = document.getElementById('infoFileListWrap'); if (!wrap) return;
     try {
       const r = await fetch('/info-config'); const c = await r.json();
-      if (!c.slides||c.slides.length===0) { wrap.innerHTML='<div class="file-list"><div class="file-empty">No supported files found</div></div>'; return; }
-      const items = c.slides.filter(s=>s.src).map(s=>{
-        const name=s.src.split('/').pop();
-        const badge=s.type==='image'?'<span class="badge img">IMG</span>':s.type==='video'?'<span class="badge vid">VID</span>':'<span class="badge html">HTML</span>';
-        return '<div class="file-item">'+badge+'<span>'+name+'</span></div>';
-      }).join('');
-      wrap.innerHTML='<div class="file-list">'+items+'</div>';
+      const all = (c.allSlides||c.slides||[]).filter(s=>s.src);
+      if (!all.length) { wrap.innerHTML='<div class="file-list"><div class="file-empty">No supported files found</div></div>'; return; }
+      _infoDisabledSlides = new Set(all.filter(s=>s.disabled).map(s=>s.src));
+      wrap.innerHTML = '';
+      wrap.appendChild(_buildFileList(all, _infoDisabledSlides, function(src, enabled) {
+        if (enabled) _infoDisabledSlides.delete(src); else _infoDisabledSlides.add(src);
+        saveDisabledSlides('info');
+      }));
     } catch(e) { wrap.innerHTML='<div class="file-list"><div class="file-empty">Could not scan folder</div></div>'; }
   }
 
@@ -8193,7 +8454,7 @@
     _v('pollBarGapVal',    barGap    + 'px');
     _v('pollBgOpacityVal', bgOpacity.toFixed(2));
     _v('pollBgRadiusVal',  bgRadius  + 'px');
-    _v('pollBgWidthVal',   bgWidth   + '%');
+    _v('pollBgWidthVal',   bgWidth   + 'px');
     _v('pollBgHeightVal',  bgHeight  + '%');
     _v('pollBarRadiusVal', barRadius + 'px');
     _v('pollMaxHeightVal', maxHeight + 'px');
@@ -8201,27 +8462,34 @@
     _v('pollVoteSizeVal',  voteSize  + 'px');
     _v('pollPfpSizeVal',   pfpSize   + 'px');
 
-    // Preview box gap (bg is handled by #mock-bg)
-    const box = document.getElementById('poll-preview-box');
-    if (box) box.style.gap = barGap + 'px';
+    // Unified mock scale: derive from actual content width so every element is proportional
+    const _actualColW     = Math.max(barWidth, pfpSize);
+    const _actualContentW = _actualColW * 2 + barGap;
+    const mockScale       = Math.min(1.0, 110 / Math.max(_actualContentW, 1));
+    const mockBarW        = Math.max(4, Math.round(barWidth * mockScale));
+    const mockColW        = Math.max(mockBarW, Math.round(pfpSize * mockScale));
+    const mockGapPx       = Math.max(2, Math.round(barGap * mockScale));
 
-    // Mock bg — percentages match the overlay exactly
+    // Preview box gap
+    const box = document.getElementById('poll-preview-box');
+    if (box) box.style.gap = mockGapPx + 'px';
+
+    // Mock bg — scaled 1:1 with the rest of the mock
     const mockBg = document.getElementById('mock-bg');
     if (mockBg) {
       mockBg.style.background   = bgOpacity > 0 ? 'rgba(3,12,28,' + bgOpacity + ')' : 'transparent';
-      mockBg.style.borderRadius = bgRadius + 'px';
-      mockBg.style.width        = bgWidth  + '%';
+      mockBg.style.borderRadius = Math.round(bgRadius * mockScale) + 'px';
+      mockBg.style.width        = Math.round(bgWidth  * mockScale) + 'px';
       mockBg.style.height       = bgHeight + '%';
     }
 
     // Column + bar wrap widths and max-height
-    const colW = Math.max(30, barWidth) + 'px';
-    const col1 = document.getElementById('mock-col1'); if (col1) col1.style.width = colW;
-    const col2 = document.getElementById('mock-col2'); if (col2) col2.style.width = colW;
+    const col1 = document.getElementById('mock-col1'); if (col1) col1.style.width = mockColW + 'px';
+    const col2 = document.getElementById('mock-col2'); if (col2) col2.style.width = mockColW + 'px';
     const bw1  = document.getElementById('mock-bar-wrap1');
-    if (bw1) { bw1.style.width = barWidth + 'px'; bw1.style.maxHeight = maxHeightEnabled ? Math.round(maxHeight * 0.467) + 'px' : ''; bw1.style.position = 'relative'; bw1.style.zIndex = '1'; }
+    if (bw1) { bw1.style.width = mockBarW + 'px'; bw1.style.maxHeight = maxHeightEnabled ? Math.round(maxHeight * 0.467) + 'px' : ''; bw1.style.position = 'relative'; bw1.style.zIndex = '1'; }
     const bw2  = document.getElementById('mock-bar-wrap2');
-    if (bw2) { bw2.style.width = barWidth + 'px'; bw2.style.maxHeight = maxHeightEnabled ? Math.round(maxHeight * 0.467) + 'px' : ''; bw2.style.position = 'relative'; bw2.style.zIndex = '1'; }
+    if (bw2) { bw2.style.width = mockBarW + 'px'; bw2.style.maxHeight = maxHeightEnabled ? Math.round(maxHeight * 0.467) + 'px' : ''; bw2.style.position = 'relative'; bw2.style.zIndex = '1'; }
 
     // Bar fill colors + radius
     const f1 = document.getElementById('mock-fill1');
@@ -8250,8 +8518,8 @@
     const mv2 = document.getElementById('mock-votes2');
     if (mv2) { mv2.style.color = p2TextColor + '99'; mv2.style.fontSize = mockVoteSize + 'px'; mv2.style.textShadow = _mShadow; }
 
-    // Portrait size, shape, and bar-behind overlap (mock scaled at 0.3×)
-    const mockPfpSize = Math.max(12, Math.round(pfpSize * 0.3));
+    // Portrait size, shape, and bar-behind overlap — unified mockScale
+    const mockPfpSize = Math.max(6, Math.round(pfpSize * mockScale));
     const mockOverlap = Math.round(mockPfpSize * 0.45);
     const mp1 = document.getElementById('mock-portrait1');
     if (mp1) {
@@ -8280,10 +8548,10 @@
     const hPct2 = document.getElementById('mock-h-pct2'); if (hPct2) { hPct2.style.color = p2TextColor; hPct2.style.fontSize = mockPctSize + 'px'; hPct2.style.textShadow = _mShadow; }
     const hVotes1 = document.getElementById('mock-h-votes1'); if (hVotes1) { hVotes1.style.color = p1TextColor + '99'; hVotes1.style.fontSize = mockVoteSize + 'px'; hVotes1.style.textShadow = _mShadow; }
     const hVotes2 = document.getElementById('mock-h-votes2'); if (hVotes2) { hVotes2.style.color = p2TextColor + '99'; hVotes2.style.fontSize = mockVoteSize + 'px'; hVotes2.style.textShadow = _mShadow; }
-    const hPfpSz = Math.max(12, Math.round(pfpSize * 0.3));
+    const hPfpSz = Math.max(6, Math.round(pfpSize * mockScale));
     const hPfp1 = document.getElementById('mock-h-pfp1'); if (hPfp1) { hPfp1.style.width = hPfpSz + 'px'; hPfp1.style.height = hPfpSz + 'px'; hPfp1.style.borderColor = p1Color + '66'; hPfp1.style.borderRadius = pfpShape === 'modern' ? '50%' : '0'; }
     const hPfp2 = document.getElementById('mock-h-pfp2'); if (hPfp2) { hPfp2.style.width = hPfpSz + 'px'; hPfp2.style.height = hPfpSz + 'px'; hPfp2.style.borderColor = p2Color + '66'; hPfp2.style.borderRadius = pfpShape === 'modern' ? '50%' : '0'; }
-    const hBg = document.getElementById('mock-h-bg'); if (hBg) { hBg.style.background = bgOpacity > 0 ? 'rgba(3,12,28,' + bgOpacity + ')' : 'transparent'; hBg.style.borderRadius = bgRadius + 'px'; hBg.style.width = bgWidth + '%'; hBg.style.height = bgHeight + '%'; }
+    const hBg = document.getElementById('mock-h-bg'); if (hBg) { hBg.style.background = bgOpacity > 0 ? 'rgba(3,12,28,' + bgOpacity + ')' : 'transparent'; hBg.style.borderRadius = Math.round(bgRadius * mockScale) + 'px'; hBg.style.width = Math.round(bgWidth * mockScale) + 'px'; hBg.style.height = bgHeight + '%'; }
     const hBox = document.getElementById('poll-h-preview-box'); if (hBox) hBox.style.gap = Math.max(4, Math.round(barGap * 0.4)) + 'px';
 
     fetch('/save-settings', {

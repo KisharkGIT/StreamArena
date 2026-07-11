@@ -37,7 +37,8 @@ function findFontPath(name) {
 let triggerCount = 0;
 
 // ── Countdown state ───────────────────────────────────────────────────────────
-let countdownState = { running: false, endTime: null, remaining: 0, totalMs: 300000 };
+let countdownState  = { running: false, endTime: null, remaining: 0, totalMs: 300000 };
+let countdownState2 = { running: false, endTime: null, remaining: 0, totalMs: 300000 };
 let _bitlyCache = null; // { rawCount, stat }
 let _bitlyCacheTs = 0;
 
@@ -45,6 +46,10 @@ function tickCountdown() {
   if (countdownState.running && countdownState.endTime) {
     countdownState.remaining = Math.max(0, countdownState.endTime - Date.now());
     if (countdownState.remaining === 0) countdownState.running = false;
+  }
+  if (countdownState2.running && countdownState2.endTime) {
+    countdownState2.remaining = Math.max(0, countdownState2.endTime - Date.now());
+    if (countdownState2.remaining === 0) countdownState2.running = false;
   }
 }
 setInterval(tickCountdown, 200);
@@ -160,7 +165,8 @@ const DEFAULTS = {
     tshRoot:  'C:/Users/kisha/Desktop/MMA_Casting/TSH/TournamentStreamHelper-5.970',
     widgets: {
       clock:     { enabled: false, format: '12h', label: 'Be Right Back' },
-      countdown: { enabled: false, minutes: 5, label: 'Back in...' },
+      countdown:  { enabled: false, minutes: 5, label: 'Back in...' },
+      countdown2: { enabled: false, minutes: 5, label: 'BRB' },
       social:    { enabled: false, twitch: '', twitter: '', discord: '', message: 'Follow for more!' },
       nextMatch: { inSlideshow: false, p1: '', p2: '', round: '', duration: 15 }
     }
@@ -210,9 +216,10 @@ function _brbMerge(saved) {
     imageDuration: b.imageDuration || db.imageDuration,
     htmlDuration:  b.htmlDuration  || db.htmlDuration,
     widgets: Object.assign({}, db.widgets, b.widgets || {}, {
-      clock:     Object.assign({}, db.widgets.clock,     (b.widgets||{}).clock     || {}),
-      countdown: Object.assign({}, db.widgets.countdown, (b.widgets||{}).countdown || {}),
-      social:    Object.assign({}, db.widgets.social,    (b.widgets||{}).social    || {})
+      clock:      Object.assign({}, db.widgets.clock,      (b.widgets||{}).clock      || {}),
+      countdown:  Object.assign({}, db.widgets.countdown,  (b.widgets||{}).countdown  || {}),
+      countdown2: Object.assign({}, db.widgets.countdown2, (b.widgets||{}).countdown2 || {}),
+      social:     Object.assign({}, db.widgets.social,     (b.widgets||{}).social     || {})
     })
   });
 }
@@ -347,13 +354,13 @@ function parseSong(raw, overrides) {
     o.raw === raw || normalize(o.raw) === normalize(raw)
   ));
   if (ov) {
-    return { raw, title: ov.title || raw, artist: ov.artist || '' };
+    return { raw, title: ov.title || raw, artist: ov.artist || '', popup: ov.popup !== false };
   }
   const dash = raw.indexOf(' - ');
   if (dash !== -1) {
-    return { raw, artist: raw.slice(0, dash).trim(), title: raw.slice(dash + 3).trim() };
+    return { raw, artist: raw.slice(0, dash).trim(), title: raw.slice(dash + 3).trim(), popup: true };
   }
-  return { raw, title: raw, artist: '' };
+  return { raw, title: raw, artist: '', popup: true };
 }
 
 // ── YouTube Chat global state ─────────────────────────────────────────────────
@@ -828,7 +835,8 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/controls')                    { serveHtml('controls.html', res); return; }
   if (pathname === '/brb')       { serveHtml('brb-overlay.html',    res); return; }
   if (pathname === '/clock')     { serveHtml('clock-overlay.html',  res); return; }
-  if (pathname === '/countdown') { serveHtml('countdown-overlay.html', res); return; }
+  if (pathname === '/countdown')  { serveHtml('countdown-overlay.html', res); return; }
+  if (pathname === '/countdown2') { serveHtml('countdown-overlay.html', res); return; }
   if (pathname === '/social')     { serveHtml('social-overlay.html',    res); return; }
   if (pathname === '/nextmatch')      { serveHtml('nextmatch-overlay.html',  res); return; }
   if (pathname === '/poll-overlay')         { serveHtml('poll-overlay.html',         res); return; }
@@ -862,6 +870,29 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // Countdown 2 control
+  if (pathname === '/countdown-cmd2' && req.method === 'POST') {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const s2   = loadSettings();
+      const mins = (s2.brb && s2.brb.widgets && s2.brb.widgets.countdown2 && s2.brb.widgets.countdown2.minutes) || 5;
+      countdownState2.totalMs = mins * 60 * 1000;
+      if (body.cmd === 'start') {
+        countdownState2.endTime   = Date.now() + (countdownState2.remaining > 0 ? countdownState2.remaining : countdownState2.totalMs);
+        countdownState2.running   = true;
+        countdownState2.remaining = countdownState2.remaining > 0 ? countdownState2.remaining : countdownState2.totalMs;
+      } else if (body.cmd === 'stop') {
+        countdownState2.running = false;
+      } else if (body.cmd === 'reset') {
+        countdownState2.running   = false;
+        countdownState2.remaining = countdownState2.totalMs;
+        countdownState2.endTime   = null;
+      }
+      json200(res, { state: body.cmd, remaining: countdownState2.remaining });
+    } catch(e) { res.writeHead(400); res.end('Bad request'); }
+    return;
+  }
+
   // Countdown state for overlay polling
   if (pathname === '/countdown-state') {
     const s2 = loadSettings();
@@ -871,6 +902,21 @@ const server = http.createServer(async (req, res) => {
       remaining:  countdownState.remaining,
       totalMs:    countdownState.totalMs,
       label:      w.label      || 'Back in...',
+      labelColor: w.labelColor || '#aaaaaa',
+      timeColor:  w.timeColor  || '#ffffff',
+      globalFont: (s2.brb && s2.brb.globalFont) || 'MMRock9',
+      shadow:     w.shadow     || {}
+    }); return;
+  }
+
+  if (pathname === '/countdown-state2') {
+    const s2 = loadSettings();
+    const w  = s2.brb && s2.brb.widgets && s2.brb.widgets.countdown2 || {};
+    json200(res, {
+      running:    countdownState2.running,
+      remaining:  countdownState2.remaining,
+      totalMs:    countdownState2.totalMs,
+      label:      w.label      || 'BRB',
       labelColor: w.labelColor || '#aaaaaa',
       timeColor:  w.timeColor  || '#ffffff',
       globalFont: (s2.brb && s2.brb.globalFont) || 'MMRock9',
@@ -1296,7 +1342,10 @@ const server = http.createServer(async (req, res) => {
       return { type, src, manual: true, ...(dur ? { duration: dur } : {}) };
     });
     const seenInfo = new Set(folderSlides.map(s2 => s2.src));
-    const combined = [...folderSlides, ...manualSlides.filter(m => !seenInfo.has(m.src))];
+    const fileSlides = [...folderSlides, ...manualSlides.filter(m => !seenInfo.has(m.src))];
+    const infoDisabled = new Set(s.infoDisabledSlides || []);
+    const allSlides = fileSlides.map(sl => ({ ...sl, disabled: infoDisabled.has(sl.src) }));
+    const combined = allSlides.filter(sl => !sl.disabled);
 
     // Add widget slides enabled for INFO
     const w = s.brb.widgets || {};
@@ -1313,7 +1362,8 @@ const server = http.createServer(async (req, res) => {
       }
     }
     json200(res, {
-      slides: combined,
+      slides:    combined,
+      allSlides: allSlides,
       imageDuration: info.imageDuration || 10,
       htmlDuration:  info.htmlDuration  || 20,
       videoDuration: info.videoDuration || 0,
@@ -2543,7 +2593,10 @@ const server = http.createServer(async (req, res) => {
       return { type, src, manual: true, ...(dur ? { duration: dur } : {}) };
     });
     const seen = new Set(folderSlides.map(s => s.src));
-    const combined = [...folderSlides, ...manualSlides.filter(m => !seen.has(m.src))];
+    const fileSlides = [...folderSlides, ...manualSlides.filter(m => !seen.has(m.src))];
+    const brbDisabled = new Set(s.brbDisabledSlides || []);
+    const allSlides = fileSlides.map(sl => ({ ...sl, disabled: brbDisabled.has(sl.src) }));
+    const combined = allSlides.filter(sl => !sl.disabled);
 
     // Add widget slides if enabled for BRB
     const w = s.brb.widgets || {};
@@ -2564,6 +2617,7 @@ const server = http.createServer(async (req, res) => {
 
     json200(res, {
       slides:        combined,
+      allSlides:     allSlides,
       imageDuration: s.brb.imageDuration || 10,
       nextMatchDuration: (w.nextMatch && w.nextMatch.duration) || 15,
       htmlDuration:  s.brb.htmlDuration  || 20,
@@ -2582,8 +2636,9 @@ const server = http.createServer(async (req, res) => {
         const newWidgets = body.brb.widgets
           ? Object.assign({}, s.brb.widgets || {}, {
               clock:     Object.assign({}, (s.brb.widgets || {}).clock     || {}, (body.brb.widgets || {}).clock     || {}),
-              countdown: Object.assign({}, (s.brb.widgets || {}).countdown || {}, (body.brb.widgets || {}).countdown || {}),
-              social:    Object.assign({}, (s.brb.widgets || {}).social    || {}, (body.brb.widgets || {}).social    || {}),
+              countdown:  Object.assign({}, (s.brb.widgets || {}).countdown  || {}, (body.brb.widgets || {}).countdown  || {}),
+              countdown2: Object.assign({}, (s.brb.widgets || {}).countdown2 || {}, (body.brb.widgets || {}).countdown2 || {}),
+              social:     Object.assign({}, (s.brb.widgets || {}).social     || {}, (body.brb.widgets || {}).social     || {}),
               nextMatch: Object.assign({}, (s.brb.widgets || {}).nextMatch || {}, (body.brb.widgets || {}).nextMatch || {})
             })
           : s.brb.widgets;
@@ -2603,7 +2658,9 @@ const server = http.createServer(async (req, res) => {
       if (body.bskyFilterKeyword !== undefined) s.bskyFilterKeyword = body.bskyFilterKeyword;
       if (body.ytClientId     !== undefined) s.ytClientId     = body.ytClientId;
       if (body.ytClientSecret !== undefined) s.ytClientSecret = body.ytClientSecret;
-      if (body.slideshowLinks      !== undefined) s.slideshowLinks     = body.slideshowLinks;
+      if (body.slideshowLinks      !== undefined) s.slideshowLinks      = body.slideshowLinks;
+      if (body.brbDisabledSlides  !== undefined) s.brbDisabledSlides   = body.brbDisabledSlides;
+      if (body.infoDisabledSlides !== undefined) s.infoDisabledSlides  = body.infoDisabledSlides;
       if (body.bitlyToken         !== undefined) { s.bitlyToken = body.bitlyToken; _bitlyCache = null; }
       if (body.bitlyLink          !== undefined) { s.bitlyLink  = body.bitlyLink;  _bitlyCache = null; }
       if (body.bitlyStat          !== undefined) { s.bitlyStat  = body.bitlyStat;  _bitlyCache = null; }

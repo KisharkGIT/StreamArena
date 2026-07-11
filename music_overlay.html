@@ -83,7 +83,7 @@
       lastSong=data.raw;
       document.getElementById('songTitle').textContent  = data.title;
       document.getElementById('songArtist').textContent = data.artist || '';
-      showCard();
+      if (data.popup !== false) showCard();
     } catch(e) {}
   }
 
